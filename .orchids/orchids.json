@@ -1,0 +1,7 @@
+{
+  "startupCommands": [
+    "cd /home/user/app/permitOS && npm install; npm run dev -- --host 0.0.0.0 --port 5173"
+  ],
+  "projectId": "dc2530a4-259b-4240-a764-57df700c3b43",
+  "templateId": "any"
+}

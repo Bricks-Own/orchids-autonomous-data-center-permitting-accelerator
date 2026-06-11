@@ -1,0 +1,174 @@
+{
+  "air": [
+    {
+      "module": "NSR/PSD Applicability",
+      "citations": [
+        "CAA NSR/PSD",
+        "40 CFR 51/52 PSD implementation"
+      ],
+      "deliverables": [
+        "PSD/NSR Applicability Memo",
+        "Synthetic Minor / Enforceable Limit Memo",
+        "Preconstruction Permit Application"
+      ]
+    },
+    {
+      "module": "Stationary Combustion Turbines",
+      "citations": [
+        "40 CFR Part 60 Subpart KKKK",
+        "40 CFR Part 60 Subpart KKKKa for newer turbines"
+      ],
+      "deliverables": [
+        "NSPS Turbine Applicability Memo",
+        "NOx/SO2 Compliance Matrix",
+        "Monitoring/Recordkeeping Plan"
+      ]
+    },
+    {
+      "module": "Turbine HAP / NESHAP",
+      "citations": [
+        "40 CFR Part 63 Subpart YYYY"
+      ],
+      "deliverables": [
+        "NESHAP YYYY Applicability Memo",
+        "Initial/Continuous Compliance Plan",
+        "HAP Emissions Methodology"
+      ]
+    },
+    {
+      "module": "Backup Engines / Gensets",
+      "citations": [
+        "40 CFR Part 60 Subpart IIII",
+        "40 CFR Part 60 Subpart JJJJ",
+        "40 CFR Part 63 Subpart ZZZZ"
+      ],
+      "deliverables": [
+        "Engine Rule Applicability Matrix",
+        "Emergency/Non-Emergency Runtime Log Design",
+        "Maintenance and Fuel Records Plan"
+      ]
+    },
+    {
+      "module": "Air Dispersion Modeling",
+      "citations": [
+        "AERMOD Modeling Guidance",
+        "NAAQS/PSD Increment Analysis"
+      ],
+      "deliverables": [
+        "Modeling Protocol",
+        "AERMOD Input File Builder",
+        "Receptor/Grid Definition",
+        "Modeling Results Report"
+      ]
+    },
+    {
+      "module": "BACT/LAER",
+      "citations": [
+        "PSD BACT / Nonattainment NSR LAER"
+      ],
+      "deliverables": [
+        "Top-Down BACT Analysis",
+        "LAER/Offsets Strategy",
+        "SCR/Oxidation Catalyst / DLN Evaluation"
+      ]
+    },
+    {
+      "module": "Title V / Ongoing Compliance",
+      "citations": [
+        "Title V operating permit rules",
+        "40 CFR Part 64 CAM if applicable"
+      ],
+      "deliverables": [
+        "Title V Application Draft",
+        "Compliance Assurance Monitoring Plan",
+        "Deviation/Exceedance Reporting Workflow"
+      ]
+    }
+  ],
+  "water": [
+    {
+      "module": "NPDES Wastewater",
+      "citations": [
+        "40 CFR Part 122",
+        "40 CFR Part 124",
+        "40 CFR Part 125"
+      ],
+      "deliverables": [
+        "NPDES Applicability Memo",
+        "Outfall Inventory",
+        "Effluent Characterization Plan",
+        "Monitoring Plan"
+      ]
+    },
+    {
+      "module": "Industrial Stormwater",
+      "citations": [
+        "40 CFR 122.26",
+        "State MSGP/General Permit"
+      ],
+      "deliverables": [
+        "NOI",
+        "SWPPP",
+        "BMP Matrix",
+        "Benchmark Monitoring Calendar"
+      ]
+    },
+    {
+      "module": "Construction Stormwater",
+      "citations": [
+        "NPDES Construction General Permit / State CGP"
+      ],
+      "deliverables": [
+        "Construction NOI",
+        "Erosion & Sediment Control Plan",
+        "Inspection Log Template"
+      ]
+    },
+    {
+      "module": "Cooling Water Intake",
+      "citations": [
+        "CWA 316(b)",
+        "40 CFR Part 125 Subpart J"
+      ],
+      "deliverables": [
+        "316(b) Applicability Screen",
+        "Intake Flow Model",
+        "BTA / Impingement & Entrainment Package"
+      ]
+    },
+    {
+      "module": "SPCC / Fuel & Oil Storage",
+      "citations": [
+        "40 CFR Part 112"
+      ],
+      "deliverables": [
+        "SPCC Applicability Memo",
+        "Tank Inventory",
+        "Secondary Containment Calculation",
+        "Facility Diagram"
+      ]
+    },
+    {
+      "module": "Pretreatment / POTW",
+      "citations": [
+        "Local sewer authority / pretreatment rules"
+      ],
+      "deliverables": [
+        "POTW Discharge Questionnaire",
+        "Cooling Blowdown Characterization",
+        "Discharge Minimization Plan"
+      ]
+    },
+    {
+      "module": "Wetlands / Waters",
+      "citations": [
+        "CWA 404/401 if jurisdictional waters impacted"
+      ],
+      "deliverables": [
+        "Wetlands Screening Checklist",
+        "Jurisdictional Determination Support Packet",
+        "Avoidance/Minimization Memo"
+      ]
+    }
+  ]
+}

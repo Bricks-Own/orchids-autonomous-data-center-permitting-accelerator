@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Brick PermitOS — BigWatt Platform Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {font-family: Arial, sans-serif; margin:0; background:#f3f4f6; color:#111827;}
+header {background:#111827; color:white; padding:22px 30px;}
+header h1 {margin:0; font-size:26px;}
+header p {margin:6px 0 0; color:#d1d5db;}
+.container {display:flex; min-height:calc(100vh - 80px);}
+nav {width:250px; background:white; border-right:1px solid #ddd; padding:16px;}
+nav button {display:block; width:100%; padding:12px; margin:6px 0; border:0; border-radius:8px; background:#eef2ff; cursor:pointer; text-align:left;}
+nav button.active {background:#111827; color:white;}
+main {flex:1; padding:24px; overflow:auto;}
+.card {background:white; border:1px solid #ddd; border-radius:12px; padding:20px; margin-bottom:18px; box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+.grid {display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+.grid2 {display:grid; grid-template-columns:repeat(2,1fr); gap:14px;}
+.metric {background:#f9fafb; border:1px solid #e5e7eb; padding:14px; border-radius:10px;}
+.metric b {font-size:13px; color:#6b7280;}
+.metric div {font-size:24px; margin-top:6px;}
+label {display:block; font-weight:bold; margin-top:10px; font-size:13px;}
+input, select {width:90%; padding:8px; border:1px solid #ccc; border-radius:6px;}
+button.primary {background:#111827; color:white; border:0; border-radius:8px; padding:11px 14px; margin-top:15px; cursor:pointer;}
+table {border-collapse:collapse; width:100%; margin-top:10px;}
+th, td {border:1px solid #e5e7eb; padding:8px; text-align:left; vertical-align:top;}
+th {background:#111827; color:white;}
+.pill {display:inline-block; background:#dbeafe; color:#1e3a8a; padding:4px 8px; border-radius:999px; margin:3px; font-size:12px;}
+.red {background:#fee2e2; color:#991b1b;}
+.green {background:#dcfce7; color:#166534;}
+.yellow {background:#fef3c7; color:#92400e;}
+pre {white-space:pre-wrap; background:#111827; color:white; padding:14px; border-radius:10px;}
+canvas {background:#fff; border:1px solid #ddd; border-radius:10px;}
+.hidden {display:none;}
+</style>
+</head>
+<body>
+<header>
+<h1>Brick PermitOS for BigWatt Digital</h1>
+<p>AI platform for air + water permits, CFR document automation, PTE/NPDES modeling, digital-twin simulation, and continuous compliance controls.</p>
+</header>
+<div class="container">
+<nav>
+<button class="active" onclick="show('overview', this)">1. Platform Overview</button>
+<button onclick="show('intake', this)">2. Site Intake</button>
+<button onclick="show('air', this)">3. Air Permit AI</button>
+<button onclick="show('water', this)">4. Water Permit AI</button>
+<button onclick="show('docs', this)">5. CFR Document Factory</button>
+<button onclick="show('sim', this)">6. Simulation Engine</button>
+<button onclick="show('compliance', this)">7. Live Compliance OS</button>
+<button onclick="show('roadmap', this)">8. Implementation Roadmap</button>
+</nav>
+<main>
+
+<section id="overview" class="tab">
+<div class="card">
+<h2>What this platform does</h2>
+<p><b>Brick PermitOS</b> is a single AI workflow that can replace most manual permitting workstreams: site intake, applicability screening, PTE, CFR matrices, BACT/LAER, AERMOD inputs, NPDES/SWPPP/SPCC/316(b), and operational compliance. Unlike a traditional consultant, it also connects the permit to actual control logic: turbine runtime, cooling load, water use, blowdown, battery dispatch, and compliance logs.</p>
+<div class="grid">
+<div class="metric"><b>Core wedge</b><div>Permits + Controls</div></div>
+<div class="metric"><b>BigWatt use case</b><div>Upsized gas AI campuses</div></div>
+<div class="metric"><b>Differentiator</b><div>Permit-ready digital twin</div></div>
+</div>
+</div>
+<div class="card">
+<h2>Tool suite under one platform</h2>
+<table>
+<tr><th>Tool</th><th>What it automates</th><th>Why ASG-style workflow struggles</th></tr>
+<tr><td>Regulatory Applicability Agent</td><td>Reads state, county, fuel, turbine type, water source, discharge path, tank inventory and generates air/water permit pathways.</td><td>Consultants often do this as static memos; slow to rerun across upsized alternatives.</td></tr>
+<tr><td>PTE + Controlled PTE Engine</td><td>Calculates baseline PTE, controlled PTE, synthetic-minor options, runtime caps, and emissions impact of Brick controls.</td><td>Manual spreadsheets are not tied to actual dispatch/cooling controls.</td></tr>
+<tr><td>CFR Document Factory</td><td>Generates Subpart KKKK/KKKKa, YYYY, IIII/JJJJ/ZZZZ, NPDES, SWPPP, SPCC, and 316(b) draft packs.</td><td>Consultants draft from precedent; this builds site-specific drafts from equipment + telemetry.</td></tr>
+<tr><td>Digital Twin Simulator</td><td>Runs hourly power, cooling, water, emissions, dispatch, and compliance-limit scenarios.</td><td>Most permit packages are static and conservative.</td></tr>
+<tr><td>Regulator QA Copilot</td><td>Prepares responses to deficiency letters, RAI questions, public comment, EJ questions, and agency modeling comments.</td><td>Often reactive and slow; this builds from a structured permit record.</td></tr>
+<tr><td>Continuous Compliance OS</td><td>Turns permit conditions into alarms, controls, reports, and audit logs.</td><td>Traditional consultants do not operate the site post-permit.</td></tr>
+</table>
+</div>
+</section>
+
+<section id="intake" class="tab hidden">
+<div class="card">
+<h2>Site Intake</h2>
+<div class="grid">
+<div><label>Site name</label><input id="site" value="BigWatt Upsized AI Campus"></div>
+<div><label>State</label><input id="state" value="Tennessee"></div>
+<div><label>Area status</label><select id="area"><option>Attainment / Unclassifiable</option><option>Nonattainment / Maintenance</option></select></div>
+<div><label>Gas turbines</label><input id="turbines" type="number" value="8"></div>
+<div><label>MW per turbine</label><input id="mw" type="number" value="25"></div>
+<div><label>Operating hours/year</label><input id="hours" type="number" value="6000"></div>
+<div><label>Heat rate MMBtu/MWh</label><input id="heat" type="number" value="8.5" step="0.1"></div>
+<div><label>NOx lb/MMBtu</label><input id="nox" type="number" value="0.015" step="0.001"></div>
+<div><label>CO lb/MMBtu</label><input id="co" type="number" value="0.035" step="0.001"></div>
+<div><label>Cooling/parasitic load %</label><input id="coolpct" type="number" value="32"></div>
+<div><label>Brick load reduction %</label><input id="savings" type="number" value="12"></div>
+<div><label>Water use gal/MWh</label><input id="water" type="number" value="250"></div>
+</div>
+<button class="primary" onclick="runAll()">Run full AI screening</button>
+</div>
+<div class="card">
+<h2>Auto-generated site profile</h2>
+<div id="profile"></div>
+</div>
+</section>
+
+<section id="air" class="tab hidden">
+<div class="card"><h2>Air Permit AI — PTE and PSD/NSR Screening</h2><div id="airMetrics" class="grid"></div><div id="airTable"></div></div>
+<div class="card"><h2>Air submission package generated</h2><div id="airDocs"></div></div>
+</section>
+
+<section id="water" class="tab hidden">
+<div class="card"><h2>Water Permit AI — NPDES, Stormwater, SPCC, 316(b)</h2><div id="waterMetrics" class="grid"></div><div id="waterDocs"></div></div>
+</section>
+
+<section id="docs" class="tab hidden">
+<div class="card">
+<h2>CFR Document Factory</h2>
+<p>Automatically generated draft documents BigWatt can hand to counsel, environmental engineers, or permitting agencies.</p>
+<button class="primary" onclick="generateDocs()">Generate submission index</button>
+<pre id="generatedDocs"></pre>
+</div>
+</section>
+
+<section id="sim" class="tab hidden">
+<div class="card">
+<h2>Digital Twin Simulation Engine</h2>
+<p>Based on the attached BDC BAS-style cooling simulation: this should not just be a pretty BAS screen. It should be a permit-linked simulator that uses chiller/tower/pump setpoints, cooling capacity, return/supply temperatures, pressure, fan/pump staging, turbine dispatch, battery dispatch, and water use to simulate emissions and permit compliance hour-by-hour.</p>
+<canvas id="chart" width="900" height="330"></canvas>
+<button class="primary" onclick="drawSim()">Run 24-hour dispatch/cooling/emissions simulation</button>
+</div>
+<div class="card">
+<h2>Simulation outputs</h2>
+<div id="simOutputs" class="grid2"></div>
+</div>
+</section>
+
+<section id="compliance" class="tab hidden">
+<div class="card">
+<h2>Continuous Compliance OS</h2>
+<table>
+<tr><th>Permit condition</th><th>Brick control/action</th><th>Evidence generated</th></tr>
+<tr><td>Annual NOx cap</td><td>Dispatch limiter + cooling optimization + alert when forecast approaches 80/90/95% of cap.</td><td>Daily NOx ledger, fuel use, runtime log, forecast-to-cap report.</td></tr>
+<tr><td>Runtime hour limit</td><td>Automated runtime tracking by turbine/engine and load curtailment sequence.</td><td>Unit-level operating hour logs and exceedance prevention records.</td></tr>
+<tr><td>Startup/shutdown limits</td><td>Battery and thermal storage smoothing to avoid unnecessary starts.</td><td>Startup event log, avoided starts analysis, heat-rate impact.</td></tr>
+<tr><td>Water discharge / blowdown limits</td><td>Cycles-of-concentration optimization and blowdown forecasting.</td><td>Water balance, discharge volume report, chemical/thermal discharge data.</td></tr>
+<tr><td>Stormwater BMP inspection</td><td>Inspection scheduler + photo evidence + work orders.</td><td>SWPPP inspection log and corrective action log.</td></tr>
+<tr><td>SPCC inspection</td><td>Tank/secondary-containment inspection workflow.</td><td>SPCC logs, release-response drill records, containment capacity report.</td></tr>
+</table>
+</div>
+</section>
+
+<section id="roadmap" class="tab hidden">
+<div class="card">
+<h2>90-day build plan</h2>
+<table>
+<tr><th>Phase</th><th>Output</th><th>BigWatt value</th></tr>
+<tr><td>Week 1-2</td><td>Site data schema, equipment intake, CFR applicability engine, document catalog.</td><td>Immediate permit pathway clarity across upsized sites.</td></tr>
+<tr><td>Week 3-4</td><td>PTE engine, water balance engine, controlled-PTE scenario engine.</td><td>Quantifies whether Brick can keep site below major thresholds or reduce BACT burden.</td></tr>
+<tr><td>Week 5-6</td><td>Auto-generated air and water document drafts.</td><td>Speeds ASG/counsel review and agency submission assembly.</td></tr>
+<tr><td>Week 7-8</td><td>Digital twin simulation linked to cooling/turbine/battery scenarios.</td><td>Shows enforceable operational profile, not just static assumptions.</td></tr>
+<tr><td>Week 9-12</td><td>Live compliance dashboard and regulator QA copilot.</td><td>Turns permit conditions into operating controls and audit logs.</td></tr>
+</table>
+</div>
+</section>
+
+</main>
+</div>
+
+<script>
+function show(id, btn){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active')); btn.classList.add('active');}
+function getNum(id){return parseFloat(document.getElementById(id).value || 0);}
+function tons(mmbtu, factor){return mmbtu*factor/2000;}
+function runAll(){
+ const site=document.getElementById('site').value, state=document.getElementById('state').value, area=document.getElementById('area').value;
+ const turbines=getNum('turbines'), mw=getNum('mw'), hours=getNum('hours'), heat=getNum('heat'), nox=getNum('nox'), co=getNum('co'), coolpct=getNum('coolpct'), savings=getNum('savings')/100, water=getNum('water');
+ const totalMW=turbines*mw, mwh=totalMW*hours, mmbtu=mwh*heat;
+ const baselineNOx=tons(mmbtu,nox), optNOx=baselineNOx*(1-savings), baselineCO=tons(mmbtu,co), optCO=baselineCO*(1-savings);
+ const co2=tons(mmbtu,117), optCO2=co2*(1-savings);
+ const waterBase=mwh*water/1000000, waterOpt=waterBase*(1-savings*0.65);
+ document.getElementById('profile').innerHTML = `<span class="pill">${site}</span><span class="pill">${state}</span><span class="pill">${area}</span><span class="pill">${totalMW} MW installed</span><span class="pill">${hours} hr/yr</span><span class="pill">${coolpct}% cooling/parasitic</span>`;
+ document.getElementById('airMetrics').innerHTML = `<div class="metric"><b>Installed MW</b><div>${totalMW.toFixed(0)}</div></div><div class="metric"><b>Baseline NOx PTE</b><div>${baselineNOx.toFixed(1)} tpy</div></div><div class="metric"><b>Brick-controlled NOx</b><div>${optNOx.toFixed(1)} tpy</div></div>`;
+ document.getElementById('airTable').innerHTML = `<table><tr><th>Pollutant</th><th>Baseline tpy</th><th>Brick controlled tpy</th><th>Avoided tpy</th></tr><tr><td>NOx</td><td>${baselineNOx.toFixed(1)}</td><td>${optNOx.toFixed(1)}</td><td>${(baselineNOx-optNOx).toFixed(1)}</td></tr><tr><td>CO</td><td>${baselineCO.toFixed(1)}</td><td>${optCO.toFixed(1)}</td><td>${(baselineCO-optCO).toFixed(1)}</td></tr><tr><td>CO2e</td><td>${co2.toFixed(1)}</td><td>${optCO2.toFixed(1)}</td><td>${(co2-optCO2).toFixed(1)}</td></tr></table>`;
+ document.getElementById('airDocs').innerHTML = `<ul><li>PSD/NSR Applicability Memo</li><li>PTE Workbook + Methodology</li><li>Controlled PTE/Synthetic Minor Strategy</li><li>BACT/LAER Draft</li><li>Subpart KKKK/KKKKa Matrix</li><li>Subpart YYYY HAP Matrix</li><li>Engine IIII/JJJJ/ZZZZ Matrix</li><li>AERMOD Protocol + Inputs</li><li>Monitoring/Recordkeeping/Reporting Plan</li></ul>`;
+ document.getElementById('waterMetrics').innerHTML = `<div class="metric"><b>Water base use</b><div>${waterBase.toFixed(1)} MG/yr</div></div><div class="metric"><b>Optimized water use</b><div>${waterOpt.toFixed(1)} MG/yr</div></div><div class="metric"><b>Avoided water</b><div>${(waterBase-waterOpt).toFixed(1)} MG/yr</div></div>`;
+ document.getElementById('waterDocs').innerHTML = `<ul><li>NPDES Applicability Memo</li><li>Water Balance / Outfall Inventory</li><li>Wastewater and Cooling Blowdown Characterization</li><li>Industrial Stormwater NOI + SWPPP</li><li>Construction Stormwater NOI + ESC Plan</li><li>SPCC Plan for fuel/oil tanks</li><li>316(b) Cooling Water Intake Applicability Screen</li><li>POTW/Pretreatment Discharge Packet</li><li>Water Conservation / Reuse / ZLD Feasibility Memo</li></ul>`;
+ drawSim();
+}
+function generateDocs(){
+ document.getElementById('generatedDocs').textContent =
+`BIGWATT DIGITAL — PERMITOS AUTO-GENERATED SUBMISSION INDEX
+
+AIR
+1. Project Description and Site Process Flow Diagrams
+2. Emission Unit Inventory
+3. Potential to Emit Workbook
+4. Controlled PTE and Enforceable Limit Memo
+5. PSD / Nonattainment NSR Applicability
+6. BACT / LAER Technology Review
+7. NSPS Combustion Turbine Matrix: 40 CFR Part 60 KKKK / KKKKa
+8. NESHAP Combustion Turbine Matrix: 40 CFR Part 63 YYYY
+9. Engine Rule Matrix: IIII / JJJJ / ZZZZ
+10. Startup / Shutdown / Malfunction Plan
+11. AERMOD Modeling Protocol
+12. NAAQS / PSD Increment Report
+13. GHG and Decarbonization Report
+14. Monitoring, Recordkeeping, Reporting Plan
+
+WATER
+1. NPDES Applicability Determination
+2. Water Balance and Outfall Inventory
+3. Cooling Blowdown Characterization
+4. Industrial Stormwater NOI + SWPPP
+5. Construction Stormwater NOI + ESC Plan
+6. Cooling Water Intake 316(b) Screen
+7. SPCC Plan
+8. POTW / Pretreatment Packet
+9. Water Reuse / ZLD Feasibility Memo
+
+BRICK CONTROLLED OPERATING ENVELOPE
+1. Permit-aware turbine dispatch logic
+2. Cooling optimization limits and setpoints
+3. Battery/thermal storage orchestration plan
+4. Runtime/exceedance alerting rules
+5. Digital twin compliance dashboard
+6. Monthly regulator-ready compliance report`;
+}
+function drawSim(){
+ const canvas=document.getElementById('chart'), ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height);
+ ctx.font="13px Arial"; ctx.fillText("24-hour simulated load, emissions, and Brick-controlled operating envelope",20,22);
+ let w=840,h=250,x0=40,y0=290;
+ ctx.strokeStyle="#ddd"; for(let i=0;i<=5;i++){ctx.beginPath();ctx.moveTo(x0,y0-i*h/5);ctx.lineTo(x0+w,y0-i*h/5);ctx.stroke();}
+ function line(color, amp, base, phase){ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath(); for(let t=0;t<24;t++){let val=base+amp*Math.sin((t+phase)/24*Math.PI*2)+10*Math.sin(t/24*Math.PI*4); let x=x0+w*t/23, y=y0-val/100*h; if(t==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);} ctx.stroke();}
+ line("#991b1b",25,70,16); line("#2563eb",20,55,14); line("#16a34a",16,48,11);
+ ctx.fillStyle="#991b1b"; ctx.fillText("Baseline turbine emissions",670,50); ctx.fillStyle="#2563eb"; ctx.fillText("Brick optimized cooling load",670,70); ctx.fillStyle="#16a34a"; ctx.fillText("Permit-constrained dispatch",670,90);
+ document.getElementById('simOutputs').innerHTML = `<div class="metric"><b>Modeled outcome</b><div>Lower NOx peak</div></div><div class="metric"><b>Control lever</b><div>Cooling + battery smoothing</div></div><div class="metric"><b>Permit value</b><div>More defensible PTE</div></div><div class="metric"><b>Compliance value</b><div>Live audit trail</div></div>`;
+}
+runAll();
+</script>
+</body>
+</html>
