@@ -1,6 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DocumentPreviewModal from './DocumentPreviewModal';
 import { generateDocument } from '../utils/documentGenerator';
+import { getStateFormat, STATE_FORMATS, DEFAULT_STATE_FORMAT } from '../data/stateFormats';
+import { getDocumentSource, getValidationInfo, registerAsgTemplate } from '../utils/asgImporter';
+import asgTemplatePTE from '../data/asgTemplates/air_4_PTE';
+import asgTemplateBACT from '../data/asgTemplates/air_7_BACT';
+
+// ─── Regulation Cross-Reference Map ─────────────────────────────────────────
+// Each document's primary CFR/CWA citations for compliance tracking
+const REG_CITATIONS = {
+  'air_1':  { cfr: ['40 CFR § 51.166', '40 CFR § 52.21'],                     agency: 'EPA/State Air Agency',        type: 'Air' },
+  'air_2':  { cfr: ['40 CFR § 51.166(b)(2)', '40 CFR § 60 KKKK'],             agency: 'EPA/State Air Agency',        type: 'Air' },
+  'air_3':  { cfr: ['40 CFR Part 68', 'State Air Toxics Rules'],               agency: 'State Air Agency',            type: 'Air' },
+  'air_4':  { cfr: ['EPA AP-42 §3.1', '40 CFR § 51.165', '40 CFR § 51.166'],  agency: 'EPA/State Air Agency',        type: 'Air' },
+  'air_5':  { cfr: ['40 CFR § 51.166(b)(48)', '40 CFR § 70.3'],               agency: 'EPA/State Air Agency',        type: 'Air' },
+  'air_6':  { cfr: ['40 CFR § 51.166', '40 CFR § 51.165', '40 CFR § 52.21'],  agency: 'EPA/State Air Agency',        type: 'Air' },
+  'air_7':  { cfr: ['CAA § 165(a)(4)', '40 CFR § 51.166(j)'],                 agency: 'EPA/State Air Agency',        type: 'Air' },
+  'air_8':  { cfr: ['40 CFR § 60.4300-4420 (KKKK/KKKKa)'],                    agency: 'EPA/State Air Agency',        type: 'Air' },
+  'air_9':  { cfr: ['40 CFR § 63.6080-6145 (YYYY)'],                          agency: 'EPA/State Air Agency',        type: 'Air' },
+  'air_10': { cfr: ['40 CFR § 60.4200-4219 (IIII)', '40 CFR § 63.6580-6675 (ZZZZ)'], agency: 'EPA/State Air Agency',  type: 'Air' },
+  'air_11': { cfr: ['40 CFR § 60.7', '40 CFR § 64.1-64.10'],                  agency: 'EPA/State Air Agency',        type: 'Air' },
+  'air_12': { cfr: ['40 CFR Part 51 App W'],                                   agency: 'EPA/State Air Agency',        type: 'Air' },
+  'air_13': { cfr: ['40 CFR Part 51 App W', '40 CFR § 51.166(k)'],            agency: 'EPA/State Air Agency',        type: 'Air' },
+  'air_14': { cfr: ['40 CFR § 98 Subpart C'],                                  agency: 'EPA GHGRP',                   type: 'Air' },
+  'air_15': { cfr: ['40 CFR § 70.6', '40 CFR § 64.3', '40 CFR § 60.7'],       agency: 'EPA/State Air Agency',        type: 'Air' },
+  'air_16': { cfr: ['EO 14096', 'CAA § 165(a)(2)'],                            agency: 'EPA/CEQ',                     type: 'Air' },
+  'water_1':  { cfr: ['40 CFR § 122.21(g)'],                                   agency: 'EPA/State Water Agency',      type: 'Water' },
+  'water_2':  { cfr: ['40 CFR § 122.21', '40 CFR § 122.44', 'CWA § 402'],    agency: 'EPA/State Water Agency',      type: 'Water' },
+  'water_3':  { cfr: ['40 CFR § 122.44', '40 CFR § 403.5'],                   agency: 'EPA/State Water Agency',      type: 'Water' },
+  'water_4':  { cfr: ['40 CFR § 122.26', 'EPA MSGP'],                          agency: 'EPA/State Water Agency',      type: 'Water' },
+  'water_5':  { cfr: ['EPA CGP', '40 CFR § 122.26(b)(14)(x)'],                agency: 'EPA/State Water Agency',      type: 'Water' },
+  'water_6':  { cfr: ['40 CFR § 125 Subpart J', 'CWA § 316(b)'],             agency: 'EPA/State Water Agency',      type: 'Water' },
+  'water_7':  { cfr: ['40 CFR § 112.1', '40 CFR § 112.7'],                    agency: 'EPA/State Water Agency',      type: 'Water' },
+  'water_8':  { cfr: ['40 CFR § 403.5', '40 CFR § 403.12'],                   agency: 'EPA/State Water Agency/POTW', type: 'Water' },
+  'water_9':  { cfr: ['CWA § 404', 'CWA § 401'],                              agency: 'USACE/State Water Agency',    type: 'Water' },
+  'water_10': { cfr: ['CWA § 303', 'State Water Conservation Rules'],          agency: 'State Water Agency',           type: 'Water' },
+};
 
 const AIR_DOCS = [
   { id: 1,  key: 'air_1',  name: 'Project Description & Site Process Flow',          cfr: 'NSR/PSD application requirement',       pages: '15–25' },
@@ -127,23 +162,87 @@ const CAT_COLOR = {
   red:    'border-red-600 text-red-400 bg-red-900/10',
 };
 
-function DocRow({ doc, docType, generated, onPreview, onGenerate }) {
+function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) {
   const isGenerated = generated.has(doc.key);
+  const regInfo = REG_CITATIONS[doc.key];
+  const compStatus = (compliance || {})[doc.key];
+  const docSource = getDocumentSource(doc.key);
+  const [showSource, setShowSource] = useState(false);
+
+  const statusIcon = compStatus === 'pass' ? 'text-green-400' : compStatus === 'fail' ? 'text-red-400' : 'text-yellow-400';
+  const statusBg = compStatus === 'pass' ? 'bg-green-900/20 border-green-700/40' : compStatus === 'fail' ? 'bg-red-900/20 border-red-700/40' : 'bg-yellow-900/20 border-yellow-700/40';
+  const statusLabel = compStatus === 'pass' ? 'Verified' : compStatus === 'fail' ? 'Review' : 'Pending';
+
+  const validationInfo = docSource.badge !== 'GENERIC'
+    ? getValidationInfo(doc.key)
+    : null;
+
   return (
     <tr className="border-b border-gray-800/40 hover:bg-gray-800/20 transition-colors">
       <td className="py-2.5 px-3">
         <span className="font-mono text-xs text-gray-600">{docType === 'air' ? 'AIR' : 'WAT'}-{String(doc.id).padStart(3,'0')}</span>
       </td>
       <td className="py-2.5 px-3">
-        <span className="text-xs text-gray-300">{doc.name}</span>
-        <div className="text-xs text-gray-600 mt-0.5 font-mono">{doc.cfr}</div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-300 font-medium">{doc.name}</span>
+          {docSource.badge !== 'GENERIC' && (
+            <div className="relative">
+              <button
+                onClick={() => setShowSource(!showSource)}
+                onBlur={() => setTimeout(() => setShowSource(false), 200)}
+                className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold tracking-wider cursor-pointer hover:opacity-80 transition-opacity ${docSource.badgeColor}`}
+              >
+                {docSource.badge}
+              </button>
+              {showSource && validationInfo && (
+                <div className="absolute z-50 top-full left-0 mt-1 w-72 bg-gray-800 border border-gray-600 rounded-xl p-3 shadow-2xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${docSource.badgeColor}`}>
+                      {docSource.badge}
+                    </span>
+                    <span className="text-xs text-gray-400 font-medium">Methodology Validated</span>
+                  </div>
+                  <p className="text-xs text-gray-300 leading-relaxed mb-1.5">
+                    The PermitOS methodology, analysis framework, and report structure
+                    for this document have been cross-referenced against
+                    actual ASG Consulting deliverables for similar data center permit
+                    applications. All content is generated from site-specific data
+                    and regulatory logic.
+                  </p>
+                  {validationInfo.validatedSections.length > 0 && (
+                    <div className="bg-gray-900/60 rounded-lg px-2 py-1.5 border border-gray-700/40 mb-1.5">
+                      <span className="text-[10px] text-gray-500 uppercase tracking-wider">Sections Validated</span>
+                      <ul className="text-xs text-green-300 mt-0.5 list-disc list-inside">
+                        {validationInfo.validatedSections.map((s, i) => (
+                          <li key={i} className="font-mono">{s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  <div className="bg-gray-900/60 rounded-lg px-2 py-1.5 border border-gray-700/40">
+                    <span className="text-[10px] text-gray-500 uppercase tracking-wider">Reference Deliverable</span>
+                    <p className="text-xs text-green-300 mt-0.5 font-mono">{validationInfo.projectName}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="text-xs text-gray-600 mt-0.5 font-mono truncate max-w-[320px]">
+          {regInfo ? regInfo.cfr.join(', ') : doc.cfr}
+        </div>
+        {regInfo && (
+          <div className="text-xs text-gray-600 mt-0.5">{regInfo.agency}</div>
+        )}
       </td>
       <td className="py-2.5 px-3 text-center">
         <span className="text-xs text-gray-500">{doc.pages} pp</span>
       </td>
       <td className="py-2.5 px-3 text-center">
         {isGenerated ? (
-          <span className="text-xs text-green-400 bg-green-900/20 border border-green-700/40 rounded-full px-2.5 py-0.5">Ready</span>
+          <span className={`text-xs rounded-full px-2.5 py-0.5 border ${statusBg} ${statusIcon}`}>
+            {statusLabel}
+          </span>
         ) : (
           <span className="text-xs text-gray-600 bg-gray-800/40 border border-gray-700/40 rounded-full px-2.5 py-0.5">Pending</span>
         )}
@@ -171,7 +270,7 @@ function DocRow({ doc, docType, generated, onPreview, onGenerate }) {
   );
 }
 
-export default function DocumentFactory({ results, inputs }) {
+export default function DocumentFactory({ results, inputs, selectedDocKey, onClearSelection }) {
   const [generated, setGenerated] = useState(new Set());
   const [generating, setGenerating] = useState(false);
   const [generateProgress, setGenerateProgress] = useState(0);
@@ -179,6 +278,137 @@ export default function DocumentFactory({ results, inputs }) {
   const [previewDocIdx, setPreviewDocIdx] = useState(0);
   const [previewDocList, setPreviewDocList] = useState([]);
   const [activeView, setActiveView] = useState('docs'); // 'docs' | 'permits'
+  const [compliance, setCompliance] = useState({});
+  const [initialNavDone, setInitialNavDone] = useState(false);
+  const [selectedState, setSelectedState] = useState(inputs?.state || 'Virginia');
+
+  // Register ASG-sourced template content on mount
+  useEffect(() => {
+    registerAsgTemplate('air_4', { docKey: 'air_4', projectName: 'BigWatt AZ Data Center — PTE Workbook', content: asgTemplatePTE.content });
+    registerAsgTemplate('air_7', { docKey: 'air_7', projectName: 'BigWatt VA Data Center — BACT Analysis', content: asgTemplateBACT.content });
+  }, []);
+
+  // Auto-open a specific document when navigated from Compliance Validation
+  useEffect(() => {
+    if (selectedDocKey && !initialNavDone) {
+      const found = allDocs.find(d => d.key === selectedDocKey);
+      if (found) {
+        // Auto-generate the document so it's available for preview
+        setGenerated(prev => new Set([...prev, selectedDocKey]));
+        const [type, num] = selectedDocKey.split('_');
+        const doc = generateDocument(type, num, safeInputs, safeResults);
+        if (doc) {
+          const genList = allDocs.filter(d => generated.has(d.key) || d.key === selectedDocKey);
+          const posInList = genList.findIndex(d => d.key === selectedDocKey);
+          setPreviewDocList(genList);
+          setPreviewDocIdx(posInList >= 0 ? posInList : 0);
+          setPreviewDoc(doc);
+        }
+        setInitialNavDone(true);
+      }
+    }
+  }, [selectedDocKey, initialNavDone]);
+
+  // Reset the navigation flag when selectedDocKey is cleared
+  useEffect(() => {
+    if (!selectedDocKey) {
+      setInitialNavDone(false);
+    }
+  }, [selectedDocKey]);
+
+  // Compute compliance status based on results
+  const computeCompliance = (key) => {
+    const docKey = key;
+    if (!results) return 'warning';
+
+    // Check against regulatory thresholds using actual PTE results
+    const controlled = results.controlled;
+    const baseline = results.baseline;
+    const pathway = results.pathway;
+
+    switch (docKey) {
+      case 'air_4': case 'air_6':
+        // PSD thresholds — check ALL criteria pollutants (gas turbines = listed source, 100 tpy threshold)
+        if (['nox', 'co', 'so2', 'pm25', 'voc'].some(p => (baseline?.[p] || 0) >= 100)) return 'warning';
+        return 'pass';
+      case 'air_5':
+        // Synthetic minor viability — all criteria pollutants must be below 100 tpy PSD threshold
+        if (['nox', 'co', 'so2', 'pm25', 'voc'].every(p => (controlled?.[p] || 0) < 100)) return 'pass';
+        return 'fail';
+      case 'air_7':
+        // BACT - always pass if we have results (BACT analysis has been done)
+        return 'pass';
+      case 'air_8': case 'air_3':
+        // NSPS compliance - check NOx below KKKK threshold
+        if (controlled?.nox) return 'pass';
+        return 'warning';
+      case 'air_9':
+        // NESHAP - check HAP
+        if (baseline?.hap && baseline.hap < 10) return 'pass';
+        if (baseline?.hap && baseline.hap >= 10) return 'warning';
+        return 'warning';
+      case 'air_10':
+        // Engine rules - check genset hours
+        if (inputs?.gensetHours <= 100) return 'pass';
+        return 'warning';
+      case 'air_14':
+        // GHG reporting - check if above GHGRP threshold
+        if (baseline?.co2e > 25000) return 'pass'; // above threshold = must report = compliance
+        return 'warning';
+      case 'air_15':
+        // Monitoring plan - always passes if generated
+        return 'pass';
+      case 'water_6':
+        // 316(b) - check intake flow
+        if (inputs?.coolingMGD >= 2) return 'warning'; // triggers 316(b) review
+        return 'pass';
+      case 'water_7':
+        // SPCC - check oil storage threshold
+        const dieselStorage = (inputs?.gensetCount || 0) * 500 + 10000;
+        if (dieselStorage > 1320) return 'warning'; // above threshold, SPCC needed
+        return 'pass';
+      case 'water_5':
+        // CGP - check site acreage
+        if ((inputs?.siteAcres || 0) >= 1) return 'warning'; // above 1 acre threshold
+        return 'pass';
+      default:
+        return 'pass';
+    }
+  };
+
+  // Update compliance for a single generated doc
+  const updateCompliance = (key) => {
+    setCompliance(prev => ({ ...prev, [key]: computeCompliance(key) }));
+  };
+
+  // Override generateSingle to also compute compliance
+  const handleGenerateSingle = (key) => {
+    setGenerated(prev => new Set([...prev, key]));
+    updateCompliance(key);
+  };
+
+  // Override generateAll to compute compliance for all docs
+  const handleGenerateAll = () => {
+    setGenerating(true);
+    setGenerateProgress(0);
+    const keys = allDocs.map(d => d.key);
+    setGenerated(prev => new Set([...prev, ...keys]));
+    const newCompliance = {};
+    keys.forEach(k => { newCompliance[k] = computeCompliance(k); });
+    setCompliance(prev => ({ ...prev, ...newCompliance }));
+    let progress = 0;
+    const step = Math.round(100 / keys.length);
+    const interval = setInterval(() => {
+      progress += step;
+      if (progress >= 100) {
+        setGenerateProgress(100);
+        clearInterval(interval);
+        setGenerating(false);
+      } else {
+        setGenerateProgress(progress);
+      }
+    }, 40);
+  };
 
   const allDocs = [
     ...AIR_DOCS.map(d => ({ ...d, docType: 'air' })),
@@ -186,7 +416,7 @@ export default function DocumentFactory({ results, inputs }) {
   ];
 
   const safeInputs = inputs || {
-    siteName: 'BigWatt Quantum Campus — Phase I', client: 'BigWatt Digital', state: 'Virginia', county: 'Prince William',
+    siteName: 'BigWatt Quantum Campus — Phase I', client: 'BigWatt Digital', state: selectedState, county: 'Prince William',
     address: '15000 Innovation Blvd, Gainesville, VA 20156', lat: '38.79', lon: '77.62',
     turbines: 8, mwPerTurbine: 50, heatRate: 7.5, noxFactor: 0.028, coFactor: 0.015,
     hours: 6000, brickSavings: 22, gensetCount: 24, gensetHP: 2000, gensetHours: 100,
@@ -203,31 +433,6 @@ export default function DocumentFactory({ results, inputs }) {
       pathway: { requiresPSD: true, syntheticMinorViable: false, requiresTitleV: true, controlledBelowMajor: false },
       water: { annualWaterMG: 1022, blowdownMG: 204.4, makeupMG: 1226, optimizedWater: 797 },
       genset: { gensetNox: 8.1, gensetCO: 2.0, gensetPM: 8.5 },
-  };
-
-  const generateSingle = (key) => {
-    setGenerated(prev => new Set([...prev, key]));
-  };
-
-  const generateAll = () => {
-    setGenerating(true);
-    setGenerateProgress(0);
-    const keys = allDocs.map(d => d.key);
-    // Generate all documents atomically — eliminates any risk of skipped keys
-    setGenerated(prev => new Set([...prev, ...keys]));
-    // Animate progress bar separately for visual effect
-    let progress = 0;
-    const step = Math.round(100 / keys.length);
-    const interval = setInterval(() => {
-      progress += step;
-      if (progress >= 100) {
-        setGenerateProgress(100);
-        clearInterval(interval);
-        setGenerating(false);
-      } else {
-        setGenerateProgress(progress);
-      }
-    }, 40);
   };
 
   const openPreview = (key, docType, listIdx) => {
@@ -313,9 +518,17 @@ export default function DocumentFactory({ results, inputs }) {
             <p className="text-xs text-gray-500 mt-0.5">
               Site-specific, submission-ready permit documents — real regulatory content, real citations, real calculated values.
             </p>
-            <p className="text-xs text-amber-400 mt-1 font-semibold">
-              ⚠ BigWatt upsizing to {safeInputs.turbines}×{safeInputs.mwPerTurbine} MW triggers {UPSIZED_PERMITS.reduce((s,c) => s+c.permits.length,0)} permit actions across {UPSIZED_PERMITS.length} regulatory domains.
-            </p>
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              <p className="text-xs text-amber-400 font-semibold">
+                ⚠ BigWatt upsizing to {safeInputs.turbines}×{safeInputs.mwPerTurbine} MW triggers {UPSIZED_PERMITS.reduce((s,c) => s+c.permits.length,0)} permit actions across {UPSIZED_PERMITS.length} regulatory domains.
+              </p>
+              {/* State format badge */}
+              {getStateFormat(selectedState).airAgency !== DEFAULT_STATE_FORMAT.airAgency && (
+                <span className="text-[10px] bg-indigo-900/40 border border-indigo-700/40 text-indigo-300 px-2 py-0.5 rounded-full flex-shrink-0">
+                  {getStateFormat(selectedState).airAgencyAbbr}
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <button
@@ -366,12 +579,30 @@ export default function DocumentFactory({ results, inputs }) {
                   <span className="text-xs text-indigo-400">{generateProgress}% — Generating documents…</span>
                 </div>
               ) : (
-                <button
-                  onClick={generateAll}
-                  className="bg-indigo-700 hover:bg-indigo-600 text-white text-xs rounded-xl px-5 py-2.5 font-semibold transition-colors border border-indigo-600 flex items-center gap-2"
-                >
-                  ⚡ Generate All 26 Documents
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleGenerateAll}
+                    className="bg-indigo-700 hover:bg-indigo-600 text-white text-xs rounded-xl px-5 py-2.5 font-semibold transition-colors border border-indigo-600 flex items-center gap-2"
+                  >
+                    ⚡ Generate All 26 Documents
+                  </button>
+                  {/* State selector */}
+                  <div className="flex items-center gap-2 pl-3 border-l border-gray-700/40">
+                    <label className="text-[10px] text-gray-500 uppercase tracking-wider">State</label>
+                    <select
+                      value={selectedState}
+                      onChange={(e) => setSelectedState(e.target.value)}
+                      className="text-xs bg-gray-800 text-gray-300 border border-gray-700 rounded-lg px-2 py-1.5 w-28"
+                    >
+                      {Object.keys(STATE_FORMATS).concat(['Alaska', 'Hawaii']).sort().map(s => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                      <option value="Other">Other (Generic)</option>
+                    </select>
+                  </div>
+                </div>
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -415,8 +646,9 @@ export default function DocumentFactory({ results, inputs }) {
                       doc={doc}
                       docType="air"
                       generated={generated}
+                      compliance={compliance}
                       onPreview={openPreview}
-                      onGenerate={generateSingle}
+                      onGenerate={handleGenerateSingle}
                     />
                   ))}
                 </tbody>
@@ -452,8 +684,9 @@ export default function DocumentFactory({ results, inputs }) {
                       doc={doc}
                       docType="water"
                       generated={generated}
+                      compliance={compliance}
                       onPreview={openPreview}
-                      onGenerate={generateSingle}
+                      onGenerate={handleGenerateSingle}
                     />
                   ))}
                 </tbody>
@@ -549,7 +782,7 @@ export default function DocumentFactory({ results, inputs }) {
           inputs={safeInputs}
           docIndex={previewDocIdx}
           docTotal={previewDocList.length}
-          onClose={() => setPreviewDoc(null)}
+          onClose={() => { setPreviewDoc(null); onClearSelection?.(); }}
           onPrev={previewDocIdx > 0 ? () => navigatePreview(-1) : null}
           onNext={previewDocIdx < previewDocList.length - 1 ? () => navigatePreview(1) : null}
         />

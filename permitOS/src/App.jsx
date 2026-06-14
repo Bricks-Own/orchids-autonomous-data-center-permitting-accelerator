@@ -47,17 +47,23 @@ function App() {
   const [activeTab, setActiveTab] = useState('overview');
   const [inputs, setInputs] = useState(defaultInputs);
   const [results, setResults] = useState(null);
+  const [selectedDocKey, setSelectedDocKey] = useState(null);
+
+  const handleNavigateDoc = (key) => {
+    setSelectedDocKey(key);
+    setActiveTab('docs');
+  };
 
   const renderTab = () => {
     switch (activeTab) {
       case 'overview':    return <Overview setActiveTab={setActiveTab} />;
-      case 'intake':      return <SiteIntake inputs={inputs} setInputs={setInputs} setResults={setResults} setActiveTab={setActiveTab} />;
+      case 'intake':      return <SiteIntake inputs={inputs} setInputs={setInputs} results={results} setResults={setResults} setActiveTab={setActiveTab} />;
       case 'air':         return <AirPermitAI results={results} inputs={inputs} />;
       case 'water':       return <WaterPermitAI results={results} inputs={inputs} />;
       case 'milestones':  return <MilestoneTimeline results={results} inputs={inputs} />;
-      case 'docs':        return <DocumentFactory results={results} inputs={inputs} />;
+      case 'docs':        return <DocumentFactory results={results} inputs={inputs} selectedDocKey={selectedDocKey} onClearSelection={() => setSelectedDocKey(null)} />;
       case 'simulation':  return <DigitalTwin results={results} inputs={inputs} />;
-      case 'compliance':  return <ComplianceOS results={results} inputs={inputs} />;
+      case 'compliance':  return <ComplianceOS results={results} inputs={inputs} onNavigateDoc={handleNavigateDoc} />;
       case 'copilot':     return <RegulatorCopilot results={results} inputs={inputs} />;
       case 'executive':   return <ExecutiveSummary results={results} inputs={inputs} setActiveTab={setActiveTab} />;
       default:            return <Overview setActiveTab={setActiveTab} />;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { US_STATES, STATES_ATTAINMENT, NOX_EMISSION_FACTORS, CO_EMISSION_FACTORS } from '../data/permitData';
 import { calcPTE } from '../utils/calculations';
+import { calculatePTE as apiPTE } from '../utils/api';
 
 const turbineTypes = Object.keys(NOX_EMISSION_FACTORS);
 
@@ -19,10 +20,10 @@ const defaultInputs = {
   heatRate: 8.5,
   noxFactor: 0.015,
   coFactor: 0.035,
-  brickSavings: 14,
+  brickSavings: 20,
   gensetCount: 12,
   gensetHP: 2000,
-  gensetHours: 200,
+  gensetHours: 100,
   coolingMGD: 2.8,
   blowdownPct: 20,
   waterMGD: 1.2,
@@ -72,9 +73,9 @@ function Select({ value, onChange, options }) {
   );
 }
 
-export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab }) {
+export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab, results }) {
   const [running, setRunning] = useState(false);
-  const [done, setDone] = useState(false);
+  const done = results !== null;
 
   const update = (key, val) => setInputs(prev => ({ ...prev, [key]: val }));
 
@@ -84,15 +85,27 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
     update('coFactor', CO_EMISSION_FACTORS[type]);
   };
 
-  const runScreening = () => {
+  const runScreening = async () => {
     setRunning(true);
-    setDone(false);
-    setTimeout(() => {
+    try {
+      // Try backend API first
+      const apiResults = await apiPTE(inputs);
+      setResults({
+        totalMW: apiResults.totalMW,
+        baseline: apiResults.baseline,
+        controlled: apiResults.controlled,
+        avoided: apiResults.avoided,
+        pathway: apiResults.pathway,
+        water: apiResults.water,
+        genset: apiResults.genset,
+      });
+    } catch {
+      // Fallback to local calculation if API unavailable
+      await new Promise(r => setTimeout(r, 800));
       const results = calcPTE(inputs);
       setResults(results);
-      setRunning(false);
-      setDone(true);
-    }, 1200);
+    }
+    setRunning(false);
   };
 
   const attainmentStatus = STATES_ATTAINMENT[inputs.state] || 'Unknown';
@@ -121,7 +134,11 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           <Field label="Site Name"><Input value={inputs.siteName} onChange={v => update('siteName', v)} /></Field>
           <Field label="Client / Owner"><Input value={inputs.client} onChange={v => update('client', v)} /></Field>
           <Field label="State">
-            <Select value={inputs.state} onChange={v => update('state', v)} options={US_STATES} />
+            <Select value={inputs.state} onChange={v => {
+              update('state', v);
+              const status = STATES_ATTAINMENT[v] || '';
+              update('nonAttainment', status.includes('Nonattainment'));
+            }} options={US_STATES} />
           </Field>
           <Field label="County / Jurisdiction"><Input value={inputs.county} onChange={v => update('county', v)} /></Field>
           <Field label="Site Address"><Input value={inputs.address} onChange={v => update('address', v)} /></Field>

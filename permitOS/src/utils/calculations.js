@@ -41,36 +41,46 @@ export function calcPTE(inputs) {
 
   const savingsFactor = 1 - (brickSavings / 100);
 
+  // Genset emissions are independent of turbine dispatch savings.
+  // Only turbine-derived emissions are reduced by brickSavings.
   const controlled = {
-    nox: totalBaseline.nox * savingsFactor,
-    co: totalBaseline.co * savingsFactor,
-    so2: totalBaseline.so2 * savingsFactor,
-    pm25: totalBaseline.pm25 * savingsFactor,
-    voc: totalBaseline.voc * savingsFactor,
-    co2e: totalBaseline.co2e * savingsFactor,
-    hap: totalBaseline.hap * savingsFactor,
+    nox: baseline.nox * savingsFactor + gensetNox,
+    co: baseline.co * savingsFactor + gensetCO,
+    so2: baseline.so2 * savingsFactor,
+    pm25: baseline.pm25 * savingsFactor + gensetPM,
+    voc: baseline.voc * savingsFactor,
+    co2e: baseline.co2e * savingsFactor,
+    hap: baseline.hap * savingsFactor,
   };
 
-  // PSD Major Source Thresholds (tpy) - attainment area defaults
-  const psdThresholds = { nox: 100, co: 100, so2: 100, pm25: 100, voc: 100, co2e: 100000, hap: 10 };
-  const majorThreshold = 250; // general major source (some industries 100)
+  // PSD Major Source Thresholds (tpy) - attainment area defaults for Stationary Gas Turbines (listed source category)
+  const PSD_THRESHOLD = 100; // 28 listed source categories; gas turbines are listed
+  const TITLE_V_THRESHOLD = 100;
 
-  // Permit pathway determination
-  const baselineTotal = totalBaseline.nox + totalBaseline.co + totalBaseline.so2 + totalBaseline.pm25 + totalBaseline.voc;
-  const controlledTotal = controlled.nox + controlled.co + controlled.so2 + controlled.pm25 + controlled.voc;
+  // Permit pathway determination — check ALL regulated NSR pollutants
+  const criteriaPollutants = ['nox', 'co', 'so2', 'pm25', 'voc'];
+  const baselineTotal = criteriaPollutants.reduce((sum, p) => sum + totalBaseline[p], 0);
+  const controlledTotal = criteriaPollutants.reduce((sum, p) => sum + controlled[p], 0);
+
+  const requiresPSD = criteriaPollutants.some(p => totalBaseline[p] >= PSD_THRESHOLD);
+  const isSyntheticMinorViable = controlledTotal < TITLE_V_THRESHOLD &&
+    criteriaPollutants.every(p => controlled[p] < PSD_THRESHOLD);
+  const isControlledBelowMajor = criteriaPollutants.every(p => controlled[p] < PSD_THRESHOLD);
 
   const pathway = {
-    requiresPSD: totalBaseline.nox >= 100 || totalBaseline.co >= 100,
+    requiresPSD,
     requiresNSR: false, // determined by area status
-    requiresTitleV: baselineTotal >= 100,
-    syntheticMinorViable: controlledTotal < 100 && controlled.nox < 100 && controlled.co < 100,
-    controlledBelowMajor: controlled.nox < 100 && controlled.co < 100,
+    requiresTitleV: baselineTotal >= TITLE_V_THRESHOLD,
+    syntheticMinorViable: isSyntheticMinorViable,
+    controlledBelowMajor: isControlledBelowMajor,
   };
 
   // Water calcs
   const annualWaterMG = coolingMGD * 365;
   const blowdownMG = annualWaterMG * (blowdownPct / 100);
   const makeupMG = annualWaterMG + blowdownMG;
+  // Brick's 20% energy savings translates to proportional water savings
+  // via reduced cooling load and optimized cycles of concentration
   const optimizedWater = annualWaterMG * savingsFactor;
 
   return {

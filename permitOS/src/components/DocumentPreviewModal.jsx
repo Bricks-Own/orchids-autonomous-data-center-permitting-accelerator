@@ -132,6 +132,16 @@ export default function DocumentPreviewModal({ doc, inputs, onClose, onDownload,
           <div className="min-w-0">
             <div className="text-sm font-semibold text-white truncate">{doc.title}</div>
             <div className="text-xs text-gray-400">{doc.docNum} · {inputs?.siteName}</div>
+            {doc._validation && doc._validation.type !== 'generic' && (
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold tracking-wider bg-emerald-800 text-emerald-300">
+                  ASG VALIDATED
+                </span>
+                <span className="text-[10px] text-emerald-400 truncate max-w-[200px]">
+                  Methodology reviewed vs. {doc._validation.projectName}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ComplianceValidationPanel from './ComplianceValidationPanel';
 
 const CONDITIONS = [
   {
@@ -174,7 +175,8 @@ function LiveTicker({ results }) {
   );
 }
 
-export default function ComplianceOS({ results, inputs }) {
+export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
+  const [view, setView] = useState('conditions'); // 'conditions' | 'validation'
   const [filter, setFilter] = useState('All');
   const [expanded, setExpanded] = useState(null);
   const [notify, setNotify] = useState('');
@@ -208,7 +210,20 @@ export default function ComplianceOS({ results, inputs }) {
             <h2 className="text-base font-semibold text-white">Continuous Compliance Operating System</h2>
             <p className="text-xs text-gray-500 mt-0.5">Every permit condition converted to live controls, alarms, reports, and audit logs. This is how Brick operates the site post-COD.</p>
           </div>
-          <LiveTicker results={results} />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setView('conditions')}
+              className={`text-xs px-4 py-2 rounded-lg border transition-all ${view === 'conditions' ? 'bg-indigo-700 text-white border-indigo-600' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}
+            >
+              Permit Conditions
+            </button>
+            <button
+              onClick={() => setView('validation')}
+              className={`text-xs px-4 py-2 rounded-lg border transition-all ${view === 'validation' ? 'bg-emerald-700 text-white border-emerald-600' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}
+            >
+              Document Validation
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
@@ -235,96 +250,106 @@ export default function ComplianceOS({ results, inputs }) {
         </div>
       </div>
 
-      {/* Filter */}
-      <div className="flex gap-2 flex-wrap">
-        {CATEGORIES.map(c => (
-          <button key={c}
-            onClick={() => setFilter(c)}
-            className={`text-xs px-3 py-1.5 rounded-full border transition-all
-              ${filter === c ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}>
-            {c}
-          </button>
-        ))}
-      </div>
-
-      {/* Conditions */}
-      <div className="space-y-3">
-        {filtered.map(cond => (
-          <div key={cond.id} className="rounded-xl border border-gray-700/40 bg-gray-900/40 overflow-hidden">
-            <button
-              onClick={() => setExpanded(expanded === cond.id ? null : cond.id)}
-              className="w-full p-4 flex items-start justify-between gap-4 hover:bg-gray-800/20 transition-colors text-left"
-            >
-              <div className="flex items-start gap-3 flex-1">
-                <span className={`text-xs px-2.5 py-1 rounded-full border flex-shrink-0 mt-0.5 ${STATUS_COLORS[cond.compliance]}`}>
-                  {STATUS_LABELS[cond.compliance]}
-                </span>
-                <div>
-                  <div className="text-sm font-medium text-gray-300">{cond.condition}</div>
-                  <div className="text-xs text-gray-600 mt-0.5">{cond.cfr} · {cond.category}</div>
-                </div>
-              </div>
-              <span className="text-gray-600 flex-shrink-0">{expanded === cond.id ? '▲' : '▼'}</span>
-            </button>
-
-            {expanded === cond.id && (
-              <div className="border-t border-gray-800/40 p-4 grid md:grid-cols-2 gap-4 bg-gray-900/30">
-                <div>
-                  <p className="text-xs font-semibold text-indigo-400 mb-2">Brick Control Action</p>
-                  <p className="text-xs text-gray-400 leading-relaxed">{cond.brickControl}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-green-400 mb-2">Evidence Generated</p>
-                  <p className="text-xs text-gray-400 leading-relaxed">{cond.evidence}</p>
-                </div>
-                <div className="md:col-span-2 flex gap-2 flex-wrap">
-                  <button
-                    onClick={() => setNotify(`Trend data for "${cond.condition}" loaded — view the Digital Twin tab for full charts.`)}
-                    className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-700">
-                    📊 View Trend Data
-                  </button>
-                  <button
-                    onClick={() => setNotify(`Compliance report for "${cond.condition}" generated — ready for PE review.`)}
-                    className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-700">
-                    📄 Generate Compliance Report
-                  </button>
-                  <button
-                    onClick={() => setNotify(`Audit log for "${cond.condition}" exported — full chain of custody preserved.`)}
-                    className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-700">
-                    📤 Export Audit Log
-                  </button>
-                  <button
-                    onClick={() => setNotify(`Opening Regulator QA Copilot with "${cond.condition}" context.`)}
-                    className="text-xs bg-indigo-800/40 hover:bg-indigo-700/40 text-indigo-300 rounded-lg px-3 py-1.5 transition-colors border border-indigo-700/40">
-                    🤖 Regulator QA Copilot
-                  </button>
-                </div>
-              </div>
-            )}
+      {/* ── CONDITIONS VIEW ──────────────────────────────────────────────────── */}
+      {view === 'conditions' && (
+        <>
+          {/* Filter */}
+          <div className="flex gap-2 flex-wrap">
+            {CATEGORIES.map(c => (
+              <button key={c}
+                onClick={() => setFilter(c)}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-all
+                  ${filter === c ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}>
+                {c}
+              </button>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Regulator QA Copilot */}
-      <div className="rounded-xl border border-violet-700/30 bg-violet-950/20 p-5">
-        <h3 className="text-sm font-semibold text-violet-300 mb-3">Regulator QA Copilot — RAI & Deficiency Response Engine</h3>
-        <div className="grid md:grid-cols-2 gap-4 text-xs">
-          {[
-            { type: 'RAI Response', icon: '📝', desc: 'Agency Request for Additional Information auto-responded from indexed permit record. Average response time: 2 days vs. 3–6 weeks.' },
-            { type: 'Deficiency Letter', icon: '⚡', desc: 'Permit deficiency letters mapped to specific document sections. AI drafts cure within 24 hours for PE review.' },
-            { type: 'Public Comment', icon: '💬', desc: 'Environmental justice and public comment responses generated from community data, site stats, and health impact analysis.' },
-            { type: 'Modeling Comments', icon: '📊', desc: 'AERMOD peer review comments responded to with model parameter citations, meteorological data justifications, and receptor grid rationale.' },
-          ].map(item => (
-            <div key={item.type} className="bg-gray-900/40 border border-gray-700/40 rounded-xl p-4 flex gap-3">
-              <span className="text-2xl flex-shrink-0">{item.icon}</span>
-              <div>
-                <div className="font-semibold text-gray-300 mb-1">{item.type}</div>
-                <div className="text-gray-500 leading-relaxed">{item.desc}</div>
+          {/* Conditions */}
+          <div className="space-y-3">
+            {filtered.map(cond => (
+              <div key={cond.id} className="rounded-xl border border-gray-700/40 bg-gray-900/40 overflow-hidden">
+                <button
+                  onClick={() => setExpanded(expanded === cond.id ? null : cond.id)}
+                  className="w-full p-4 flex items-start justify-between gap-4 hover:bg-gray-800/20 transition-colors text-left"
+                >
+                  <div className="flex items-start gap-3 flex-1">
+                    <span className={`text-xs px-2.5 py-1 rounded-full border flex-shrink-0 mt-0.5 ${STATUS_COLORS[cond.compliance]}`}>
+                      {STATUS_LABELS[cond.compliance]}
+                    </span>
+                    <div>
+                      <div className="text-sm font-medium text-gray-300">{cond.condition}</div>
+                      <div className="text-xs text-gray-600 mt-0.5">{cond.cfr} · {cond.category}</div>
+                    </div>
+                  </div>
+                  <span className="text-gray-600 flex-shrink-0">{expanded === cond.id ? '▲' : '▼'}</span>
+                </button>
+
+                {expanded === cond.id && (
+                  <div className="border-t border-gray-800/40 p-4 grid md:grid-cols-2 gap-4 bg-gray-900/30">
+                    <div>
+                      <p className="text-xs font-semibold text-indigo-400 mb-2">Brick Control Action</p>
+                      <p className="text-xs text-gray-400 leading-relaxed">{cond.brickControl}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-green-400 mb-2">Evidence Generated</p>
+                      <p className="text-xs text-gray-400 leading-relaxed">{cond.evidence}</p>
+                    </div>
+                    <div className="md:col-span-2 flex gap-2 flex-wrap">
+                      <button
+                        onClick={() => setNotify(`Trend data for "${cond.condition}" loaded — view the Digital Twin tab for full charts.`)}
+                        className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-700">
+                        📊 View Trend Data
+                      </button>
+                      <button
+                        onClick={() => setNotify(`Compliance report for "${cond.condition}" generated — ready for PE review.`)}
+                        className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-700">
+                        📄 Generate Compliance Report
+                      </button>
+                      <button
+                        onClick={() => setNotify(`Audit log for "${cond.condition}" exported — full chain of custody preserved.`)}
+                        className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-700">
+                        📤 Export Audit Log
+                      </button>
+                      <button
+                        onClick={() => setNotify(`Opening Regulator QA Copilot with "${cond.condition}" context.`)}
+                        className="text-xs bg-indigo-800/40 hover:bg-indigo-700/40 text-indigo-300 rounded-lg px-3 py-1.5 transition-colors border border-indigo-700/40">
+                        🤖 Regulator QA Copilot
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
+            ))}
+          </div>
+
+          {/* Regulator QA Copilot */}
+          <div className="rounded-xl border border-violet-700/30 bg-violet-950/20 p-5">
+            <h3 className="text-sm font-semibold text-violet-300 mb-3">Regulator QA Copilot — RAI & Deficiency Response Engine</h3>
+            <div className="grid md:grid-cols-2 gap-4 text-xs">
+              {[
+                { type: 'RAI Response', icon: '📝', desc: 'Agency Request for Additional Information auto-responded from indexed permit record. Average response time: 2 days vs. 3–6 weeks.' },
+                { type: 'Deficiency Letter', icon: '⚡', desc: 'Permit deficiency letters mapped to specific document sections. AI drafts cure within 24 hours for PE review.' },
+                { type: 'Public Comment', icon: '💬', desc: 'Environmental justice and public comment responses generated from community data, site stats, and health impact analysis.' },
+                { type: 'Modeling Comments', icon: '📊', desc: 'AERMOD peer review comments responded to with model parameter citations, meteorological data justifications, and receptor grid rationale.' },
+              ].map(item => (
+                <div key={item.type} className="bg-gray-900/40 border border-gray-700/40 rounded-xl p-4 flex gap-3">
+                  <span className="text-2xl flex-shrink-0">{item.icon}</span>
+                  <div>
+                    <div className="font-semibold text-gray-300 mb-1">{item.type}</div>
+                    <div className="text-gray-500 leading-relaxed">{item.desc}</div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
+
+      {/* ── VALIDATION VIEW ───────────────────────────────────────────────────── */}
+      {view === 'validation' && (
+        <ComplianceValidationPanel inputs={inputs} results={results} onNavigateDoc={onNavigateDoc} />
+      )}
     </div>
   );
 }

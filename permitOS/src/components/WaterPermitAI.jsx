@@ -185,11 +185,11 @@ export default function WaterPermitAI({ results, inputs }) {
         <div className="grid md:grid-cols-4 gap-4 text-sm">
           {[
             { label: 'Makeup Water', value: `${water.makeupMG.toFixed(1)} MG/yr`, formula: 'Evaporation + Blowdown + Drift', color: 'text-blue-400' },
-            { label: 'Evaporation Loss', value: `${(water.annualWaterMG * 0.78).toFixed(1)} MG/yr`, formula: '~1.5–2% of circulating flow', color: 'text-orange-400' },
-            { label: 'Blowdown', value: `${water.blowdownMG.toFixed(1)} MG/yr`, formula: `${inputs.blowdownPct}% of cooling flow`, color: 'text-amber-400' },
-            { label: 'Drift Loss', value: `${(water.annualWaterMG * 0.0002).toFixed(2)} MG/yr`, formula: '0.0005–0.002% with eliminators', color: 'text-gray-400' },
-            { label: 'Cycles of Concentration', value: '3.5x (target 5–6x)', formula: 'Makeup / Blowdown ratio', color: 'text-violet-400' },
-            { label: 'Blowdown TDS', value: '~2,800 mg/L', formula: 'COC × makeup TDS', color: 'text-yellow-400' },
+            { label: 'Evaporation Loss', value: `${(water.annualWaterMG * 0.995).toFixed(1)} MG/yr`, formula: '~99.5% of consumed water', color: 'text-orange-400' },
+            { label: 'Blowdown', value: `${water.blowdownMG.toFixed(1)} MG/yr`, formula: `${inputs.blowdownPct}% of consumed flow`, color: 'text-amber-400' },
+            { label: 'Drift Loss', value: `${(water.annualWaterMG * 0.005).toFixed(2)} MG/yr`, formula: '~0.5% with modern eliminators', color: 'text-gray-400' },
+            { label: 'Cycles of Concentration', value: `${(water.makeupMG / (water.blowdownMG || 1)).toFixed(1)}x`, formula: 'Makeup / Blowdown ratio', color: 'text-violet-400' },
+            { label: 'Blowdown TDS', value: `~${Math.round((water.makeupMG / (water.blowdownMG || 1)) * 280)} mg/L`, formula: 'COC × makeup TDS (280 mg/L)', color: 'text-yellow-400' },
             { label: 'POTW Discharge Volume', value: `${(water.blowdownMG * 0.85).toFixed(1)} MG/yr`, formula: 'Blowdown to sewer (estimated)', color: 'text-red-400' },
             { label: 'Water Saved (Brick)', value: `${(water.annualWaterMG - water.optimizedWater).toFixed(1)} MG/yr`, formula: 'COC optimization + load reduction', color: 'text-green-400' },
           ].map(m => (

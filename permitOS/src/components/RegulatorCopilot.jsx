@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { queryAgent } from '../utils/api';
 
 const RAI_TEMPLATES = [
   {
@@ -105,16 +106,24 @@ export default function RegulatorCopilot({ results, inputs }) {
 
   const filteredRAI = RAI_TEMPLATES.filter(r => filter === 'All' || r.category === filter);
 
-  const sendChat = () => {
+  const sendChat = async () => {
     if (!chatMsg.trim()) return;
     const userMsg = chatMsg;
     setChatMsg('');
     setChatHistory(prev => [...prev, { role: 'user', content: userMsg }]);
     setThinking(true);
 
-    // Simulate AI response with delay
-    setTimeout(() => {
-      const lower = userMsg.toLowerCase();
+    try {
+      const response = await queryAgent(userMsg, {
+        inputs: inputs || {},
+        results: results || {},
+        conversationHistory: chatHistory.slice(-6), // last 6 messages for context
+      });
+      setChatHistory(prev => [...prev, { role: 'assistant', content: response.answer }]);
+    } catch {
+      // Fallback to built-in response
+      setTimeout(() => {
+        const lower = userMsg.toLowerCase();
       let response = '';
       if (lower.includes('nox') || lower.includes('nox')) {
         response = `Based on the permit record for ${inputs?.siteName || 'this site'}: The controlled NOx PTE is ${results?.controlled?.nox?.toFixed(1) || 'X'} tpy, below the 100 tpy PSD major source threshold. This was achieved through Brick's permit-aware dispatch controls limiting turbine runtime to ${inputs?.hours || 6000} hr/yr with DLN combustion at ≤15 ppmvd per Subpart KKKK requirements. Documentation includes the PTE Workbook (Exhibit A-4), NSPS Subpart KKKK Compliance Matrix (Exhibit A-8), and the Controlled PTE Memo (Exhibit A-5). All monitoring, recordkeeping, and reporting requirements are defined in Exhibit A-15.`;
@@ -134,6 +143,8 @@ export default function RegulatorCopilot({ results, inputs }) {
       setChatHistory(prev => [...prev, { role: 'assistant', content: response }]);
       setThinking(false);
     }, 1200);
+    }
+    setThinking(false);
   };
 
   return (

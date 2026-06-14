@@ -213,7 +213,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
         <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
           <h3 className="text-sm font-semibold text-gray-300 mb-4">Timeline Acceleration — Brick vs. Traditional</h3>
           <div className="space-y-2">
-            {Object.entries(timeline.breakdown).slice(0, 8).map(([key, item]) => {
+            {Object.entries(timeline.breakdown).map(([key, item]) => {
               const saved = item.base - item.brick;
               const savedPct = Math.round((saved / item.base) * 100);
               return (
@@ -235,7 +235,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
             })}
           </div>
           <div className="mt-4 pt-3 border-t border-gray-800/40 flex items-center justify-between">
-            <span className="text-xs text-gray-500">Total work stream (excl. agency review)</span>
+            <span className="text-xs text-gray-500">Total timeline (all phases incl. agency review)</span>
             <div className="flex items-center gap-3">
               <span className="text-red-400 text-sm font-semibold line-through">{timeline.totalBaseline}w</span>
               <span className="text-green-400 text-lg font-bold">{timeline.totalBrick}w</span>
