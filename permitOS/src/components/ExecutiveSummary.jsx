@@ -85,7 +85,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
     },
     {
       icon: '📄',
-      title: 'One-Click Submission Package',
+      title: 'Draft Document Package',
       detail: `26 permit documents (16 air + 10 water) auto-generated from site data. PE-ready drafts, not boilerplate. Filable via single submission portal. Reduces counsel + consultant review cycles from months to weeks.`,
       color: 'border-violet-700/40 bg-violet-950/20',
     },
@@ -352,7 +352,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
           {[
             { label: 'Air Permit Deep-Dive', icon: '💨', tab: 'air', desc: 'Full PTE, BACT, AERMOD, and CFR compliance analysis' },
             { label: 'Milestone Timeline', icon: '📅', tab: 'milestones', desc: 'Gantt view of fastest-path permit schedule' },
-            { label: 'Generate All Documents', icon: '📄', tab: 'docs', desc: '26 permit documents ready for one-click submission' },
+            { label: 'Generate All Documents', icon: '📄', tab: 'docs', desc: '26 draft permit documents for PE review' },
             { label: 'Run Digital Twin', icon: '⚡', tab: 'simulation', desc: 'Hour-by-hour permit compliance simulation' },
             { label: 'Water Permit Analysis', icon: '💧', tab: 'water', desc: 'NPDES, SPCC, 316(b), SWPPP analysis' },
             { label: 'Regulator QA Copilot', icon: '🤖', tab: 'copilot', desc: 'Draft RAI responses and deficiency cures' },

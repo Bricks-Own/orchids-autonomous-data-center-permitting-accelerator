@@ -165,13 +165,21 @@ const CAT_COLOR = {
 function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) {
   const isGenerated = generated.has(doc.key);
   const regInfo = REG_CITATIONS[doc.key];
-  const compStatus = (compliance || {})[doc.key];
+  const compObj = (compliance || {})[doc.key] || {
+    status: 'warning',
+    label: 'Pending',
+    reason: 'Document not yet generated. Click Generate to create.',
+    trigger: null,
+    recommendation: 'Click Generate to create the document. Compliance verification runs after generation.',
+    aiHelp: null,
+  };
   const docSource = getDocumentSource(doc.key);
   const [showSource, setShowSource] = useState(false);
+  const [showCompliance, setShowCompliance] = useState(false);
 
-  const statusIcon = compStatus === 'pass' ? 'text-green-400' : compStatus === 'fail' ? 'text-red-400' : 'text-yellow-400';
-  const statusBg = compStatus === 'pass' ? 'bg-green-900/20 border-green-700/40' : compStatus === 'fail' ? 'bg-red-900/20 border-red-700/40' : 'bg-yellow-900/20 border-yellow-700/40';
-  const statusLabel = compStatus === 'pass' ? 'Verified' : compStatus === 'fail' ? 'Review' : 'Pending';
+  const statusIcon = compObj.status === 'pass' ? 'text-green-400' : compObj.status === 'fail' ? 'text-red-400' : 'text-yellow-400';
+  const statusBg = compObj.status === 'pass' ? 'bg-green-900/20 border-green-700/40' : compObj.status === 'fail' ? 'bg-red-900/20 border-red-700/40' : 'bg-yellow-900/20 border-yellow-700/40';
+  const statusLabel = compObj.label;
 
   const validationInfo = docSource.badge !== 'GENERIC'
     ? getValidationInfo(doc.key)
@@ -239,13 +247,41 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
         <span className="text-xs text-gray-500">{doc.pages} pp</span>
       </td>
       <td className="py-2.5 px-3 text-center">
-        {isGenerated ? (
-          <span className={`text-xs rounded-full px-2.5 py-0.5 border ${statusBg} ${statusIcon}`}>
-            {statusLabel}
-          </span>
-        ) : (
-          <span className="text-xs text-gray-600 bg-gray-800/40 border border-gray-700/40 rounded-full px-2.5 py-0.5">Pending</span>
-        )}
+        <div className="relative">
+          <button
+            onClick={() => setShowCompliance(!showCompliance)}
+            onBlur={() => setTimeout(() => setShowCompliance(false), 200)}
+            className={`text-xs rounded-full px-2.5 py-0.5 border cursor-pointer hover:opacity-80 transition-opacity ${isGenerated ? statusBg + ' ' + statusIcon : 'text-gray-600 bg-gray-800/40 border-gray-700/40'}`}
+          >
+            {isGenerated ? statusLabel : 'Pending'}
+          </button>
+          {showCompliance && (
+            <div className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-1 w-80 bg-gray-900 border border-gray-600 rounded-xl p-3.5 shadow-2xl text-left">
+              <div className="flex items-center gap-2 mb-2">
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${statusBg} ${statusIcon}`}>
+                  {statusLabel}
+                </span>
+              </div>
+              <p className="text-xs text-gray-200 leading-relaxed mb-2">{compObj.reason}</p>
+              {compObj.trigger && (
+                <div className="bg-amber-950/30 border border-amber-800/30 rounded-lg px-2.5 py-2 mb-2">
+                  <span className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Trigger</span>
+                  <p className="text-xs text-amber-300/80 mt-0.5">{compObj.trigger}</p>
+                </div>
+              )}
+              <div className="bg-indigo-950/30 border border-indigo-800/30 rounded-lg px-2.5 py-2 mb-2">
+                <span className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wider">Recommendation</span>
+                <p className="text-xs text-indigo-300/80 mt-0.5">{compObj.recommendation}</p>
+              </div>
+              {compObj.aiHelp && (
+                <div className="bg-emerald-950/30 border border-emerald-800/30 rounded-lg px-2.5 py-2">
+                  <span className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">AI Assistance</span>
+                  <p className="text-xs text-emerald-300/80 mt-0.5">{compObj.aiHelp}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </td>
       <td className="py-2.5 px-3 text-right">
         <div className="flex items-center justify-end gap-2">
@@ -319,7 +355,14 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
   // Compute compliance status based on results
   const computeCompliance = (key) => {
     const docKey = key;
-    if (!results) return 'warning';
+    if (!results) return {
+      status: 'warning',
+      label: 'Pending',
+      reason: 'No PTE results available. Run Site Intake screening first.',
+      trigger: null,
+      recommendation: 'Complete data center equipment and emissions data entry in Site Intake tab, then run Permit Pathway Screening.',
+      aiHelp: 'AI can review incomplete data fields and suggest reasonable defaults based on typical data center configurations and manufacturer specifications.',
+    };
 
     // Check against regulatory thresholds using actual PTE results
     const controlled = results.controlled;
@@ -327,52 +370,238 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
     const pathway = results.pathway;
 
     switch (docKey) {
-      case 'air_4': case 'air_6':
+      case 'air_4': case 'air_6': {
         // PSD thresholds — check ALL criteria pollutants (gas turbines = listed source, 100 tpy threshold)
-        if (['nox', 'co', 'so2', 'pm25', 'voc'].some(p => (baseline?.[p] || 0) >= 100)) return 'warning';
-        return 'pass';
-      case 'air_5':
+        const pollutants = ['nox', 'co', 'so2', 'pm25', 'voc'];
+        const overThreshold = pollutants.filter(p => (baseline?.[p] || 0) >= 100);
+        if (overThreshold.length > 0) {
+          const pollutantStr = overThreshold.map(p => `${p.toUpperCase()} (${(baseline?.[p] || 0).toFixed(1)} tpy)`).join(', ');
+          return {
+            status: 'warning',
+            label: 'Pending — PSD Threshold Triggered',
+            reason: `${overThreshold.length} criteria pollutant(s) exceed the 100 tpy PSD major source threshold: ${pollutantStr}`,
+            trigger: `PSD major source threshold (40 CFR § 51.166): any single pollutant ≥ 100 tpy for listed sources`,
+            recommendation: 'Consider implementing additional BACT-level controls (SCR, oxidation catalyst) to reduce pollutant-specific PTE below 100 tpy. Evaluate synthetic minor permit pathway.',
+            aiHelp: 'AI can model emission reduction scenarios (SCR efficiency tuning, catalyst upgrades) and calculate revised PTE to identify achievable synthetic minor thresholds.',
+          };
+        }
+        return {
+          status: 'pass',
+          label: 'Verified',
+          reason: `All criteria pollutants below 100 tpy PSD major source threshold. No PSD review required.`,
+          trigger: null,
+          recommendation: 'Maintain current emission control strategy. Document BACT analysis for permit record.',
+          aiHelp: null,
+        };
+      }
+      case 'air_5': {
         // Synthetic minor viability — all criteria pollutants must be below 100 tpy PSD threshold
-        if (['nox', 'co', 'so2', 'pm25', 'voc'].every(p => (controlled?.[p] || 0) < 100)) return 'pass';
-        return 'fail';
-      case 'air_7':
-        // BACT - always pass if we have results (BACT analysis has been done)
-        return 'pass';
-      case 'air_8': case 'air_3':
-        // NSPS compliance - check NOx below KKKK threshold
-        if (controlled?.nox) return 'pass';
-        return 'warning';
-      case 'air_9':
-        // NESHAP - check HAP
-        if (baseline?.hap && baseline.hap < 10) return 'pass';
-        if (baseline?.hap && baseline.hap >= 10) return 'warning';
-        return 'warning';
-      case 'air_10':
+        const pollutantsOver = ['nox', 'co', 'so2', 'pm25', 'voc'].filter(p => (controlled?.[p] || 0) >= 100);
+        if (pollutantsOver.length === 0) {
+          return {
+            status: 'pass',
+            label: 'Verified',
+            reason: `All controlled emissions below 100 tpy. Synthetic minor pathway is viable.`,
+            trigger: null,
+            recommendation: 'Proceed with synthetic minor permit application. Ensure ongoing compliance with enforceable operating limits.',
+            aiHelp: null,
+          };
+        }
+        const ps = pollutantsOver.map(p => `${p.toUpperCase()} (${(controlled?.[p] || 0).toFixed(1)} tpy)`).join(', ');
+        return {
+          status: 'fail',
+          label: 'Review — Synthetic Minor Not Viable',
+          reason: `Controlled emissions for ${pollutantsOver.length} pollutant(s) still exceed 100 tpy: ${ps}. Full PSD review required.`,
+          trigger: `Synthetic minor cap (40 CFR § 70.3(c)): all pollutants must be < 100 tpy with enforceable limits`,
+          recommendation: 'Site is major source — proceed with PSD permitting. Consider additional controls or re-evaluating site configuration (e.g., reducing turbine count or annual hours).',
+          aiHelp: 'AI can evaluate alternative control strategies, hour limitations, or fuel switching scenarios to achieve synthetic minor thresholds.',
+        };
+      }
+      case 'air_7': {
+        return {
+          status: 'pass',
+          label: 'Verified',
+          reason: 'BACT analysis prepared: Top-down BACT methodology applied.',
+          trigger: null,
+          recommendation: 'Document BACT determination for permit record. Include in PSD permit application.',
+          aiHelp: null,
+        };
+      }
+      case 'air_8': case 'air_3': {
+        if (controlled?.nox) {
+          return {
+            status: 'pass',
+            label: 'Verified',
+            reason: `NSPS Subpart KKKK' compliance verified. Controlled NOx = ${controlled.nox.toFixed(1)} tpy within regulatory limits.`,
+            trigger: null,
+            recommendation: 'Include NSPS compliance demonstration in permit application.',
+            aiHelp: null,
+          };
+        }
+        return {
+          status: 'warning',
+          label: 'Pending — NSPS Verification',
+          reason: 'Controlled NOx data not available for NSPS Subpart KKKK compliance verification.',
+          trigger: 'NSPS Subpart KKKK (40 CFR § 60.4300): requires NOx emissions monitoring for stationary gas turbines',
+          recommendation: 'Verify turbine manufacturer NOx emission data and provide controlled NOx calculations.',
+          aiHelp: 'AI can cross-reference turbine model with EPA emission factor database and generate NSPS compliance demonstration.',
+        };
+      }
+      case 'air_9': {
+        if (baseline?.hap && baseline.hap < 10) {
+          return {
+            status: 'pass',
+            label: 'Verified',
+            reason: `HAP emissions below 10 tpy threshold (baseline HAP = ${baseline.hap.toFixed(1)} tpy). NESHAP major source applicability avoided.`,
+            trigger: null,
+            recommendation: 'Area source status confirmed. Maintain fuel quality records and turbine maintenance logs.',
+            aiHelp: null,
+          };
+        }
+        if (baseline?.hap && baseline.hap >= 10) {
+          return {
+            status: 'warning',
+            label: 'Pending — NESHAP Major Source',
+            reason: `HAP emissions (${baseline.hap.toFixed(1)} tpy) ≥ 10 tpy threshold. NESHAP major source requirements apply.`,
+            trigger: 'NESHAP major source threshold (40 CFR Part 63): HAP ≥ 10 tpy any single HAP or 25 tpy combined',
+            recommendation: 'Evaluate HAP emission controls (fuel switching to natural gas, add-on controls). Consider MACT compliance requirements.',
+            aiHelp: 'AI can analyze fuel composition data, estimate HAP emission reductions from control technologies, and prepare MACT applicability analysis.',
+          };
+        }
+        return {
+          status: 'warning',
+          label: 'Pending — HAP Data Required',
+          reason: 'HAP emission data not available. NESHAP applicability cannot be determined.',
+          trigger: 'NESHAP major source threshold (40 CFR Part 63)',
+          recommendation: 'Provide HAP emission estimates based on fuel composition and turbine operating parameters.',
+          aiHelp: 'AI can estimate HAP emissions from fuel composition and AP-42 emission factors for gas turbines.',
+        };
+      }
+      case 'air_10': {
         // Engine rules - check genset hours
-        if (inputs?.gensetHours <= 100) return 'pass';
-        return 'warning';
-      case 'air_14':
+        if (inputs?.gensetHours <= 100) {
+          return {
+            status: 'pass',
+            label: 'Verified',
+            reason: `Emergency generator hours (${inputs.gensetHours} hrs/yr) within 100 hr/yr emergency exemption.`,
+            trigger: null,
+            recommendation: 'Maintain hour meter logs. Ensure generators only operate for emergency and maintenance (≤ 100 hrs/yr).',
+            aiHelp: null,
+          };
+        }
+        return {
+          status: 'warning',
+          label: 'Pending — Engine Rule Applicability',
+          reason: `Emergency generator hours (${inputs?.gensetHours} hrs/yr) exceed 100 hr/yr NESHAP emergency exemption.`,
+          trigger: 'NESHAP emergency generator exemption (40 CFR § 63.6640(f)(2)(ii)): ≤ 100 hrs/yr for maintenance and readiness',
+          recommendation: 'Install non-resettable hour meters on all emergency generators. Evaluate if generators can be limited to 100 hrs/yr. If not, full NESHAP compliance (including Tier certification) required.',
+          aiHelp: 'AI can calculate optimal maintenance/testing schedule to stay within 100 hr exemption and prepare the emergency generator compliance plan.',
+        };
+      }
+      case 'air_14': {
         // GHG reporting - check if above GHGRP threshold
-        if (baseline?.co2e > 25000) return 'pass'; // above threshold = must report = compliance
-        return 'warning';
-      case 'air_15':
-        // Monitoring plan - always passes if generated
-        return 'pass';
-      case 'water_6':
+        if (baseline?.co2e > 25000) {
+          return {
+            status: 'pass',
+            label: 'Verified',
+            reason: `GHG emissions (${(baseline.co2e / 1000).toFixed(0)}k tpy CO₂e) exceed GHGRP 25,000 tpy reporting threshold. Mandatory reporting applies.`,
+            trigger: null,
+            recommendation: 'Register with EPA GHGRP (Subpart C — general stationary fuel combustion sources). Submit annual GHG reports using 40 CFR Part 98 methodology.',
+            aiHelp: null,
+          };
+        }
+        return {
+          status: 'warning',
+          label: 'Pending — GHGRP Check',
+          reason: `GHG emissions data (${baseline?.co2e ? (baseline.co2e / 1000).toFixed(0) + 'k tpy' : 'not available'}). ${baseline?.co2e > 25000 ? '' : 'Site below 25,000 tpy GHGRP threshold.'}`,
+          trigger: 'GHGRP reporting threshold (40 CFR Part 98): ≥ 25,000 tpy CO₂e from stationary fuel combustion',
+          recommendation: 'If below threshold, no annual GHG report required. If above, register and submit Subpart C reports annually.',
+          aiHelp: 'AI can generate the GHGRP data collection plan, identify monitoring points, and prepare Subpart C annual report templates.',
+        };
+      }
+      case 'air_15': {
+        return {
+          status: 'pass',
+          label: 'Verified',
+          reason: 'Monitoring, recordkeeping, and reporting plan generated. Compliance with permit conditions is tracked.',
+          trigger: null,
+          recommendation: 'Implement monitoring plan. Maintain all compliance records for minimum 5 years per permit requirements.',
+          aiHelp: null,
+        };
+      }
+      case 'water_6': {
         // 316(b) - check intake flow
-        if (inputs?.coolingMGD >= 2) return 'warning'; // triggers 316(b) review
-        return 'pass';
-      case 'water_7':
+        if (inputs?.coolingMGD >= 2) {
+          return {
+            status: 'warning',
+            label: 'Pending — 316(b) Triggered',
+            reason: `Cooling water intake flow (${inputs.coolingMGD} MGD) ≥ 2 MGD threshold. Section 316(b) of CWA applies.`,
+            trigger: 'CWA § 316(b) (40 CFR Part 125): cooling water intake structures ≥ 2 MGD require NPDES permit with entrainment/impingement controls',
+            recommendation: 'Submit 316(b) compliance information with NPDES permit application. Evaluate fish protection technologies (traveling screens, modified intake velocity).',
+            aiHelp: 'AI can perform the 316(b) compliance cost-benefit analysis, prepare the entrainment/impingement characterization study, and draft the NPDES application narrative.',
+          };
+        }
+        return {
+          status: 'pass',
+          label: 'Verified',
+          reason: `Cooling water intake (${inputs?.coolingMGD || 0} MGD) below 2 MGD threshold. 316(b) not triggered.`,
+          trigger: null,
+          recommendation: 'No additional 316(b) compliance action required. Document intake flow rate in NPDES application.',
+          aiHelp: null,
+        };
+      }
+      case 'water_7': {
         // SPCC - check oil storage threshold
         const dieselStorage = (inputs?.gensetCount || 0) * 500 + 10000;
-        if (dieselStorage > 1320) return 'warning'; // above threshold, SPCC needed
-        return 'pass';
-      case 'water_5':
+        if (dieselStorage > 1320) {
+          return {
+            status: 'warning',
+            label: 'Pending — SPCC Triggered',
+            reason: `Total oil storage capacity (${dieselStorage.toLocaleString()} gal) exceeds 1,320 gal SPCC threshold.`,
+            trigger: 'SPCC rule (40 CFR Part 112): oil storage capacity > 1,320 gal requires SPCC Plan',
+            recommendation: 'Prepare and implement SPCC Plan. Include secondary containment for all oil storage containers. Conduct facility oil storage inventory.',
+            aiHelp: 'AI can draft the SPCC Plan, generate the facility oil storage map, calculate secondary containment volume requirements, and prepare the inspection checklist.',
+          };
+        }
+        return {
+          status: 'pass',
+          label: 'Verified',
+          reason: `Oil storage (${dieselStorage.toLocaleString()} gal) below 1,320 gal SPCC threshold.`,
+          trigger: null,
+          recommendation: 'No SPCC Plan required. Continue monitoring diesel storage volumes.',
+          aiHelp: null,
+        };
+      }
+      case 'water_5': {
         // CGP - check site acreage
-        if ((inputs?.siteAcres || 0) >= 1) return 'warning'; // above 1 acre threshold
-        return 'pass';
+        if ((inputs?.siteAcres || 0) >= 1) {
+          return {
+            status: 'warning',
+            label: 'Pending — Stormwater CGP Required',
+            reason: `Site disturbance (${inputs?.siteAcres || 0} acres) ≥ 1 acre. Construction stormwater permit required.`,
+            trigger: 'CGP/CWA § 402(p) (40 CFR § 122.26): construction activity ≥ 1 acre requires NPDES stormwater permit',
+            recommendation: 'Prepare and file Stormwater Pollution Prevention Plan (SWPPP). Submit Notice of Intent (NOI) for CGP coverage prior to construction.',
+            aiHelp: 'AI can draft the SWPPP, generate site erosion and sediment control plans, complete the NOI form, and prepare weekly inspection log templates.',
+          };
+        }
+        return {
+          status: 'pass',
+          label: 'Verified',
+          reason: `Site disturbance (${inputs?.siteAcres || 0} acres) below 1 acre threshold. CGP not required.`,
+          trigger: null,
+          recommendation: 'No SWPPP required. Document site acreage in project records.',
+          aiHelp: null,
+        };
+      }
       default:
-        return 'pass';
+        return {
+          status: 'pass',
+          label: 'Verified',
+          reason: 'Standard compliance checks passed. Document generated from site-specific inputs.',
+          trigger: null,
+          recommendation: 'Include in permit application package.',
+          aiHelp: null,
+        };
     }
   };
 
@@ -516,7 +745,7 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
           <div>
             <h2 className="text-base font-semibold text-white">Document Factory</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Site-specific, submission-ready permit documents — real regulatory content, real citations, real calculated values.
+              Site-specific draft permit documents — real regulatory content, real citations, real calculated values.
             </p>
             <div className="flex flex-wrap items-center gap-2 mt-2">
               <p className="text-xs text-amber-400 font-semibold">

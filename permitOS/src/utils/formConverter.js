@@ -3,12 +3,12 @@
 // agency names, portal requirements, and regulatory cross-references.
 // Called by generateDocument() after template generation.
 
-import { getStateFormat, DEFAULT_STATE_FORMAT } from '../data/stateFormats';
+import { getStateFormat, DEFAULT_STATE_FORMAT } from '../data/stateFormats.js';
 import {
   getStateOverrides,
   getStateDocReplacement,
   getStateSubmissionRequirements,
-} from '../data/stateForms/registry';
+} from '../data/stateForms/registry.js';
 
 // ─── Placeholder Replacement Map ──────────────────────────────────────────────
 // Standard placeholder tokens found in documentGenerator.js templates.

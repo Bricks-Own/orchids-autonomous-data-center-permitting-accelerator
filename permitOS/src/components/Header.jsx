@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function Header({ activeTab, setActiveTab, results }) {
+export default function Header({ activeTab, setActiveTab, results, onLogout }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const hasResults = !!results;
 
@@ -42,8 +42,17 @@ export default function Header({ activeTab, setActiveTab, results }) {
             Live Demo
           </span>
           <span className="bg-indigo-900/40 text-indigo-300 text-xs px-2.5 py-1 rounded-full border border-indigo-800/60 hidden sm:block">
-            100% EPA Compliant
+            EPA Regulatory Framework
           </span>
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="text-xs text-gray-500 hover:text-gray-300 bg-gray-800/40 hover:bg-gray-800 rounded-lg px-2.5 py-1.5 border border-gray-700/60 transition-colors flex items-center gap-1"
+              title="Sign out"
+            >
+              Logout
+            </button>
+          )}
         </div>
       </div>
       {/* Tab nav — desktop */}

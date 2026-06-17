@@ -1,8 +1,8 @@
 // ─── Document Generator — Real Permit Content ───────────────────────────────
-// All documents produce site-specific, regulation-cited, submission-ready text.
+// All documents produce site-specific, regulation-cited draft text for PE review.
 
-import { convertForState } from './formConverter';
-import { getAsgTemplate } from './asgImporter';
+import { convertForState } from './formConverter.js';
+import { getAsgTemplate } from './asgImporter.js';
 
 const fmt = (n, d = 1) => (typeof n === 'number' ? n.toFixed(d) : '—');
 const fmtInt = (n) => Math.round(n).toLocaleString();

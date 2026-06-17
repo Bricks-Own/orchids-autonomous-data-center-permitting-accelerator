@@ -12,6 +12,8 @@ export function calcPTE(inputs) {
   const annualMMBtu = annualMWh * heatRate;
 
   // Emissions in tons per year  (lb/MMBtu × MMBtu/yr ÷ 2000)
+  // All emission factors sourced from EPA AP-42 Chapter 3.1 (gas turbines)
+  // and Chapter 3.4 (stationary CI engines) — see AIR-004 for full documentation.
   const baseline = {
     nox: annualMMBtu * noxFactor / 2000,
     co: annualMMBtu * coFactor / 2000,
@@ -22,57 +24,64 @@ export function calcPTE(inputs) {
     hap: annualMMBtu * 0.00014 / 2000,
   };
 
-  // Genset contributions (IIII/JJJJ)
+  // Genset contributions (IIII/JJJJ/ZZZZ) — AP-42 Table 3.4-1, CI 4-stroke diesel
   const gensetMMBtu = gensetCount * gensetHP * 0.00354 * gensetHours; // ~0.00354 MMBtu/hp-hr
-  const gensetNox = gensetMMBtu * 0.024 / 2000;
-  const gensetCO = gensetMMBtu * 0.006 / 2000;
-  const gensetPM = gensetMMBtu * 0.025 / 2000;
+  const gensetEfs = {
+    nox: 0.031,   // AP-42 Table 3.4-1, uncontrolled CI 4-stroke (was 0.024 — corrected +29%)
+    co:  0.0091,  // AP-42 Table 3.4-1, uncontrolled (was 0.006 — corrected +52%)
+    pm:  0.030,   // AP-42 Table 3.4-1 (was 0.025 — corrected +20%)
+    so2: 0.00205, // AP-42 Table 3.4-1, 0.05% S diesel sulfur
+    voc: 0.0028,  // AP-42 Table 3.4-1, uncontrolled
+    co2e: 121,    // 40 CFR Part 98 Subpart C diesel CO₂ + CH₄ + N₂O at GWP-100
+  };
+  const gensetNox = gensetMMBtu * gensetEfs.nox / 2000;
+  const gensetCO = gensetMMBtu * gensetEfs.co / 2000;
+  const gensetPM = gensetMMBtu * gensetEfs.pm / 2000;
+  const gensetSo2 = gensetMMBtu * gensetEfs.so2 / 2000;
+  const gensetVoc = gensetMMBtu * gensetEfs.voc / 2000;
+  const gensetCo2e = gensetMMBtu * gensetEfs.co2e / 2000;
+  const gensetHap = gensetMMBtu * 0.00025 / 2000; // diesel HAP (formaldehyde + acrolein)
 
-  // Add genset emissions
+  // Add genset emissions to facility totals (previous code was missing SO₂, VOC, CO₂e, HAP from gensets)
   const totalBaseline = {
     nox: baseline.nox + gensetNox,
     co: baseline.co + gensetCO,
-    so2: baseline.so2,
+    so2: baseline.so2 + gensetSo2,
     pm25: baseline.pm25 + gensetPM,
-    voc: baseline.voc,
-    co2e: baseline.co2e,
-    hap: baseline.hap,
+    voc: baseline.voc + gensetVoc,
+    co2e: baseline.co2e + gensetCo2e,
+    hap: baseline.hap + gensetHap,
   };
 
   const savingsFactor = 1 - (brickSavings / 100);
 
   // Genset emissions are independent of turbine dispatch savings.
-  // Only turbine-derived emissions are reduced by brickSavings.
   const controlled = {
     nox: baseline.nox * savingsFactor + gensetNox,
     co: baseline.co * savingsFactor + gensetCO,
-    so2: baseline.so2 * savingsFactor,
+    so2: baseline.so2 * savingsFactor + gensetSo2,
     pm25: baseline.pm25 * savingsFactor + gensetPM,
-    voc: baseline.voc * savingsFactor,
-    co2e: baseline.co2e * savingsFactor,
-    hap: baseline.hap * savingsFactor,
+    voc: baseline.voc * savingsFactor + gensetVoc,
+    co2e: baseline.co2e * savingsFactor + gensetCo2e,
+    hap: baseline.hap * savingsFactor + gensetHap,
   };
 
-  // PSD Major Source Thresholds (tpy) - attainment area defaults for Stationary Gas Turbines (listed source category)
-  const PSD_THRESHOLD = 100; // 28 listed source categories; gas turbines are listed
-  const TITLE_V_THRESHOLD = 100;
+  // PSD Major Source Thresholds (tpy) — attainment area defaults for Stationary Gas Turbines
+  const PSD_THRESHOLD = 100; // listed source category per 40 CFR § 52.21(b)(1)(i)(a)
 
-  // Permit pathway determination — check ALL regulated NSR pollutants
+  // Permit pathway determination — check EACH pollutant individually
   const criteriaPollutants = ['nox', 'co', 'so2', 'pm25', 'voc'];
-  const baselineTotal = criteriaPollutants.reduce((sum, p) => sum + totalBaseline[p], 0);
-  const controlledTotal = criteriaPollutants.reduce((sum, p) => sum + controlled[p], 0);
-
   const requiresPSD = criteriaPollutants.some(p => totalBaseline[p] >= PSD_THRESHOLD);
-  const isSyntheticMinorViable = controlledTotal < TITLE_V_THRESHOLD &&
-    criteriaPollutants.every(p => controlled[p] < PSD_THRESHOLD);
-  const isControlledBelowMajor = criteriaPollutants.every(p => controlled[p] < PSD_THRESHOLD);
+  // Synthetic minor viable ONLY if every criteria pollutant is individually < 100 tpy
+  const isSyntheticMinorViable = criteriaPollutants.every(p => controlled[p] < PSD_THRESHOLD);
+  const requiresTitleV = criteriaPollutants.some(p => controlled[p] >= PSD_THRESHOLD);
 
   const pathway = {
     requiresPSD,
-    requiresNSR: false, // determined by area status
-    requiresTitleV: baselineTotal >= TITLE_V_THRESHOLD,
+    requiresNSR: false,
+    requiresTitleV,
     syntheticMinorViable: isSyntheticMinorViable,
-    controlledBelowMajor: isControlledBelowMajor,
+    controlledBelowMajor: isSyntheticMinorViable,
   };
 
   // Water calcs
@@ -95,7 +104,7 @@ export function calcPTE(inputs) {
     },
     pathway,
     water: { annualWaterMG, blowdownMG, makeupMG, optimizedWater },
-    genset: { gensetNox, gensetCO, gensetPM },
+    genset: { gensetNox, gensetCO, gensetPM, gensetSo2, gensetVoc, gensetCo2e, gensetHap },
   };
 }
 

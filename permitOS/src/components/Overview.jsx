@@ -49,7 +49,7 @@ const metrics = [
   { label: 'Permit Types Covered', value: '20+', sub: 'Air, Water, Env.' },
   { label: 'CFR Sections Mapped', value: '40+', sub: 'Federal citations' },
   { label: 'AI Time Reduction', value: '70%', sub: 'vs. manual baseline' },
-  { label: 'One-Click Submission', value: '100%', sub: 'Filable packages' },
+  { label: 'Document Generation', value: '100%', sub: 'Draft packages for PE review' },
   { label: 'States Supported', value: '50', sub: 'All US markets' },
   { label: 'Post-Permit Control', value: 'Live', sub: 'Digital twin OS' },
 ];
@@ -86,7 +86,7 @@ const COMPETITOR_COMPARE = [
     scout: { value: 'Partial', color: 'text-amber-400' },
   },
   {
-    feature: 'One-click submission package',
+    feature: 'Assisted document generation',
     brick: { value: '26 documents ready', color: 'text-green-400' },
     traditional: { value: 'Manual assembly', color: 'text-red-400' },
     scout: { value: 'Partial', color: 'text-amber-400' },
@@ -123,7 +123,7 @@ const WORKFLOW_STEPS = [
   { step: '03', icon: '⚗️', label: 'PTE Engine', desc: 'Baseline and Brick-controlled PTE by pollutant. Synthetic minor viability. Permit strategy recommendation.', time: '< 5 min', color: 'border-indigo-700/40 bg-indigo-950/20' },
   { step: '04', icon: '📄', label: 'Document Factory', desc: '26 permit documents prepared from site data. BACT, AERMOD, SWPPP, SPCC — all ready for PE review.', time: '< 1 hr', color: 'border-green-700/40 bg-green-950/20' },
   { step: '05', icon: '⚡', label: 'Digital Twin', desc: 'Hour-by-hour permit compliance simulation. Turbine, cooling, water, emissions all linked to permit limits.', time: 'Real-time', color: 'border-amber-700/40 bg-amber-950/20' },
-  { step: '06', icon: '📤', label: 'One-Click Submit', desc: 'Submission package indexed, PE-ready, and filable. Agency portal integration ready.', time: '1 click', color: 'border-orange-700/40 bg-orange-950/20' },
+  { step: '06', icon: '📤', label: 'Package Assembly', desc: 'Submission package indexed, PE-ready, and filable. Agency portal integration ready.', time: '< 1 day', color: 'border-orange-700/40 bg-orange-950/20' },
 ];
 
 export default function Overview({ setActiveTab }) {
@@ -137,7 +137,7 @@ export default function Overview({ setActiveTab }) {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 bg-indigo-900/40 border border-indigo-700/40 rounded-full px-3 py-1 text-xs text-indigo-300 mb-4">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
-              Brick PermitOS — BigWatt AI Campus Edition
+              Brick PermitOS — Permitting Intelligence Platform
             </div>
             <h1 className="text-3xl font-bold text-white mb-3 leading-tight">
               Autonomous Data Center<br/>Permitting & Compliance Platform

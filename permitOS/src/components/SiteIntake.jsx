@@ -89,15 +89,16 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
     setRunning(true);
     try {
       // Try backend API first
-      const apiResults = await apiPTE(inputs);
+      const apiResponse = await apiPTE(inputs);
+      const calcResults = apiResponse.results || apiResponse;
       setResults({
-        totalMW: apiResults.totalMW,
-        baseline: apiResults.baseline,
-        controlled: apiResults.controlled,
-        avoided: apiResults.avoided,
-        pathway: apiResults.pathway,
-        water: apiResults.water,
-        genset: apiResults.genset,
+        totalMW: calcResults.totalMW,
+        baseline: calcResults.baseline,
+        controlled: calcResults.controlled,
+        avoided: calcResults.avoided,
+        pathway: calcResults.pathway,
+        water: calcResults.water,
+        genset: calcResults.genset,
       });
     } catch {
       // Fallback to local calculation if API unavailable

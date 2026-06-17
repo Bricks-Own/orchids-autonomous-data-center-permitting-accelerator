@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
+import AuthModal from './components/AuthModal';
 import Overview from './components/Overview';
 import SiteIntake from './components/SiteIntake';
 import AirPermitAI from './components/AirPermitAI';
@@ -10,9 +11,10 @@ import DigitalTwin from './components/DigitalTwin';
 import ComplianceOS from './components/ComplianceOS';
 import RegulatorCopilot from './components/RegulatorCopilot';
 import ExecutiveSummary from './components/ExecutiveSummary';
+import { isAuthenticated, getAuthToken, setAuthToken, logout } from './utils/api';
 
 export const defaultInputs = {
-  siteName: 'BigWatt AI Campus — Site A',
+  siteName: 'BigWatt AI Campus - Site A',
   client: 'BigWatt Digital',
   state: 'Tennessee',
   county: 'Davidson County',
@@ -26,10 +28,10 @@ export const defaultInputs = {
   heatRate: 8.5,
   noxFactor: 0.015,
   coFactor: 0.035,
-  brickSavings: 14,
+  brickSavings: 20,
   gensetCount: 12,
   gensetHP: 2000,
-  gensetHours: 200,
+  gensetHours: 100,
   coolingMGD: 2.8,
   blowdownPct: 20,
   waterMGD: 1.2,
@@ -44,10 +46,30 @@ export const defaultInputs = {
 };
 
 function App() {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [inputs, setInputs] = useState(defaultInputs);
   const [results, setResults] = useState(null);
   const [selectedDocKey, setSelectedDocKey] = useState(null);
+
+  useEffect(() => {
+    // Check for existing token on mount
+    const token = getAuthToken();
+    if (token) {
+      setAuthenticated(true);
+    }
+    setAuthChecked(true);
+  }, []);
+
+  const handleAuth = () => {
+    setAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setAuthenticated(false);
+  };
 
   const handleNavigateDoc = (key) => {
     setSelectedDocKey(key);
@@ -70,9 +92,21 @@ function App() {
     }
   };
 
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-gray-500 text-sm">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return <AuthModal onAuth={handleAuth} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
-      <Header activeTab={activeTab} setActiveTab={setActiveTab} results={results} />
+      <Header activeTab={activeTab} setActiveTab={setActiveTab} results={results} onLogout={handleLogout} />
       <main className="max-w-[1400px] mx-auto">
         {renderTab()}
       </main>
