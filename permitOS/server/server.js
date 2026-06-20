@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { initDb, closeDb } from './db.js';
 import { authenticateToken, requestLogger, errorHandler } from './middleware.js';
@@ -25,7 +26,7 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || (isProduction ? false : true),
+  origin: process.env.CORS_ORIGIN || true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   maxAge: 86400,
@@ -39,6 +40,12 @@ app.use(rateLimit({
   message: { error: 'Too many requests', retryAfter: '15 minutes' },
 }));
 app.use(requestLogger);
+
+// ─── Debug Logger ─────────────────────────────────────────────────────────
+app.use((req, res, next) => {
+  logger.info(`[DEBUG] ${req.method} ${req.path} - IP: ${req.ip}, Host: ${req.headers.host}, Origin: ${req.headers.origin}, UA: ${(req.headers['user-agent']||'').substring(0,50)}`);
+  next();
+});
 
 // ─── Database ─────────────────────────────────────────────────────────────
 let db;
@@ -60,9 +67,9 @@ app.use('/api/auth', createAuthRouter(db));
 // Authenticated routes
 app.use('/api', authenticateToken, createApiRouter(db));
 
-// ─── Production: Serve built frontend ──────────────────────────────────────
-if (isProduction) {
-  const distPath = path.join(__dirname, '..', 'dist');
+// ─── Serve built frontend (if dist/ exists) ────────────────────────────────
+const distPath = path.join(__dirname, '..', 'dist');
+if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
 
   // SPA fallback: serve index.html for all non-API, non-static routes
@@ -72,16 +79,28 @@ if (isProduction) {
     }
   });
 
-  logger.info(`Serving frontend from ${distPath}`);
+  logger.info(`Serving frontend from ${distPath} (${isProduction ? 'production' : 'development'} mode)`);
+} else {
+  logger.warn(`Frontend dist/ not found at ${distPath} — API only`);
 }
 
 // ─── Error Handler ───────────────────────────────────────────────────────
+// Catch-all for unmatched API routes - return JSON 404 with details
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    logger.warn(`[404 CATCH] ${req.method} ${req.path} - no route matched`);
+    return res.status(404).json({ error: 'Endpoint not found', path: req.path, method: req.method });
+  }
+  next();
+});
 app.use(errorHandler);
 
 // ─── Start ───────────────────────────────────────────────────────────────
-const server = app.listen(PORT, () => {
-  logger.info(`PermitOS API running on port ${PORT} (${isProduction ? 'production' : 'development'} mode)`);
-});
+// Listen on all ports so the app works regardless of which port Orchids preview uses
+const PORTS = process.env.PORT ? [parseInt(process.env.PORT)] : [3001, 5173];
+const servers = PORTS.map(p => app.listen(p, () => {
+  logger.info(`PermitOS listening on port ${p} (${isProduction ? 'production' : 'development'} mode)`);
+}));
 
 // Graceful shutdown
 process.on('SIGTERM', () => { shutdown(); });
@@ -90,7 +109,8 @@ process.on('SIGINT', () => { shutdown(); });
 function shutdown() {
   logger.info('Shutting down...');
   closeDb(db);
-  server.close(() => process.exit(0));
+  servers.forEach(s => s.close());
+  process.exit(0);
 }
 
 export { app, db };
