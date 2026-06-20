@@ -1,0 +1,12 @@
+{
+  "installCommand": "npm install --prefix permitOS",
+  "buildCommand": "npm run build --prefix permitOS",
+  "outputDirectory": "permitOS/dist",
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
