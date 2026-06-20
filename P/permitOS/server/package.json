@@ -1,0 +1,32 @@
+{
+  "name": "permitos-server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Brick PermitOS backend API server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "migrate:postgres": "node scripts/migrate-to-postgres.mjs",
+    "test": "node tests/run.js && node tests/agent.mjs && node tests/connectors.mjs && node tests/productionSlices.mjs"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "@aws-sdk/client-s3": "^3.830.0",
+    "@aws-sdk/s3-request-presigner": "^3.830.0",
+    "better-sqlite3": "^12.4.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3",
+    "uuid": "^10.0.0",
+    "winston": "^3.14.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
+  }
+}
