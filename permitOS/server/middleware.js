@@ -1,8 +1,16 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from './auth.js';
 import winston from 'winston';
 
 // ─── Logging ──────────────────────────────────────────────────────────────
+// Ensure logs directory exists
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const logsDir = path.join(__dirname, '..', 'logs');
+if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+
 export const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: winston.format.combine(

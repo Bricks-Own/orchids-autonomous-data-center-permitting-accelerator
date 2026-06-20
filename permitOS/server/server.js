@@ -73,9 +73,12 @@ if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
 
   // SPA fallback: serve index.html for all non-API, non-static routes
-  app.get('*', (req, res) => {
+  // Must call next() for API paths to reach the 404 handler below
+  app.get('*', (req, res, next) => {
     if (!req.path.startsWith('/api')) {
       res.sendFile(path.join(distPath, 'index.html'));
+    } else {
+      next();
     }
   });
 
