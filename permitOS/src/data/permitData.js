@@ -139,10 +139,10 @@ export const OTHER_PERMITS = [
   { name: 'NEPA Environmental Review', agency: 'Federal (if federal nexus)', trigger: 'Federal land, federal financing, or federal permits', weeks: [4, 24] },
   { name: 'State SEPA / CEQA equivalent', agency: 'State', trigger: 'Varies by state — major new facilities often required', weeks: [2, 16] },
   { name: 'Hazardous Materials (RCRA)', agency: 'EPA / State', trigger: 'Generator status from refrigerants, batteries, oils', weeks: [2, 6] },
-  { name: 'Fire / Building / Electrical', agency: 'Local AHJ', trigger: 'All facilities — varies by jurisdiction', weeks: [4, 16] },
-  { name: 'Zoning / Land Use', agency: 'Local', trigger: 'All facilities — data center / industrial zoning required', weeks: [4, 20] },
+  { name: 'Fire / Building / Electrical', agency: 'Local AHJ', trigger: 'All facilities — varies by jurisdiction', weeks: [4, 18] },
+  { name: 'Zoning / Land Use', agency: 'Local', trigger: 'All facilities — data center / industrial zoning required', weeks: [1, 20] },
   { name: 'Noise / Vibration Ordinances', agency: 'Local / County', trigger: 'Cooling tower fans, generators, turbines near sensitive receptors', weeks: [3, 8] },
-  { name: 'Utility Interconnection (gas / electric)', agency: 'Utility / ISO/RTO', trigger: 'All facilities with on-site generation', weeks: [12, 52] },
+  { name: 'Utility Interconnection (gas / electric)', agency: 'Utility / ISO/RTO', trigger: 'All facilities with on-site generation', weeks: [4, 52] },
 ];
 
 export const STATES_ATTAINMENT = {

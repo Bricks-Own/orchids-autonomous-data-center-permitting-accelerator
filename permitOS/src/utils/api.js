@@ -31,16 +31,20 @@ export function isAuthenticated() {
 export function clearAuth() {
   authToken = null;
   localStorage.removeItem('permitos_token');
+  window.dispatchEvent(new Event('permitos:session-expired'));
 }
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
   const headers = { 'Content-Type': 'application/json' };
 
-  // Attach auth token if available (public endpoints like health/auth skip this)
-  const token = getAuthToken();
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  // Determine if this is a public auth endpoint — never send token to auth endpoints
+  const isPublicEndpoint = endpoint.startsWith('/auth/') || endpoint === '/health';
+  if (!isPublicEndpoint) {
+    const token = getAuthToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
   }
 
   const config = {
@@ -53,6 +57,14 @@ async function request(endpoint, options = {}) {
   }
 
   const res = await fetch(url, config);
+
+  // On 401, clear expired/invalid token and redirect to login
+  if (res.status === 401 && !isPublicEndpoint) {
+    clearAuth();
+    // If not a public endpoint, throw a specific error the UI can handle
+    throw new Error('Session expired. Please sign in again.');
+  }
+
   if (!res.ok) {
     let errMsg;
     try {
@@ -211,4 +223,47 @@ export async function sendChatMessage(siteId, content) {
     method: 'POST',
     body: { content, role: 'user' },
   });
+}
+
+// ─── Knowledge Search ──────────────────────────────────────────────────
+export async function searchKnowledge(query, { category = null, limit = 10 } = {}) {
+  return request('/knowledge/search', {
+    method: 'POST',
+    body: { query, category, limit },
+  });
+}
+
+export async function askKnowledgeAI(query, inputs = null) {
+  return request('/knowledge/ask', {
+    method: 'POST',
+    body: { query, inputs },
+  });
+}
+
+export async function getKnowledgeCategories() {
+  return request('/knowledge/categories');
+}
+
+export async function getKnowledgeStats() {
+  return request('/knowledge/stats');
+}
+
+// ─── Permit Scoring ────────────────────────────────────────────────────
+export async function getPermitScore(inputs, results = {}) {
+  return request('/scoring/permits', {
+    method: 'POST',
+    body: { inputs, results },
+  });
+}
+
+// ─── Scenario Analysis ─────────────────────────────────────────────────
+export async function analyzeScenario(scenario, inputs = {}) {
+  return request('/scenarios/analyze', {
+    method: 'POST',
+    body: { scenario, inputs },
+  });
+}
+
+export async function listScenarios() {
+  return request('/scenarios/list');
 }

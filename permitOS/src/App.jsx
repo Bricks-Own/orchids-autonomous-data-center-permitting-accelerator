@@ -11,6 +11,7 @@ import DigitalTwin from './components/DigitalTwin';
 import ComplianceOS from './components/ComplianceOS';
 import RegulatorCopilot from './components/RegulatorCopilot';
 import ExecutiveSummary from './components/ExecutiveSummary';
+import KnowledgeHub from './components/KnowledgeHub';
 import { isAuthenticated, getAuthToken, setAuthToken, logout } from './utils/api';
 
 export const defaultInputs = {
@@ -60,6 +61,13 @@ function App() {
       setAuthenticated(true);
     }
     setAuthChecked(true);
+
+    // Listen for session expiry events from api.js
+    const handleSessionExpired = () => {
+      setAuthenticated(false);
+    };
+    window.addEventListener('permitos:session-expired', handleSessionExpired);
+    return () => window.removeEventListener('permitos:session-expired', handleSessionExpired);
   }, []);
 
   const handleAuth = () => {
@@ -88,6 +96,7 @@ function App() {
       case 'compliance':  return <ComplianceOS results={results} inputs={inputs} onNavigateDoc={handleNavigateDoc} />;
       case 'copilot':     return <RegulatorCopilot results={results} inputs={inputs} />;
       case 'executive':   return <ExecutiveSummary results={results} inputs={inputs} setActiveTab={setActiveTab} />;
+      case 'knowledge':   return <KnowledgeHub inputs={inputs} results={results} />;
       default:            return <Overview setActiveTab={setActiveTab} />;
     }
   };

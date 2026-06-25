@@ -19,6 +19,13 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC
 const ANTHROPIC_BASE_URL = process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com';
 const IS_PROXY = !!process.env.ANTHROPIC_BASE_URL;
 
+// Debug log at module load time
+console.error('[LLM DEBUG] Loaded at', new Date().toISOString());
+console.error('[LLM DEBUG] ANTHROPIC_BASE_URL:', IS_PROXY ? process.env.ANTHROPIC_BASE_URL?.substring(0, 60) : 'NOT SET');
+console.error('[LLM DEBUG] ANTHROPIC_API_KEY length:', ANTHROPIC_API_KEY.length);
+console.error('[LLM DEBUG] IS_PROXY:', IS_PROXY);
+console.error('[LLM DEBUG] CUSTOM_HEADERS length:', (process.env.ANTHROPIC_CUSTOM_HEADERS || '').length);
+
 // When using a proxy, the auth may be via custom headers (not x-api-key).
 // Parse custom headers from ANTHROPIC_CUSTOM_HEADERS env var.
 // Supports both newline-separated and comma-separated formats.
@@ -72,29 +79,57 @@ async function callClaude(messages, options = {}) {
   let headers = {
     'Content-Type': 'application/json',
     'anthropic-version': '2023-06-01',
-    'x-api-key': ANTHROPIC_API_KEY,
     ...extraHeaders,
   };
+
+  // Only send x-api-key in direct mode (not proxy mode)
+  if (!IS_PROXY && ANTHROPIC_API_KEY) {
+    headers['x-api-key'] = ANTHROPIC_API_KEY;
+  }
+
+  // Build the request body
+  // Proxy mode (DeepSeek/OpenRouter via Orchids) does NOT support the `system` field
+  // at top level or in messages array — it returns 401.
+  // Instead, inline the system prompt into the first user message.
+  let body;
+  if (IS_PROXY) {
+    // Clone messages and inline system prompt into first user message
+    const proxyMessages = messages.map(m => ({ ...m }));
+    if (proxyMessages.length > 0 && proxyMessages[0].role === 'user') {
+      proxyMessages[0] = {
+        role: 'user',
+        content: `${SYSTEM_PROMPT}\n\n${proxyMessages[0].content}`,
+      };
+    } else {
+      proxyMessages.unshift({ role: 'user', content: SYSTEM_PROMPT });
+    }
+    body = { model, max_tokens: maxTokens, temperature, messages: proxyMessages };
+  } else {
+    body = { model, max_tokens: maxTokens, temperature, system: SYSTEM_PROMPT, messages };
+  }
+
+  console.error('[LLM CALL] Sending to:', ANTHROPIC_BASE_URL + '/v1/messages');
+  console.error('[LLM CALL] Model:', model);
+  console.error('[LLM CALL] IS_PROXY:', IS_PROXY);
 
   const response = await fetch(`${ANTHROPIC_BASE_URL}/v1/messages`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({
-      model,
-      max_tokens: maxTokens,
-      temperature,
-      system: SYSTEM_PROMPT,
-      messages,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
     const errorBody = await response.text().catch(() => '');
+    console.error('[LLM CALL] Response status:', response.status);
+    console.error('[LLM CALL] Response body:', errorBody);
     throw new Error(`Claude API error ${response.status}: ${errorBody}`);
   }
 
   const data = await response.json();
-  return data.content[0].text;
+  // Proxy (DeepSeek/OpenRouter) may return extended thinking blocks.
+  // Find the text content block instead of assuming content[0].
+  const textBlock = data.content.find(c => c.type === 'text');
+  return textBlock ? textBlock.text : '';
 }
 
 // ─── Structured Query Handler ──────────────────────────────────────────────

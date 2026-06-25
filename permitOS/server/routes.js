@@ -4,6 +4,9 @@ import { requireTenantAccess } from './middleware.js';
 import { logger } from './middleware.js';
 import { searchRegulations } from './rag.js';
 import { queryLLM, generateRAIResponse, generateDocumentSection } from './llm.js';
+import { searchRegulatoryKnowledge, getKnowledgeCategories, getKnowledgeStats } from './web-knowledge.js';
+import { scorePermitSuccess } from './reward-scorer.js';
+import { analyzeScenario, listScenarios } from './scenarios.js';
 
 export function createApiRouter(db) {
   const router = Router();
@@ -240,6 +243,71 @@ export function createApiRouter(db) {
         { name: 'Continuous Compliance OS', available: true },
       ],
     });
+  });
+
+  // ─── Knowledge Search ──────────────────────────────────────────────────
+  router.post('/knowledge/search', (req, res, next) => {
+    try {
+      const { query, category, limit } = req.body;
+      if (!query) return res.status(400).json({ error: 'query required' });
+
+      const results = searchRegulatoryKnowledge(query, { category: category || null, limit: limit || 10 });
+      res.json({ results });
+    } catch (err) { next(err); }
+  });
+
+  router.get('/knowledge/categories', (req, res, next) => {
+    try {
+      const categories = getKnowledgeCategories();
+      res.json({ categories });
+    } catch (err) { next(err); }
+  });
+
+  router.get('/knowledge/stats', (req, res, next) => {
+    try {
+      const stats = getKnowledgeStats();
+      res.json({ stats });
+    } catch (err) { next(err); }
+  });
+
+  // ─── LLM-Powered Knowledge Query ────────────────────────────────────────
+  router.post('/knowledge/ask', async (req, res, next) => {
+    try {
+      const { query, inputs, results } = req.body;
+      if (!query) return res.status(400).json({ error: 'query required' });
+
+      const response = await queryLLM(query, { inputs, results });
+      res.json(response);
+    } catch (err) { next(err); }
+  });
+
+  // ─── Permit Scoring ────────────────────────────────────────────────────────────────────────────────────────────────────
+  router.post('/scoring/permits', (req, res, next) => {
+    try {
+      const { inputs, results } = req.body;
+      if (!inputs) return res.status(400).json({ error: 'inputs required' });
+
+      const score = scorePermitSuccess(inputs, results || {});
+      res.json({ score });
+    } catch (err) { next(err); }
+  });
+
+  // ─── Scenario Analysis ─────────────────────────────────────────────────
+  router.post('/scenarios/analyze', (req, res, next) => {
+    try {
+      const { scenario, inputs } = req.body;
+      if (!scenario) return res.status(400).json({ error: 'scenario required' });
+
+      const analysis = analyzeScenario(scenario, inputs || {});
+      res.json({ analysis });
+    } catch (err) { next(err); }
+  });
+
+  router.get('/scenarios/list', (req, res, next) => {
+    try {
+      const scenarios = listScenarios();
+      res.json({ scenarios });
+    } catch (err) { next(err); }
   });
 
   return router;

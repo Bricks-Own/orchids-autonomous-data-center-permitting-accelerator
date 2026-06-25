@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { US_STATES, STATES_ATTAINMENT, NOX_EMISSION_FACTORS, CO_EMISSION_FACTORS } from '../data/permitData';
 import { calcPTE } from '../utils/calculations';
-import { calculatePTE as apiPTE } from '../utils/api';
+import { calculatePTE as apiPTE, analyzeScenario, listScenarios } from '../utils/api';
 
 const turbineTypes = Object.keys(NOX_EMISSION_FACTORS);
 
@@ -76,6 +76,10 @@ function Select({ value, onChange, options }) {
 export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab, results }) {
   const [running, setRunning] = useState(false);
   const done = results !== null;
+  const [scenario, setScenario] = useState('greenfield');
+  const [scenarioAnalysis, setScenarioAnalysis] = useState(null);
+  const [scenarioLoading, setScenarioLoading] = useState(false);
+  const [scenarioDefs, setScenarioDefs] = useState([]);
 
   const update = (key, val) => setInputs(prev => ({ ...prev, [key]: val }));
 
@@ -84,6 +88,25 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
     update('noxFactor', NOX_EMISSION_FACTORS[type]);
     update('coFactor', CO_EMISSION_FACTORS[type]);
   };
+
+  // Load scenario definitions on mount
+  useEffect(() => {
+    listScenarios().then(data => {
+      if (data?.scenarios) setScenarioDefs(data.scenarios);
+    }).catch(() => {});
+  }, []);
+
+  // Run scenario analysis when scenario type or inputs change
+  useEffect(() => {
+    if (!inputs) return;
+    let cancelled = false;
+    setScenarioLoading(true);
+    analyzeScenario(scenario, inputs).then(data => {
+      if (!cancelled && data?.analysis) setScenarioAnalysis(data.analysis);
+      if (!cancelled) setScenarioLoading(false);
+    }).catch(() => { if (!cancelled) setScenarioLoading(false); });
+    return () => { cancelled = true; };
+  }, [scenario, inputs]);
 
   const runScreening = async () => {
     setRunning(true);
@@ -103,8 +126,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
     } catch {
       // Fallback to local calculation if API unavailable
       await new Promise(r => setTimeout(r, 800));
-      const results = calcPTE(inputs);
-      setResults(results);
+      const localResults = calcPTE(inputs);
+      setResults(localResults);
     }
     setRunning(false);
   };
@@ -245,6 +268,83 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
             </div>
           )}
         </div>
+      </div>
+
+      {/* Scenario Analyzer */}
+      <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-gray-300">Scenario Analyzer</h3>
+          <div className="flex gap-1">
+            {['greenfield', 'expansion', 'upsized', 'colocated'].map(s => (
+              <button
+                key={s}
+                onClick={() => setScenario(s)}
+                className={`text-xs px-2.5 py-1 rounded-lg border transition-all capitalize
+                  ${scenario === s
+                    ? 'bg-indigo-900/40 border-indigo-700/40 text-indigo-300'
+                    : 'bg-gray-800/40 border-gray-700/40 text-gray-500 hover:text-gray-300'}`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+        {scenarioLoading ? (
+          <div className="text-center py-6 text-xs text-gray-500">Analyzing scenario...</div>
+        ) : scenarioAnalysis ? (
+          <div className="grid md:grid-cols-2 gap-4 text-xs">
+            <div>
+              <p className="text-gray-400 mb-3">{scenarioAnalysis.description}</p>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-gray-500">Complexity:</span>
+                <span className={`font-semibold ${scenarioAnalysis.complexity === 'high' ? 'text-red-400' : scenarioAnalysis.complexity === 'moderate' ? 'text-amber-400' : 'text-green-400'}`}>
+                  {scenarioAnalysis.complexity}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-gray-500">Timeline:</span>
+                <span className="font-semibold text-white">{scenarioAnalysis.timelineMonths?.min}–{scenarioAnalysis.timelineMonths?.max} months</span>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-gray-500">Permit types ({scenarioAnalysis.permitTypes?.length || 0}):</span>
+              </div>
+              <div className="flex flex-wrap gap-1 mb-3">
+                {scenarioAnalysis.permitTypes?.map((p, i) => (
+                  <span key={i} className="bg-gray-800 text-gray-400 rounded px-1.5 py-0.5">{p}</span>
+                ))}
+              </div>
+              {scenarioAnalysis.specialConsiderations?.length > 0 && (
+                <div className="space-y-1">
+                  <span className="text-gray-500">Special considerations:</span>
+                  {scenarioAnalysis.specialConsiderations.map((c, i) => (
+                    <div key={i} className="text-amber-300 bg-amber-950/20 rounded px-2 py-1">{c}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div>
+              <span className="text-gray-500 block mb-2">Milestones</span>
+              <div className="space-y-2">
+                {scenarioAnalysis.milestones?.map((m, i) => (
+                  <div key={i} className="bg-gray-800/40 rounded-lg p-2.5">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-semibold text-gray-200">{m.phase}</span>
+                      <span className="text-gray-500 text-xs">{m.durationWeeks?.join('–')} wks</span>
+                    </div>
+                    <div className="text-gray-600">
+                      {m.activities?.slice(0, 2).map((a, j) => (
+                        <div key={j}>• {a}</div>
+                      ))}
+                      {m.activities?.length > 2 && <div className="text-gray-700">+{m.activities.length - 2} more</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-6 text-xs text-gray-600">Enter site data above to see scenario analysis</div>
+        )}
       </div>
     </div>
   );

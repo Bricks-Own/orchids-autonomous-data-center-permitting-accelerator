@@ -43,6 +43,13 @@ const tools = [
     vs: 'Traditional consultants stop at permit issuance; Brick operates the site post-COD.',
     color: 'border-red-700/40 bg-red-950/20',
   },
+  {
+    icon: '📚',
+    name: 'Regulatory Knowledge Hub',
+    desc: 'Search EPA guidance, consultant best practices, RBLC precedents, and state-specific regulatory intelligence across 5 knowledge categories. Cite authoritative sources directly in permit applications.',
+    vs: 'Static regulatory databases with no intelligence or relevance scoring.',
+    color: 'border-teal-700/40 bg-teal-950/20',
+  },
 ];
 
 const metrics = [
@@ -343,7 +350,16 @@ export default function Overview({ setActiveTab }) {
             ⚡ Start Permit Screening →
           </button>
         )}
+        <div className="flex gap-3 justify-center mt-3">
+          {setActiveTab && (
+            <button onClick={() => setActiveTab('knowledge')}
+              className="bg-teal-700/40 hover:bg-teal-700/60 text-teal-300 px-6 py-2.5 rounded-xl text-xs font-semibold transition-all border border-teal-700/40">
+              📚 Explore Knowledge Hub
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
 }
+

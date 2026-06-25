@@ -1,0 +1,28 @@
+{"level":"info","message":"RAG engine initialized with 38 regulatory documents","service":"permitos-api","timestamp":"2026-06-21T02:56:16.038Z"}
+{"level":"info","message":"Database initialized","service":"permitos-api","timestamp":"2026-06-21T02:56:16.044Z"}
+{"level":"info","message":"Serving frontend from /home/user/app/permitOS/dist (development mode)","service":"permitos-api","timestamp":"2026-06-21T02:56:16.046Z"}
+{"level":"info","message":"PermitOS listening on port 5173 (development mode)","service":"permitos-api","timestamp":"2026-06-21T02:56:16.048Z"}
+{"level":"info","message":"[DEBUG] GET /api/health - IP: ::ffff:127.0.0.1, Host: localhost:5173, Origin: undefined, UA: curl/7.88.1","service":"permitos-api","timestamp":"2026-06-21T02:56:18.883Z"}
+{"duration":3,"ip":"::ffff:127.0.0.1","level":"info","message":"GET /api/health 200 3ms","method":"GET","service":"permitos-api","status":200,"timestamp":"2026-06-21T02:56:18.886Z","url":"/api/health"}
+{"level":"info","message":"[DEBUG] POST /api/auth/login - IP: ::ffff:127.0.0.1, Host: localhost:5173, Origin: undefined, UA: curl/7.88.1","service":"permitos-api","timestamp":"2026-06-21T02:56:25.941Z"}
+{"duration":82,"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/auth/login 200 82ms","method":"POST","service":"permitos-api","status":200,"timestamp":"2026-06-21T02:56:26.023Z","url":"/api/auth/login"}
+{"level":"info","message":"[DEBUG] POST /api/agent/query - IP: ::ffff:127.0.0.1, Host: localhost:5173, Origin: undefined, UA: curl/7.88.1","service":"permitos-api","timestamp":"2026-06-21T02:56:26.031Z"}
+{"duration":29435,"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/agent/query 200 29435ms","method":"POST","service":"permitos-api","status":200,"timestamp":"2026-06-21T02:56:55.466Z","url":"/api/agent/query"}
+{"level":"info","message":"[DEBUG] POST /api/auth/login - IP: ::ffff:127.0.0.1, Host: localhost:5173, Origin: undefined, UA: curl/7.88.1","service":"permitos-api","timestamp":"2026-06-21T02:57:00.483Z"}
+{"duration":45,"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/auth/login 200 45ms","method":"POST","service":"permitos-api","status":200,"timestamp":"2026-06-21T02:57:00.529Z","url":"/api/auth/login"}
+{"level":"info","message":"[DEBUG] POST /api/agent/query - IP: ::ffff:127.0.0.1, Host: localhost:5173, Origin: undefined, UA: curl/7.88.1","service":"permitos-api","timestamp":"2026-06-21T02:57:00.538Z"}
+{"duration":24988,"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/agent/query 200 24988ms","method":"POST","service":"permitos-api","status":200,"timestamp":"2026-06-21T02:57:25.526Z","url":"/api/agent/query"}
+{"level":"info","message":"[DEBUG] GET /api/health - IP: ::1, Host: localhost:5173, Origin: undefined, UA: node","service":"permitos-api","timestamp":"2026-06-21T02:57:41.234Z"}
+{"duration":1,"ip":"::1","level":"info","message":"GET /api/health 200 1ms","method":"GET","service":"permitos-api","status":200,"timestamp":"2026-06-21T02:57:41.234Z","url":"/api/health"}
+{"level":"info","message":"[DEBUG] POST /api/auth/register - IP: ::1, Host: localhost:5173, Origin: undefined, UA: node","service":"permitos-api","timestamp":"2026-06-21T02:57:41.242Z"}
+{"duration":72,"ip":"::1","level":"info","message":"POST /api/auth/register 201 72ms","method":"POST","service":"permitos-api","status":201,"timestamp":"2026-06-21T02:57:41.314Z","url":"/api/auth/register"}
+{"level":"info","message":"[DEBUG] POST /api/rag/search - IP: ::1, Host: localhost:5173, Origin: undefined, UA: node","service":"permitos-api","timestamp":"2026-06-21T02:57:41.316Z"}
+{"duration":6,"ip":"::1","level":"info","message":"POST /api/rag/search 200 6ms","method":"POST","service":"permitos-api","status":200,"timestamp":"2026-06-21T02:57:41.322Z","url":"/api/rag/search"}
+{"level":"info","message":"[DEBUG] POST /api/agent/query - IP: ::1, Host: localhost:5173, Origin: undefined, UA: node","service":"permitos-api","timestamp":"2026-06-21T02:57:41.324Z"}
+{"duration":14963,"ip":"::1","level":"info","message":"POST /api/agent/query 200 14963ms","method":"POST","service":"permitos-api","status":200,"timestamp":"2026-06-21T02:57:56.288Z","url":"/api/agent/query"}
+{"level":"info","message":"[DEBUG] POST /api/rai/respond - IP: ::1, Host: localhost:5173, Origin: undefined, UA: node","service":"permitos-api","timestamp":"2026-06-21T02:57:56.293Z"}
+{"duration":13562,"ip":"::1","level":"info","message":"POST /api/rai/respond 200 13562ms","method":"POST","service":"permitos-api","status":200,"timestamp":"2026-06-21T02:58:09.855Z","url":"/api/rai/respond"}
+{"level":"info","message":"[DEBUG] POST /api/rag/search - IP: ::1, Host: localhost:5173, Origin: undefined, UA: node","service":"permitos-api","timestamp":"2026-06-21T02:58:09.860Z"}
+{"duration":4,"ip":"::1","level":"info","message":"POST /api/rag/search 200 4ms","method":"POST","service":"permitos-api","status":200,"timestamp":"2026-06-21T02:58:09.864Z","url":"/api/rag/search"}
+{"level":"info","message":"[DEBUG] POST /api/calculate - IP: ::1, Host: localhost:5173, Origin: undefined, UA: node","service":"permitos-api","timestamp":"2026-06-21T02:58:09.866Z"}
+{"duration":1,"ip":"::1","level":"info","message":"POST /api/calculate 200 1ms","method":"POST","service":"permitos-api","status":200,"timestamp":"2026-06-21T02:58:09.867Z","url":"/api/calculate"}

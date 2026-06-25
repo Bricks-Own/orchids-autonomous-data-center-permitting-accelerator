@@ -15,7 +15,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === 'production';
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5173;
 
 // Trust proxy headers (set by Vite proxy or reverse proxy)
 app.set('trust proxy', 1);
@@ -99,8 +99,8 @@ app.use((req, res, next) => {
 app.use(errorHandler);
 
 // ─── Start ───────────────────────────────────────────────────────────────
-// Listen on all ports so the app works regardless of which port Orchids preview uses
-const PORTS = process.env.PORT ? [parseInt(process.env.PORT)] : [3001, 5173];
+// Listen on port 5173 for preview/API access
+const PORTS = process.env.PORT ? [parseInt(process.env.PORT)] : [5173];
 const servers = PORTS.map(p => app.listen(p, () => {
   logger.info(`PermitOS listening on port ${p} (${isProduction ? 'production' : 'development'} mode)`);
 }));

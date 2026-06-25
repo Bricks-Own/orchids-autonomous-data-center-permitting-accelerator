@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { calcRiskScore, calcTimelineAcceleration } from '../utils/calculations';
 import { STATES_ATTAINMENT } from '../data/permitData';
+import { getPermitScore, analyzeScenario } from '../utils/api';
 
 function AnimatedCounter({ target, duration = 1200, suffix = '', prefix = '' }) {
   const [val, setVal] = useState(0);
@@ -62,6 +63,29 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
   const riskResult = calcRiskScore(results, inputs);
   const timeline = calcTimelineAcceleration();
   const attainment = STATES_ATTAINMENT[inputs.state] || 'Attainment';
+
+  // --- Permit Scorecard state ---
+  const [permitScore, setPermitScore] = useState(null);
+  const [scenarioAnalysis, setScenarioAnalysis] = useState(null);
+  const [scenarioType, setScenarioType] = useState('greenfield');
+  const [scoreLoading, setScoreLoading] = useState(false);
+
+  useEffect(() => {
+    if (!results || !inputs) return;
+    let cancelled = false;
+    setScoreLoading(true);
+    Promise.all([
+      getPermitScore(inputs, results).catch(() => null),
+      analyzeScenario(scenarioType, inputs).catch(() => null),
+    ]).then(([scoreData, scenarioData]) => {
+      if (!cancelled) {
+        if (scoreData?.score) setPermitScore(scoreData.score);
+        if (scenarioData?.analysis) setScenarioAnalysis(scenarioData.analysis);
+        setScoreLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [results, inputs, scenarioType]);
   const isNonAttain = attainment.includes('Nonattainment');
 
   const permitPathwayLabel = pathway.requiresPSD
@@ -309,6 +333,166 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Permit Success Scorecard */}
+      {permitScore && (
+        <div className="rounded-xl border border-indigo-700/30 bg-indigo-950/20 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-indigo-300">Permit Success Scorecard</h3>
+            {scoreLoading && <span className="text-xs text-gray-500">Updating...</span>}
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Score gauge */}
+            <div className="flex flex-col items-center justify-center bg-gray-900/40 rounded-xl p-4">
+              <svg width="160" height="100" viewBox="0 0 160 100">
+                <path d="M 15 85 A 65 65 0 0 1 145 85" stroke="#1f2937" strokeWidth="14" fill="none" strokeLinecap="round" />
+                <path d="M 15 85 A 65 65 0 0 1 145 85"
+                  stroke={permitScore.totalScore >= 75 ? '#22c55e' : permitScore.totalScore >= 50 ? '#f59e0b' : '#ef4444'}
+                  strokeWidth="14" fill="none" strokeLinecap="round"
+                  strokeDasharray={`${(permitScore.totalScore / 100) * 204} 204`} />
+                <text x="80" y="75" textAnchor="middle" fill="white" fontSize="28" fontWeight="bold">
+                  {permitScore.totalScore}
+                </text>
+              </svg>
+              <div className={`text-sm font-bold ${permitScore.totalScore >= 75 ? 'text-green-400' : permitScore.totalScore >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+                {permitScore.category || (permitScore.totalScore >= 75 ? 'High Success Probability' : permitScore.totalScore >= 50 ? 'Moderate Success Probability' : 'Challenging')}
+              </div>
+              <div className="text-xs text-gray-600 mt-1">{permitScore.summary || 'Scored across 8 weighted factors'}</div>
+            </div>
+            {/* Score breakdown */}
+            <div className="space-y-2">
+              <div className="text-xs text-gray-400 font-medium mb-2">Score Breakdown</div>
+              {permitScore.breakdown && permitScore.breakdown.slice(0, 6).map((f, i) => (
+                <div key={i} className="flex items-center justify-between text-xs bg-gray-800/40 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-1.5 h-1.5 rounded-full ${f.score >= 0 ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <span className="text-gray-400">{f.label}</span>
+                  </div>
+                  <span className={`font-semibold ${f.score >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {f.score > 0 ? '+' : ''}{f.score}pts
+                  </span>
+                </div>
+              ))}
+              {/* Risk factors */}
+              {permitScore.riskFactors && permitScore.riskFactors.length > 0 && (
+                <div className="mt-3">
+                  <div className="text-xs text-gray-400 font-medium mb-1">Risk Factors</div>
+                  {permitScore.riskFactors.slice(0, 3).map((r, i) => (
+                    <div key={i} className="text-xs text-amber-300 bg-amber-950/20 border border-amber-800/30 rounded-lg px-3 py-1.5 mb-1">
+                      {r}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Recommendations */}
+              {permitScore.recommendations && permitScore.recommendations.length > 0 && (
+                <div className="mt-3">
+                  <div className="text-xs text-gray-400 font-medium mb-1">Recommendations</div>
+                  {permitScore.recommendations.slice(0, 2).map((r, i) => (
+                    <div key={i} className="text-xs text-green-300 bg-green-950/20 border border-green-800/30 rounded-lg px-3 py-1.5 mb-1">
+                      {r}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scenario Selector + Analysis */}
+      <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-gray-300">Scenario Pathway Analysis</h3>
+          <div className="flex gap-1">
+            {['greenfield', 'expansion', 'upsized', 'colocated'].map(s => (
+              <button
+                key={s}
+                onClick={() => setScenarioType(s)}
+                className={`text-xs px-2.5 py-1 rounded-lg border transition-all capitalize
+                  ${scenarioType === s
+                    ? 'bg-indigo-900/40 border-indigo-700/40 text-indigo-300'
+                    : 'bg-gray-800/40 border-gray-700/40 text-gray-500 hover:text-gray-300'}`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+        {scenarioAnalysis ? (
+          <div className="space-y-3">
+            <div className="grid md:grid-cols-2 gap-4 text-xs">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-gray-400">Complexity:</span>
+                  <span className={`font-semibold ${scenarioAnalysis.complexity === 'high' ? 'text-red-400' : scenarioAnalysis.complexity === 'moderate' ? 'text-amber-400' : 'text-green-400'}`}>
+                    {scenarioAnalysis.complexity}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-gray-400">Timeline:</span>
+                  <span className="font-semibold text-white">
+                    {scenarioAnalysis.timelineMonths?.min}–{scenarioAnalysis.timelineMonths?.max} months
+                  </span>
+                </div>
+                <div className="mb-2">
+                  <span className="text-gray-400 block mb-1">Permit Types ({scenarioAnalysis.permitTypes?.length}):</span>
+                  <div className="flex flex-wrap gap-1">
+                    {scenarioAnalysis.permitTypes?.slice(0, 5).map((p, i) => (
+                      <span key={i} className="bg-gray-800 text-gray-400 rounded px-1.5 py-0.5">{p}</span>
+                    ))}
+                  </div>
+                </div>
+                {scenarioAnalysis.specialConsiderations?.length > 0 && (
+                  <div className="mt-2">
+                    <span className="text-gray-400 block mb-1">Key Considerations:</span>
+                    {scenarioAnalysis.specialConsiderations.map((c, i) => (
+                      <div key={i} className="text-amber-300 bg-amber-950/20 rounded px-2 py-1 mb-1">{c}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div>
+                <span className="text-gray-400 block mb-2">Milestones & Key Phases</span>
+                {scenarioAnalysis.milestones?.map((m, i) => (
+                  <div key={i} className="bg-gray-800/40 rounded-lg p-2 mb-1.5">
+                    <div className="font-semibold text-gray-200">{m.phase}</div>
+                    <div className="text-gray-500 mt-0.5">{m.durationWeeks?.join('–')} weeks</div>
+                    {m.activities?.slice(0, 2).map((a, j) => (
+                      <div key={j} className="text-gray-600 text-xs">• {a}</div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Scenario Action Buttons */}
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-800/40">
+              <button
+                onClick={() => setActiveTab('docs')}
+                className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-semibold transition-all"
+              >
+                Generate Documents for {scenarioAnalysis.label}
+              </button>
+              <button
+                onClick={() => { setActiveTab('intake'); }}
+                className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-semibold transition-all"
+              >
+                Adjust Site Parameters
+              </button>
+              <button
+                onClick={() => { setActiveTab('milestones'); }}
+                className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-semibold transition-all"
+              >
+                View Scenario Timeline
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="text-xs text-gray-600 text-center py-4">
+            {scoreLoading ? 'Loading scenario analysis...' : 'Run the permit screening above to see scenario-specific pathways'}
+          </div>
+        )}
       </div>
 
       {/* Risk Factors */}
