@@ -92,9 +92,44 @@ function runMigrations(db) {
       created_at TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id TEXT PRIMARY KEY,
+      site_id TEXT,
+      user_id TEXT,
+      action TEXT NOT NULL,
+      details TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS compliance_reports (
+      id TEXT PRIMARY KEY,
+      site_id TEXT,
+      report_type TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'generated',
+      title TEXT,
+      content TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS submissions (
+      id TEXT PRIMARY KEY,
+      site_id TEXT,
+      user_id TEXT,
+      agency TEXT NOT NULL,
+      doc_type TEXT NOT NULL,
+      doc_num TEXT,
+      status TEXT NOT NULL DEFAULT 'submitted',
+      tracking_id TEXT,
+      notes TEXT,
+      submitted_at TEXT DEFAULT (datetime('now'))
+    );
+
     CREATE INDEX IF NOT EXISTS idx_sites_tenant ON sites(tenant_id);
     CREATE INDEX IF NOT EXISTS idx_documents_site ON documents(site_id);
     CREATE INDEX IF NOT EXISTS idx_chat_site ON chat_history(site_id);
+    CREATE INDEX IF NOT EXISTS idx_audit_site ON audit_logs(site_id);
+    CREATE INDEX IF NOT EXISTS idx_reports_site ON compliance_reports(site_id);
+    CREATE INDEX IF NOT EXISTS idx_submissions_site ON submissions(site_id);
   `);
 
   // Seed default tenant if not exists

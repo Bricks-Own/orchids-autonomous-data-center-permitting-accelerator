@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { simulate24h } from '../utils/calculations';
+import { simulate24h, THRESHOLDS } from '../utils/calculations';
 import {
   AreaChart, Area, LineChart, Line, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend, BarChart, Bar
@@ -248,25 +248,25 @@ export default function DigitalTwin({ results, inputs }) {
                   label: 'Annual NOx Budget',
                   baseline: results.baseline.nox,
                   controlled: results.controlled.nox,
-                  limit: 100,
+                  limit: results.thresholdAnalysis?.nox?.controllingThreshold || THRESHOLDS.nox.psd,
                   unit: 'tpy',
-                  compliance: results.controlled.nox < 100,
+                  compliance: results.controlled.nox < (results.thresholdAnalysis?.nox?.controllingThreshold || THRESHOLDS.nox.psd),
                 },
                 {
                   label: 'Annual CO Budget',
                   baseline: results.baseline.co,
                   controlled: results.controlled.co,
-                  limit: 100,
+                  limit: THRESHOLDS.co.psd,
                   unit: 'tpy',
-                  compliance: results.controlled.co < 100,
+                  compliance: results.controlled.co < THRESHOLDS.co.psd,
                 },
                 {
-                  label: 'GHG (CO₂e)',
+                  label: 'GHG (CO₂e) — GHGRP',
                   baseline: results.baseline.co2e,
                   controlled: results.controlled.co2e,
-                  limit: 100000,
+                  limit: THRESHOLDS.co2e.ghgrp,
                   unit: 'tpy',
-                  compliance: results.controlled.co2e < 100000,
+                  compliance: results.controlled.co2e < THRESHOLDS.co2e.ghgrp,
                 },
                 {
                   label: 'Water Use (Annual)',

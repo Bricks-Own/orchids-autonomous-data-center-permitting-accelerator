@@ -35,6 +35,9 @@ const defaultInputs = {
   stackHeight: 65,
   nearestReceptorFt: 1200,
   nonAttainment: false,
+  nonAttainNOx: false,
+  nonAttainPM25: false,
+  nonAttainOzone: false,
 };
 
 function Field({ label, children, hint }) {
@@ -161,7 +164,13 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
             <Select value={inputs.state} onChange={v => {
               update('state', v);
               const status = STATES_ATTAINMENT[v] || '';
-              update('nonAttainment', status.includes('Nonattainment'));
+              const isNon = status.includes('Nonattainment');
+              update('nonAttainment', isNon);
+              if (isNon) {
+                update('nonAttainNOx', true);
+                update('nonAttainPM25', true);
+                update('nonAttainOzone', true);
+              }
             }} options={US_STATES} />
           </Field>
           <Field label="County / Jurisdiction"><Input value={inputs.county} onChange={v => update('county', v)} /></Field>
@@ -179,6 +188,28 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               {attainmentStatus}
             </div>
             <div className="text-xs text-gray-600 mt-1">Determines PSD vs. NSR pathway</div>
+            {/* Per-pollutant nonattainment overrides */}
+            {attainmentStatus.includes('Nonattainment') && (
+              <div className="mt-3 pt-3 border-t border-gray-700/40 space-y-1.5">
+                <div className="text-xs text-gray-500 mb-1 font-medium">Per-Pollutant Nonattainment (override for county-specific SIP)</div>
+                {[
+                  { key: 'nonAttainNOx', label: 'NOx (Ozone Precursor)' },
+                  { key: 'nonAttainOzone', label: 'Ozone (VOC)' },
+                  { key: 'nonAttainPM25', label: 'PM2.5 (Direct)' },
+                ].map(p => (
+                  <label key={p.key} className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer hover:text-gray-300">
+                    <input
+                      type="checkbox"
+                      checked={inputs[p.key]}
+                      onChange={e => update(p.key, e.target.checked)}
+                      className="accent-amber-500 rounded"
+                    />
+                    {p.label}
+                  </label>
+                ))}
+                <p className="text-xs text-gray-600 mt-1 italic">Checking these applies Severe nonattainment thresholds (25 tpy NOx/VOC, 30 tpy PM2.5)</p>
+              </div>
+            )}
           </div>
         </div>
 

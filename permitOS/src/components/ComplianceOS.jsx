@@ -1,5 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ComplianceValidationPanel from './ComplianceValidationPanel';
+import AgencySubmission from './AgencySubmission';
+import {
+  generateComplianceReport,
+  exportAuditLog,
+  createAuditLogEntry,
+  exportDocx,
+} from '../utils/api';
 
 const CONDITIONS = [
   {
@@ -176,10 +183,21 @@ function LiveTicker({ results }) {
 }
 
 export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
-  const [view, setView] = useState('conditions'); // 'conditions' | 'validation'
+  const [view, setView] = useState('conditions'); // 'conditions' | 'validation' | 'submissions'
   const [filter, setFilter] = useState('All');
   const [expanded, setExpanded] = useState(null);
   const [notify, setNotify] = useState('');
+  const [reportModal, setReportModal] = useState(null); // { report, condition }
+  const [reportLoading, setReportLoading] = useState(false);
+
+  // Derive a stable site ID from inputs
+  const siteId = useMemo(() => {
+    const stored = localStorage.getItem('permitos_site_id');
+    if (stored) return stored;
+    const id = `site_${(inputs?.siteName || 'default').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}_${Date.now()}`;
+    localStorage.setItem('permitos_site_id', id);
+    return id;
+  }, []);
 
   useEffect(() => {
     if (notify) {
@@ -192,6 +210,56 @@ export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
   const compliantCount = CONDITIONS.filter(c => c.compliance === 'compliant').length;
   const warningCount = CONDITIONS.filter(c => c.compliance === 'warning').length;
   const pendingCount = CONDITIONS.filter(c => c.compliance === 'pending').length;
+
+  const handleGenerateReport = async (cond) => {
+    setReportLoading(true);
+    try {
+      await createAuditLogEntry(siteId, 'generate_report', { conditionId: cond.id, condition: cond.condition });
+      const data = await generateComplianceReport(siteId, cond.id, inputs, results);
+      setReportModal({ report: data.report, condition: cond });
+    } catch (err) {
+      setNotify(`Report generation failed: ${err.message}`);
+    }
+    setReportLoading(false);
+  };
+
+  const handleExportAudit = async () => {
+    try {
+      await createAuditLogEntry(siteId, 'export_audit', { format: 'csv' });
+      await exportAuditLog(siteId, 'csv');
+      setNotify('Audit log exported successfully.');
+    } catch (err) {
+      setNotify(`Export failed: ${err.message}`);
+    }
+  };
+
+  const handleExportReportDocx = async () => {
+    if (!reportModal) return;
+    try {
+      const sections = reportModal.report.sections || [];
+      await exportDocx(reportModal.report.title, sections);
+      setNotify('Report downloaded as Word document.');
+    } catch (err) {
+      setNotify(`Word export failed: ${err.message}`);
+    }
+  };
+
+  const handleExportConditionDocx = async (cond) => {
+    try {
+      const sections = [
+        { heading: 'Permit Condition', body: cond.condition },
+        { heading: 'Regulatory Reference', body: cond.cfr },
+        { heading: 'Compliance Status', body: STATUS_LABELS[cond.compliance] },
+        { heading: 'Brick Control Action', body: cond.brickControl },
+        { heading: 'Evidence Generated', body: cond.evidence },
+      ];
+      await createAuditLogEntry(siteId, 'export_docx', { conditionId: cond.id });
+      await exportDocx(`Compliance_Report_${cond.id}`, sections);
+      setNotify('Condition report exported as Word document.');
+    } catch (err) {
+      setNotify(`Word export failed: ${err.message}`);
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -222,6 +290,12 @@ export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
               className={`text-xs px-4 py-2 rounded-lg border transition-all ${view === 'validation' ? 'bg-emerald-700 text-white border-emerald-600' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}
             >
               Document Validation
+            </button>
+            <button
+              onClick={() => setView('submissions')}
+              className={`text-xs px-4 py-2 rounded-lg border transition-all ${view === 'submissions' ? 'bg-amber-700 text-white border-amber-600' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}
+            >
+              Agency Submissions
             </button>
           </div>
         </div>
@@ -302,14 +376,20 @@ export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
                         📊 View Trend Data
                       </button>
                       <button
-                        onClick={() => setNotify(`Compliance report for "${cond.condition}" generated — ready for PE review.`)}
-                        className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-700">
-                        📄 Generate Compliance Report
+                        onClick={() => handleGenerateReport(cond)}
+                        disabled={reportLoading}
+                        className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-700 disabled:opacity-50">
+                        {reportLoading ? '⏳ Generating...' : '📄 Generate Compliance Report'}
                       </button>
                       <button
-                        onClick={() => setNotify(`Audit log for "${cond.condition}" exported — full chain of custody preserved.`)}
+                        onClick={handleExportAudit}
                         className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-700">
                         📤 Export Audit Log
+                      </button>
+                      <button
+                        onClick={() => handleExportConditionDocx(cond)}
+                        className="text-xs bg-blue-800/40 hover:bg-blue-700/40 text-blue-300 rounded-lg px-3 py-1.5 transition-colors border border-blue-700/40">
+                        📝 Export as Word Doc
                       </button>
                       <button
                         onClick={() => setNotify(`Opening Regulator QA Copilot with "${cond.condition}" context.`)}
@@ -349,6 +429,48 @@ export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
       {/* ── VALIDATION VIEW ───────────────────────────────────────────────────── */}
       {view === 'validation' && (
         <ComplianceValidationPanel inputs={inputs} results={results} onNavigateDoc={onNavigateDoc} />
+      )}
+
+      {/* ── SUBMISSIONS VIEW ──────────────────────────────────────────────────── */}
+      {view === 'submissions' && (
+        <AgencySubmission inputs={inputs} results={results} siteId={siteId} onNotify={setNotify} />
+      )}
+
+      {/* ── Report Preview Modal ─────────────────────────────────────────────── */}
+      {reportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setReportModal(null)}>
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-white">Compliance Report</h3>
+                <p className="text-xs text-gray-500">{reportModal.report.title}</p>
+              </div>
+              <button onClick={() => setReportModal(null)} className="text-gray-500 hover:text-white text-lg">&times;</button>
+            </div>
+            <div className="p-6 space-y-6">
+              {reportModal.report.sections?.map((section, i) => (
+                <div key={i}>
+                  <h4 className="text-xs font-semibold text-indigo-400 mb-2">{section.heading}</h4>
+                  <p className="text-xs text-gray-300 leading-relaxed">{section.body}</p>
+                </div>
+              ))}
+            </div>
+            <div className="sticky bottom-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-800 px-6 py-4 flex gap-3 justify-end">
+              <button onClick={() => setReportModal(null)}
+                className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-4 py-2 border border-gray-700 transition-colors">
+                Close
+              </button>
+              <button onClick={() => {
+                const sections = reportModal.report.sections || [];
+                exportDocx(reportModal.report.title, sections);
+                setNotify('Report downloaded as Word document.');
+              }}
+                className="text-xs bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg px-4 py-2 transition-colors">
+                📥 Download as Word Doc
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

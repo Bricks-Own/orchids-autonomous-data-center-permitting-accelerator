@@ -267,3 +267,88 @@ export async function analyzeScenario(scenario, inputs = {}) {
 export async function listScenarios() {
   return request('/scenarios/list');
 }
+
+// ─── Download Helper ─────────────────────────────────────────────────────────
+export async function downloadBlob(endpoint, filename, body) {
+  const url = `${API_BASE}${endpoint}`;
+  const token = getAuthToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    let errMsg;
+    try { const err = await res.json(); errMsg = err.error || `HTTP ${res.status}`; }
+    catch { errMsg = `HTTP ${res.status}`; }
+    throw new Error(errMsg);
+  }
+
+  // Check if response is JSON or binary
+  const contentType = res.headers.get('Content-Type') || '';
+  if (contentType.includes('json')) {
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename || 'export.json';
+    link.click();
+    URL.revokeObjectURL(link.href);
+    return data;
+  }
+
+  const blob = await res.blob();
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename || 'export';
+  link.click();
+  URL.revokeObjectURL(link.href);
+  return { status: 'downloaded' };
+}
+
+// ─── Compliance Report ───────────────────────────────────────────────────────
+export async function generateComplianceReport(siteId, conditionId, inputs, results) {
+  return request('/compliance/generate-report', {
+    method: 'POST',
+    body: { siteId, conditionId, inputs, results },
+  });
+}
+
+// ─── Export Audit Log ────────────────────────────────────────────────────────
+export async function exportAuditLog(siteId, format = 'csv') {
+  return downloadBlob('/compliance/export-audit', `audit-log-${new Date().toISOString().split('T')[0]}.${format}`, { siteId, format });
+}
+
+// ─── Export Word Doc ─────────────────────────────────────────────────────────
+export async function exportDocx(title, sections) {
+  return downloadBlob('/compliance/export-docx', `${title.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 60)}.docx`, { title, sections });
+}
+
+// ─── Export RAI as Word Doc ──────────────────────────────────────────────────
+export async function exportRAIDocx(raiId, question, answer, inputs) {
+  return downloadBlob('/compliance/rai-docx', `RAI-Response-${raiId || 'draft'}.docx`, { raiId, question, answer, inputs });
+}
+
+// ─── Audit Log Entry ─────────────────────────────────────────────────────────
+export async function createAuditLogEntry(siteId, action, details) {
+  return request('/compliance/audit-log', {
+    method: 'POST',
+    body: { siteId, action, details },
+  });
+}
+
+// ─── Agency Submission ───────────────────────────────────────────────────────
+export async function agencySubmit(siteId, docType, docNum, agency, notes) {
+  return request('/agency/submit', {
+    method: 'POST',
+    body: { siteId, docType, docNum, agency, notes },
+  });
+}
+
+export async function listAgencySubmissions() {
+  return request('/agency/submissions');
+}

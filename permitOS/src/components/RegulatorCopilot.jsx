@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { queryAgent } from '../utils/api';
+import { queryAgent, exportRAIDocx, createAuditLogEntry } from '../utils/api';
 
 const RAI_TEMPLATES = [
   {
@@ -70,6 +70,7 @@ const DEFICIENCY_TEMPLATES = [
 const CATEGORIES = ['All', 'AERMOD / Modeling', 'BACT / Technology', 'PTE / Enforceable Limits', 'Environmental Justice', 'NPDES / Water'];
 
 export default function RegulatorCopilot({ results, inputs }) {
+  const siteId = typeof window !== 'undefined' ? (localStorage.getItem('permitos_site_id') || 'site_demo') : 'site_demo';
   const [activeMode, setActiveMode] = useState('rai');
   const [selectedRAI, setSelectedRAI] = useState(null);
   const [filter, setFilter] = useState('All');
@@ -256,7 +257,16 @@ export default function RegulatorCopilot({ results, inputs }) {
                     </div>
                     <div className="flex gap-2 flex-wrap">
                       <button
-                        onClick={() => { setExporting(rai.id); setNotify(`"${rai.id}" exported as Word document — ready for PE signature.`); }}
+                        onClick={async () => {
+                          setExporting(rai.id);
+                          try {
+                            await createAuditLogEntry(siteId, 'export_rai_docx', { raiId: rai.id });
+                            await exportRAIDocx(rai.id, rai.question, rai.answer(inputs || {}), inputs);
+                            setNotify(`"${rai.id}" exported as Word document — ready for PE signature.`);
+                          } catch (err) {
+                            setNotify(`Export failed: ${err.message}`);
+                          }
+                        }}
                         className="text-xs bg-indigo-700/40 hover:bg-indigo-600/40 text-indigo-300 rounded-lg px-3 py-1.5 transition-colors border border-indigo-700/40"
                       >
                         {exporting === rai.id ? '✓ Exported' : '📤 Export as Word Doc'}
@@ -337,13 +347,30 @@ export default function RegulatorCopilot({ results, inputs }) {
         <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 flex flex-col" style={{ height: '560px' }}>
           <div className="flex items-center gap-3 p-4 border-b border-gray-800/40">
             <div className="w-7 h-7 rounded-full bg-violet-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">AI</div>
-            <div>
+            <div className="flex-1">
               <div className="text-sm font-medium text-gray-300">Brick Regulator QA Copilot</div>
               <div className="text-xs text-green-400 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
                 Permit record indexed — {inputs?.siteName || 'site'} loaded
               </div>
             </div>
+            {chatHistory.length > 1 && (
+              <button
+                onClick={() => {
+                  const text = chatHistory.map(m => `[${m.role.toUpperCase()}] ${m.content}`).join('\n\n---\n\n');
+                  const blob = new Blob([text], { type: 'text/plain' });
+                  const a = document.createElement('a');
+                  a.href = URL.createObjectURL(blob);
+                  a.download = `chat-export-${new Date().toISOString().split('T')[0]}.txt`;
+                  a.click();
+                  URL.revokeObjectURL(a.href);
+                  setNotify('Chat exported as text file.');
+                }}
+                className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg px-2.5 py-1.5 transition-colors border border-gray-600"
+              >
+                Export Chat
+              </button>
+            )}
           </div>
 
           {/* Messages */}

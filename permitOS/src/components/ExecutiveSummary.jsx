@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { calcRiskScore, calcTimelineAcceleration } from '../utils/calculations';
+import { calcRiskScore, calcTimelineAcceleration, THRESHOLDS } from '../utils/calculations';
 import { STATES_ATTAINMENT } from '../data/permitData';
 import { getPermitScore, analyzeScenario } from '../utils/api';
 
@@ -216,9 +216,9 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
             {[
               { label: 'Title V Operating Permit', value: pathway.requiresTitleV ? 'Required' : 'Not Required', ok: !pathway.requiresTitleV },
               { label: 'NSPS Subpart KKKK/KKKKa', value: 'Applicable (all gas turbines)', ok: false },
-              { label: 'NESHAP Subpart YYYY', value: baseline.hap >= 10 ? 'Major HAP Source' : 'Area Source — Confirm', ok: baseline.hap < 10 },
-              { label: 'Backup Engine (IIII/JJJJ/ZZZZ)', value: `${inputs.gensetCount} units at ≤${inputs.gensetHours} hr/yr`, ok: inputs.gensetHours <= 100 },
-              { label: 'GHG / GHGRP Reporting', value: baseline.co2e >= 25000 ? 'Required (≥25K tpy CO₂e)' : 'Below GHGRP threshold', ok: baseline.co2e < 25000 },
+              { label: 'NESHAP Subpart YYYY', value: baseline.hap >= THRESHOLDS.hap.combined ? 'Major HAP Source' : baseline.hap >= THRESHOLDS.hap.single ? 'Near Major — Confirm' : 'Area Source — Confirm', ok: baseline.hap < THRESHOLDS.hap.single },
+              { label: 'Backup Engine (IIII/JJJJ/ZZZZ)', value: `${inputs.gensetCount} units at ≤${inputs.gensetHours} hr/yr`, ok: inputs.gensetHours <= THRESHOLDS.genset.runtimeLimit },
+              { label: 'GHG / GHGRP Reporting', value: baseline.co2e >= THRESHOLDS.co2e.ghgrp ? `Required (≥${(THRESHOLDS.co2e.ghgrp/1000).toFixed(0)}K tpy CO₂e)` : 'Below GHGRP threshold', ok: baseline.co2e < THRESHOLDS.co2e.ghgrp },
               { label: 'NPDES Discharge Permit', value: 'Required', ok: false },
               { label: 'SPCC Plan', value: 'Required (diesel fuel tanks)', ok: false },
               { label: 'Construction SWPPP / CGP', value: 'Required (≥1 acre)', ok: false },
@@ -291,7 +291,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
                 { key: 'pm25', label: 'PM₂.₅', threshold: 100 },
                 { key: 'voc', label: 'VOC', threshold: 100 },
                 { key: 'hap', label: 'HAP (total)', threshold: 25 },
-                { key: 'co2e', label: 'CO₂e (GHG)', threshold: 100000 },
+                { key: 'co2e', label: 'CO₂e (GHG)', threshold: THRESHOLDS.co2e.ghgrp },
               ].map((p, i) => {
                 const b = baseline[p.key];
                 const c = controlled[p.key];
@@ -528,6 +528,58 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
           </div>
         </div>
       </div>
+
+      {/* Breach Awareness + Remediation Summary */}
+      {results.breaches && results.breaches.length > 0 && (
+        <div className="rounded-xl border border-red-700/30 bg-red-950/10 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-semibold text-gray-300">Threshold Breach & Remediation Summary</h3>
+              <span className="text-xs px-2 py-0.5 rounded bg-red-900/30 text-red-400">{results.breaches.filter(b => b.status === 'BREACHED').length} Active</span>
+              <span className="text-xs px-2 py-0.5 rounded bg-amber-900/30 text-amber-400">{results.breaches.filter(b => b.status === 'MITIGATED').length} Mitigated</span>
+            </div>
+            <button
+              onClick={() => setActiveTab('air')}
+              className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg font-semibold transition-all"
+            >
+              View Full Remediation Plans
+            </button>
+          </div>
+          <div className="grid md:grid-cols-2 gap-3">
+            {results.breaches.filter(b => b.status !== 'NOTICE').slice(0, 4).map(b => (
+              <div key={b.id} className="bg-gray-900/40 border border-gray-700/30 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-semibold ${b.status === 'BREACHED' ? 'text-red-400' : 'text-amber-400'}`}>
+                      {b.status === 'BREACHED' ? 'X' : '~'}
+                    </span>
+                    <span className="text-sm font-semibold text-white">{b.pollutant}</span>
+                    <span className="text-xs text-gray-500">{b.thresholdType}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mb-2">{b.description.substring(0, 120)}...</p>
+                {b.remediationSteps && b.remediationSteps.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {b.remediationSteps.map(s => (
+                      <span key={s.stepNumber} className="text-xs bg-indigo-900/30 text-indigo-400 border border-indigo-800/40 rounded px-1.5 py-0.5">
+                        Step {s.stepNumber}: {s.title.substring(0, 30)}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-1.5 mt-2 pt-1 border-t border-gray-800/40">
+                  {b.tabLinks && b.tabLinks.slice(0, 3).map(link => (
+                    <button key={link.tab}
+                      onClick={() => setActiveTab(link.tab)}
+                      className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-500 hover:text-gray-300 px-2 py-0.5 rounded transition-colors"
+                    >{link.tab}</button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* CTA buttons */}
       <div className="rounded-xl border border-indigo-700/30 bg-indigo-950/20 p-5">
