@@ -2,7 +2,7 @@
 // Tests the full flow: health → register → auth → RAG search → agent query → PTE calc
 // Uses Node 22's built-in fetch (no external dependencies needed)
 
-const PORT = process.env.PORT || 3099;
+const PORT = process.env.PORT || 5173;
 const BASE = `http://localhost:${PORT}/api`;
 let passed = 0;
 let failed = 0;

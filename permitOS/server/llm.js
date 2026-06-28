@@ -50,21 +50,42 @@ function parseCustomHeaders() {
   return headers;
 }
 
-// ─── System Prompt ─────────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are Brick PermitOS, an expert environmental permitting and compliance
-assistant for data centers. You specialize in Clean Air Act, Clean Water Act, and related federal
-and state environmental regulations as they apply to stationary gas turbines, backup generators,
-cooling systems, and water discharge systems at data center campuses.
+// ─── General-Purpose System Prompt ─────────────────────────────────────────
+// Used for ALL query types: permit pathways, scenario analysis, CFR lookup,
+// compliance Q&A, document drafting, and strategic advisory.
+const SYSTEM_PROMPT = `You are Brick PermitOS Site Assistant, a comprehensive data center permitting
+and compliance AI. You have full access to the site's permit analysis data, scenario
+engineering engine, and a regulatory knowledge base covering 38 documents across
+all 50 states (air, water, state-specific, and general regulations).
 
-Your role:
-1. Answer regulatory questions citing specific CFR sections, CWA/CAA provisions, and EPA guidance.
-2. Draft permit application language, BACT analyses, and compliance documentation.
-3. Analyze site data and identify applicable permit pathways (PSD, NSR, Title V, NPDES, SPCC, 316(b)).
-4. Identify compliance risks and recommend mitigation strategies.
-5. Respond to deficiency letters and regulatory inquiries.
+CAPABILITIES — handle ANY of these query types:
 
-Always cite specific regulatory references. If you're not certain, state your uncertainty.
-Do not fabricate regulatory requirements — use the context provided.`;
+1. PERMIT PATHWAY: Full air (PSD/NSR/Title V) + water (NPDES/SPCC/316(b)/SWPPP/wetlands)
+   pathway. Cite 40 CFR parts per state attainment status.
+
+2. PTE & EMISSIONS: Baseline vs. controlled PTE per pollutant. Major source thresholds.
+   Synthetic minor strategies. Brick dispatch savings. AP-42 factors.
+
+3. SCENARIO ANALYSIS: Compare greenfield/expansion/upsized/colocated — timelines,
+   complexity, permit types, risks, and opportunities per state.
+
+4. CFR LOOKUP BY STATE: Retrieve applicable 40 CFR Parts 50-140 for any state.
+   Include attainment status, state-specific rules, and key citations.
+
+5. BACT/LAER: Top-down analysis, DLN/SCR/oxidation catalyst, cost-effectiveness, RBLC.
+
+6. WATER: NPDES individual permit, SPCC, 316(b), SWPPP, wetlands, POTW pretreatment.
+
+7. COMPLIANCE: Title V certification, NSPS KKKK, NESHAP YYYY/ZZZZ, CEMS, GHGRP.
+
+8. DOCUMENTS: Application language, BACT drafts, PTE workbooks, compliance matrices.
+
+9. EJ: EJScreen, EO 14096, community engagement, health impact analysis.
+
+10. STRATEGY: Timeline acceleration, risk mitigation, agency engagement, synthetic minor.
+
+Always cite specific regulatory references (CFR, CAA/CWA, EPA guidance). If uncertain,
+say so. Do not fabricate requirements. Use the provided regulatory context.`;
 
 // ─── Claude API Call ────────────────────────────────────────────────────────
 async function callClaude(messages, options = {}) {
@@ -154,16 +175,43 @@ export async function queryLLM(query, context = {}) {
   let siteContext = '';
   if (inputs) {
     siteContext = `\nSite context:\n- Location: ${inputs.state || 'N/A'}, ${inputs.county || 'N/A'}\n`
-      + `- Turbines: ${inputs.turbines || 'N/A'} units at ${inputs.mwPerTurbine || 'N/A'} MW each\n`
-      + `- Backup gensets: ${inputs.gensetCount || 'N/A'} units at ${inputs.gensetHours || 'N/A'} hr/yr\n`
-      + `- Cooling: ${inputs.coolingType || 'N/A'}\n`
+      + `- Site name: ${inputs.siteName || 'N/A'}\n`
+      + `- Turbines: ${inputs.turbines || 'N/A'} units at ${inputs.mwPerTurbine || 'N/A'} MW each (${(inputs.turbines * inputs.mwPerTurbine) || 'N/A'} MW total)\n`
+      + `- Operating hours: ${inputs.hours || 'N/A'} hr/yr\n`
+      + `- Turbine type: ${inputs.turbineType || 'N/A'}\n`
+      + `- Backup gensets: ${inputs.gensetCount || 'N/A'} units at ${inputs.gensetHP || 'N/A'} HP, ${inputs.gensetHours || 'N/A'} hr/yr\n`
+      + `- Cooling: ${inputs.coolingMGD || 'N/A'} MGD, ${inputs.blowdownPct || 'N/A'}% blowdown\n`
       + `- Water source: ${inputs.waterSource || 'N/A'}\n`
       + `- Discharge pathway: ${inputs.dischargePathway || 'N/A'}\n`
-      + `- COD target: ${inputs.codTarget || 'N/A'}`;
+      + `- Water consumption: ${inputs.waterMGD || 'N/A'} MGD\n`
+      + `- Site acreage: ${inputs.siteAcres || 'N/A'} acres\n`
+      + `- Data center capacity: ${inputs.datacenterMW || 'N/A'} MW IT load\n`
+      + `- Construction phases: ${inputs.phases || 'N/A'}\n`
+      + `- COD target: ${inputs.codTarget || 'N/A'}\n`
+      + `- Stack height: ${inputs.stackHeight || 'N/A'} ft\n`
+      + `- Nearest receptor: ${inputs.nearestReceptorFt || 'N/A'} ft\n`
+      + `- Nonattainment area: ${inputs.nonAttainment ? 'Yes' : 'No'}\n`
+      + `- Brick dispatch savings: ${inputs.brickSavings || 'N/A'}%\n`
+      + `- Heat rate: ${inputs.heatRate || 'N/A'} MMBtu/MWh`;
   }
 
   if (results) {
-    siteContext += '\nPermit analysis results available including PTE calculations, pathway determination, and regulatory applicability.';
+    siteContext += '\n\nPermit analysis results:';
+    if (results.baseline) {
+      siteContext += `\n- Baseline PTE (tpy): NOx=${results.baseline.nox?.toFixed(1)}, CO=${results.baseline.co?.toFixed(1)}, SO2=${results.baseline.so2?.toFixed(2)}, PM25=${results.baseline.pm25?.toFixed(2)}, VOC=${results.baseline.voc?.toFixed(2)}, CO2e=${results.baseline.co2e?.toFixed(0)}`;
+    }
+    if (results.controlled) {
+      siteContext += `\n- Controlled PTE (tpy): NOx=${results.controlled.nox?.toFixed(1)}, CO=${results.controlled.co?.toFixed(1)}, CO2e=${results.controlled.co2e?.toFixed(0)}`;
+    }
+    if (results.pathway) {
+      siteContext += `\n- Pathway: PSD=${results.pathway.requiresPSD}, SyntheticMinor=${results.pathway.requiresMinor}, TitleV=${results.pathway.requiresTitleV}, NPDES=${results.pathway.requiresNPDES}, SPCC=${results.pathway.requiresSPCC}`;
+    }
+    if (results.thresholds) {
+      siteContext += `\n- Threshold breaches: ${results.thresholds.length} issue(s) identified`;
+    }
+    if (results.scenarioComparison) {
+      siteContext += `\n- Scenario comparison available (${Object.keys(results.scenarioComparison).length} scenarios)`;
+    }
   }
 
   // Build messages

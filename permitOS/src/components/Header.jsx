@@ -7,6 +7,7 @@ export default function Header({ activeTab, setActiveTab, results, onLogout }) {
   const tabs = [
     { id: 'overview',    label: 'Platform Overview',   icon: '🏛',  group: 'start' },
     { id: 'executive',   label: 'Executive Summary',   icon: '📊',  group: 'start' },
+    { id: 'siteplanner', label: 'Site Planner',         icon: '🗺',  group: 'start' },
     { id: 'intake',      label: 'Site Intake',          icon: '📋',  group: 'work' },
     { id: 'air',         label: 'Air Permit AI',        icon: '💨',  group: 'work' },
     { id: 'water',       label: 'Water Permit AI',      icon: '💧',  group: 'work' },

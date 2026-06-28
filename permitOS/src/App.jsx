@@ -12,6 +12,8 @@ import ComplianceOS from './components/ComplianceOS';
 import RegulatorCopilot from './components/RegulatorCopilot';
 import ExecutiveSummary from './components/ExecutiveSummary';
 import KnowledgeHub from './components/KnowledgeHub';
+import SitePlanner from './components/SitePlanner';
+import SiteAssistant from './components/SiteAssistant';
 import { isAuthenticated, getAuthToken, setAuthToken, logout } from './utils/api';
 
 export const defaultInputs = {
@@ -87,6 +89,7 @@ function App() {
   const renderTab = () => {
     switch (activeTab) {
       case 'overview':    return <Overview setActiveTab={setActiveTab} />;
+      case 'siteplanner': return <SitePlanner inputs={inputs} setInputs={setInputs} setActiveTab={setActiveTab} />;
       case 'intake':      return <SiteIntake inputs={inputs} setInputs={setInputs} results={results} setResults={setResults} setActiveTab={setActiveTab} />;
       case 'air':         return <AirPermitAI results={results} inputs={inputs} />;
       case 'water':       return <WaterPermitAI results={results} inputs={inputs} />;
@@ -119,6 +122,7 @@ function App() {
       <main className="max-w-[1400px] mx-auto">
         {renderTab()}
       </main>
+      <SiteAssistant inputs={inputs} results={results} setActiveTab={setActiveTab} />
     </div>
   );
 }
