@@ -268,6 +268,22 @@ export async function listScenarios() {
   return request('/scenarios/list');
 }
 
+// ─── Internet Data Pull for Chatbot ───────────────────────────────────────
+export async function webFetch(url, query) {
+  return request('/agent/web-fetch', {
+    method: 'POST',
+    body: { url, query },
+  });
+}
+
+// ─── AI Query with Internet Data ─────────────────────────────────────────
+export async function queryAgentWithWeb(query, { inputs = null, results = null, conversationHistory = [] } = {}) {
+  return request('/agent/ask-with-web', {
+    method: 'POST',
+    body: { query, inputs, results, conversationHistory },
+  });
+}
+
 // ─── Download Helper ─────────────────────────────────────────────────────────
 export async function downloadBlob(endpoint, filename, body) {
   const url = `${API_BASE}${endpoint}`;

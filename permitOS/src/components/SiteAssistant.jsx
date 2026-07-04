@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { queryAgent, analyzeScenario, searchKnowledge, askKnowledgeAI, searchRegulations } from '../utils/api';
+import React, { useState, useRef, useEffect } from 'react';
+import { queryAgent, queryAgentWithWeb, analyzeScenario, searchKnowledge, searchRegulations } from '../utils/api';
 
 const QUICK_TEMPLATES = [
   { id: 'pathway', label: 'Permit pathway' },
@@ -10,21 +10,21 @@ const QUICK_TEMPLATES = [
   { id: 'bact', label: 'BACT requirements' },
 ];
 
-const SCENARIO_TYPES = ['greenfield', 'expansion', 'upsized', 'colocated'];
-
 function makeQuickPrompt(templateId, inputs) {
   const site = inputs?.siteName || 'this site';
   const state = inputs?.state || 'the selected state';
   switch (templateId) {
-    case 'pathway': return `What is the full permit pathway for ${site} in ${state}? Cover air (PSD/NSR/Title V) and water (NPDES/SPCC) requirements.`;
-    case 'ptes': return `Summarize the PTE results for ${site} — baseline vs. controlled emissions per pollutant, major source thresholds, and Brick reduction strategy.`;
-    case 'scenario': return `Compare greenfield, expansion, upsized, and colocated scenarios for a ${inputs?.turbines || ''} turbine data center in ${state}. Which is fastest and why?`;
-    case 'water': return `What water permits are needed for ${site}? Include NPDES, SPCC, 316(b), SWPPP, and wetlands.`;
-    case 'cfr': return `What are the key CFR regulatory requirements for data center gas turbines in ${state}? Cite specific 40 CFR parts.`;
-    case 'bact': return `Explain the BACT top-down analysis for gas turbines at ${site}. What control technologies are evaluated and what is the recommended determination?`;
+    case 'pathway': return `What is the full permit pathway for ${site} in ${state}? Cover air (PSD/NSR/Title V) and water (NPDES/SPCC) requirements. Cite specific 40 CFR parts and state regulations.`;
+    case 'ptes': return `Summarize the PTE results for ${site} — baseline vs. controlled emissions per pollutant, major source thresholds (100 tpy PSD, 250 tpy for GHGs), and Brick battery dispatch reduction strategy. Use site-specific data.`;
+    case 'scenario': return `Compare greenfield, expansion, upsized, and colocated scenarios for a ${inputs?.turbines || ''} turbine data center in ${state}. Which permit pathway is fastest? Include timeline comparisons and risk analysis.`;
+    case 'water': return `What water permits are needed for ${site} in ${state}? Include NPDES for cooling tower blowdown (40 CFR 122), SPCC for diesel storage (40 CFR 112), 316(b) for cooling water intake, SWPPP for construction, and wetlands permitting.`;
+    case 'cfr': return `What are the key CFR regulatory requirements for data center gas turbines in ${state}? Cite specific 40 CFR Parts (50-140 for air, 122-140 for water) and include state-specific rules, attainment status, and major source thresholds.`;
+    case 'bact': return `Explain the BACT top-down analysis (40 CFR 52.21) for gas turbines at ${site}. What control technologies are evaluated? Include DLN, SCR, oxidation catalyst, and what is the recommended BACT determination with cost-effectiveness analysis.`;
     default: return '';
   }
 }
+
+const MAX_RAG_DISPLAY_LENGTH = 1500;
 
 export default function SiteAssistant({ inputs, results, setActiveTab }) {
   const [open, setOpen] = useState(false);
@@ -34,7 +34,8 @@ export default function SiteAssistant({ inputs, results, setActiveTab }) {
     return saved ? JSON.parse(saved) : [
       {
         role: 'assistant',
-        content: `I'm your PermitOS Site Assistant. I have full access to your site data, regulatory knowledge base (38 CFR documents across all 50 states), scenario analysis engine, and permit calculation results. Ask me anything about permitting, compliance, regulations, or site strategy.`,
+        content: `I'm your PermitOS Site Assistant. I have full access to your site data, regulatory knowledge base (38+ regulatory documents across all 50 states), scenario analysis engine, permit calculation results, and can pull live data from EPA/eCFR sources. Ask me anything about permitting, compliance, regulations, or site strategy.`,
+        sourceType: 'system',
       }
     ];
   });
@@ -63,22 +64,85 @@ export default function SiteAssistant({ inputs, results, setActiveTab }) {
   const siteName = inputs?.siteName || 'current site';
   const hasResults = !!results;
 
+  // Format response with source badge
+  const formatResponse = (response) => {
+    if (!response) return null;
+    const answerText = response?.content || response?.answer || response?.response || '';
+    const sourceType = response?.type || (response?.webSource ? 'web' : 'llm');
+    const sourceCount = response?.sources?.length || 0;
+    const ragSourceCount = response?.ragSourceCount || 0;
+    const webSource = response?.webSource || null;
+
+    let formatted = answerText;
+
+    // If it's a RAG-only response (no LLM), append source context
+    if (sourceType === 'rag' && response?.sources?.length > 0) {
+      formatted += '\n\n---\n**Knowledge Base Sources Used:**\n';
+      response.sources.slice(0, 4).forEach(s => {
+        formatted += `- ${s.title} (${s.relevance}% match)\n`;
+      });
+    }
+
+    return { content: formatted, sourceType, sourceCount, ragSourceCount, webSource };
+  };
+
+  // Fallback: search RAG and display results directly in chat
+  const fallbackWithRAG = async (msg) => {
+    try {
+      const ragData = await searchRegulations(msg, { limit: 5 });
+      const ragResults = ragData?.results || [];
+      if (ragResults.length > 0) {
+        let ragContent = `**Regulatory Knowledge Base Results (AI connection unavailable):**\n\n`;
+        ragResults.slice(0, 4).forEach((r, i) => {
+          ragContent += `**${i + 1}. ${r.title}** (${r.relevance}% match)\n`;
+          const summary = r.text?.length > MAX_RAG_DISPLAY_LENGTH
+            ? r.text.substring(0, MAX_RAG_DISPLAY_LENGTH) + '...'
+            : r.text;
+          ragContent += `${summary}\n\n`;
+        });
+        ragContent += `---\n*Full AI-powered analysis requires ANTHROPIC_API_KEY. ${ragResults.length} regulatory sources displayed from the local knowledge base. Visit the Knowledge Hub tab to search all 38+ regulatory documents.*`;
+        return { content: ragContent, sourceType: 'rag', sourceCount: ragResults.length };
+      }
+    } catch { /* fall through to generic fallback */ }
+
+    return {
+      content: `I encountered a connection issue while processing your question about "${msg}" for ${siteName}.
+
+**Here's what I can tell you from platform data:**
+
+**Site Configuration:**
+- **Location:** ${inputs?.state || 'N/A'} · ${inputs?.county || 'N/A'}
+- **Turbines:** ${inputs?.turbines || 'N/A'} x ${inputs?.mwPerTurbine || 'N/A'} MW (${(inputs?.turbines || 0) * (inputs?.mwPerTurbine || 0)} MW total)
+- **Annual Hours:** ${(inputs?.hours || 0).toLocaleString()} hr/yr
+- **Brick Savings:** ${inputs?.brickSavings || 0}% dispatch optimization
+- **Gensets:** ${inputs?.gensetCount || 0} units
+
+**Key Permits Required:**
+- **Air:** ${results?.pathway?.requiresPSD ? 'PSD major source — BACT review required for NOx/CO/SO2' : 'Below PSD thresholds — synthetic minor pathway viable with Brick controls'}
+- **Water:** NPDES for cooling tower blowdown, SPCC for diesel storage, SWPPP for construction
+- **Title V:** ${results?.pathway?.requiresTitleV ? 'Title V operating permit required' : 'Synthetic minor avoids Title V'}
+- **State Rules:** ${inputs?.state || 'N/A'} specific requirements may apply
+
+Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit AI, or Knowledge Hub.`,
+      sourceType: 'fallback',
+    };
+  };
+
   const sendChat = async () => {
     const msg = chatMsg.trim();
     if (!msg) return;
     setChatMsg('');
-    setChatHistory(prev => [...prev, { role: 'user', content: msg }]);
+    setChatHistory(prev => [...prev, { role: 'user', content: msg, sourceType: 'user' }]);
     setThinking(true);
     setScenarioMode(null);
     setScenarioResult(null);
 
-    // Check for scenario command pattern
     const lower = msg.toLowerCase();
     const scenarioMatch = lower.match(/run\s+(greenfield|expansion|upsized|colocated)\s+scenario/i);
-    const stateCFRMatch = lower.match(/(?:cfr|regulation|requirement|rule)\s+(?:for|in|of)\s+([A-Za-z\s]+?)(?:\s*$|\s+(?:data center|turbine|permit|state))/i);
 
     try {
       if (scenarioMatch) {
+        // Scenario command
         const scenarioType = scenarioMatch[1].toLowerCase();
         setScenarioMode(scenarioType);
         const data = await analyzeScenario(scenarioType, inputs || {});
@@ -88,63 +152,38 @@ export default function SiteAssistant({ inputs, results, setActiveTab }) {
           const timeline = analysis.timelineMonths;
           setChatHistory(prev => [...prev, {
             role: 'assistant',
+            sourceType: 'scenario',
             content: `## ${analysis.label} Scenario Analysis\n\n**Complexity:** ${analysis.complexity}  \n**Timeline:** ${timeline?.min || '?'}–${timeline?.max || '?'} months  \n**Permit Types:** ${analysis.permitTypes?.join(', ') || 'N/A'}\n\n${analysis.description}\n\n**Risks:**\n${analysis.keyRisks?.map(r => `- ${r}`).join('\n') || 'N/A'}\n\n**Opportunities:**\n${analysis.keyOpportunities?.map(o => `- ${o}`).join('\n') || 'N/A'}\n\n${analysis.specialConsiderations?.length > 0 ? `**Special Considerations:**\n${analysis.specialConsiderations.map(s => `- ${s}`).join('\n')}` : ''}\n\n*Scenario analysis complete. You can view the full milestone timeline in the Milestone Timeline tab.*`
           }]);
         }
-      } else if (stateCFRMatch && !lower.includes('scenario')) {
-        // State-specific CFR query — search both RAG and Knowledge Hub
-        const stateName = stateCFRMatch[1].trim();
-        const combinedQuery = `CFR regulatory requirements for data center gas turbines in ${stateName}`;
-        const [ragData, kbData] = await Promise.allSettled([
-          searchRegulations(combinedQuery, { limit: 5 }),
-          searchKnowledge(combinedQuery, { limit: 5 }),
-        ]);
-        const ragResults = ragData.value?.results || [];
-        const kbResults = kbData.value?.results || [];
-        const allSources = [...ragResults, ...kbResults].slice(0, 8);
-
-        if (allSources.length > 0) {
-          const response = await queryAgent(combinedQuery, {
-            inputs: inputs || {},
-            results: results || {},
-            conversationHistory: chatHistory.slice(-4),
-          });
-          const answerText = response?.content || response?.answer || response?.response || '';
-          setChatHistory(prev => [...prev, {
-            role: 'assistant',
-            content: answerText || `Found ${allSources.length} relevant regulatory sources for ${stateName}. The regulatory database covers applicable CFR requirements including air permits (PSD/NSR/Title V), water permits (NPDES/SPCC/316(b)), and state-specific rules. Check the Knowledge Hub tab for a full list of sources.`
-          }]);
-        } else {
-          setChatHistory(prev => [...prev, {
-            role: 'assistant',
-            content: `I searched the regulatory knowledge base for ${stateName}. While specific results were limited for this exact query, the database covers 38 regulatory documents across air (PSD, NSPS, NESHAP, Title V, GHGRP), water (NPDES, SPCC, 316(b), wetlands), and state-specific rules. Try a more specific query or visit the Knowledge Hub tab to browse by category.`
-          }]);
-        }
       } else {
-        // General query — full LLM + RAG
-        const response = await queryAgent(msg, {
+        // General query — use enhanced endpoint with internet data + RAG + LLM
+        const response = await queryAgentWithWeb(msg, {
           inputs: inputs || {},
           results: results || {},
-          conversationHistory: chatHistory.slice(-6),
+          conversationHistory: chatHistory.slice(-4),
         });
-        const answerText = response?.content || response?.answer || response?.response || '';
-        setChatHistory(prev => [...prev, {
-          role: 'assistant',
-          content: answerText || `I processed your question through the permit database. For a more detailed analysis, try visiting the relevant tab: Air Permit AI, Water Permit AI, or Knowledge Hub.`
-        }]);
+
+        const formatted = formatResponse(response);
+        if (formatted) {
+          setChatHistory(prev => [...prev, {
+            role: 'assistant',
+            content: formatted.content,
+            sourceType: formatted.sourceType,
+            sourceCount: formatted.sourceCount,
+            ragSourceCount: formatted.ragSourceCount,
+            webSource: formatted.webSource,
+          }]);
+        }
       }
-    } catch {
-      // Fallback
+    } catch (err) {
+      // Fallback with RAG search results
+      const fallback = await fallbackWithRAG(msg);
       setChatHistory(prev => [...prev, {
         role: 'assistant',
-        content: `I encountered a connection issue. Here's what I can tell you about "${msg}" for ${siteName}:
-
-**Key Permits Required:**
-- **Air:** PSD/NSR applicability determined by ${inputs?.state || 'your state'} attainment status and total PTE. ${results?.pathway?.requiresPSD ? 'PSD major source BACT review required.' : 'Below PSD thresholds — synthetic minor pathway viable.'}
-- **Water:** NPDES for cooling tower blowdown, SPCC for diesel storage, SWPPP for construction.
-- **State:** ${inputs?.state || 'N/A'} rules may impose additional requirements.
-
-The connection will be restored automatically. In the meantime, you can navigate to the relevant tab for detailed analysis.`
+        content: fallback.content,
+        sourceType: fallback.sourceType,
+        sourceCount: fallback.sourceCount || 0,
       }]);
     }
     setThinking(false);
@@ -159,20 +198,33 @@ The connection will be restored automatically. In the meantime, you can navigate
   };
 
   const sendChatWith = async (msg) => {
-    setChatHistory(prev => [...prev, { role: 'user', content: msg }]);
+    setChatHistory(prev => [...prev, { role: 'user', content: msg, sourceType: 'user' }]);
     setThinking(true);
     setScenarioMode(null);
     setScenarioResult(null);
     try {
-      const response = await queryAgent(msg, {
+      const response = await queryAgentWithWeb(msg, {
         inputs: inputs || {},
         results: results || {},
-        conversationHistory: chatHistory.slice(-6),
+        conversationHistory: chatHistory.slice(-4),
       });
-      const answerText = response?.content || response?.answer || response?.response || '';
-      setChatHistory(prev => [...prev, { role: 'assistant', content: answerText }]);
+      const formatted = formatResponse(response);
+      setChatHistory(prev => [...prev, {
+        role: 'assistant',
+        content: formatted?.content || msg,
+        sourceType: formatted?.sourceType || 'llm',
+        sourceCount: formatted?.sourceCount || 0,
+        ragSourceCount: formatted?.ragSourceCount || 0,
+        webSource: formatted?.webSource || null,
+      }]);
     } catch {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: `I'm processing your question about "${msg.substring(0, 60)}..." for ${siteName}. The LLM connection will be restored automatically. Check the relevant tabs for detailed analysis.` }]);
+      const fallback = await fallbackWithRAG(msg);
+      setChatHistory(prev => [...prev, {
+        role: 'assistant',
+        content: fallback.content,
+        sourceType: fallback.sourceType,
+        sourceCount: fallback.sourceCount || 0,
+      }]);
     }
     setThinking(false);
   };
@@ -184,7 +236,7 @@ The connection will be restored automatically. In the meantime, you can navigate
 
   const clearChat = () => {
     setChatHistory([
-      { role: 'assistant', content: `Chat cleared. I'm still connected to ${siteName} — ask me anything about permitting, compliance, or regulations.` }
+      { role: 'assistant', sourceType: 'system', content: `Chat cleared. I'm still connected to ${siteName} with full RAG knowledge base, internet data pulling, and site analysis. Ask me anything about permitting, compliance, or regulations.` }
     ]);
     localStorage.removeItem('permitos_assistant_chat');
   };
@@ -211,7 +263,7 @@ The connection will be restored automatically. In the meantime, you can navigate
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-20 right-5 z-40 w-[400px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-10rem)] bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl shadow-black/50 flex flex-col overflow-hidden animate-fade-in">
+        <div className="fixed bottom-20 right-5 z-40 w-[420px] max-w-[calc(100vw-2rem)] h-[580px] max-h-[calc(100vh-10rem)] bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl shadow-black/50 flex flex-col overflow-hidden animate-fade-in">
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-800 bg-gray-900/95 flex-shrink-0">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-900/40 flex-shrink-0">
@@ -222,6 +274,7 @@ The connection will be restored automatically. In the meantime, you can navigate
               <div className="text-xs text-green-400 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
                 {hasResults ? `${siteName} loaded` : 'Site ready'}
+                <span className="text-gray-600 ml-1">· RAG + Web</span>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -247,6 +300,41 @@ The connection will be restored automatically. In the meantime, you can navigate
                   ${msg.role === 'user'
                     ? 'bg-indigo-700/30 border border-indigo-700/40 text-indigo-100'
                     : 'bg-gray-800/60 border border-gray-700/40 text-gray-300'}`}>
+                  {/* Source type badge */}
+                  {msg.role === 'assistant' && msg.sourceType && msg.sourceType !== 'system' && (
+                    <div className="flex flex-wrap items-center gap-1.5 mb-1.5 pb-1.5 border-b border-gray-700/30">
+                      {msg.sourceType === 'llm' && (
+                        <span className="text-[10px] bg-green-900/40 text-green-300 rounded px-1.5 py-0.5 border border-green-800/30">
+                          Claude AI
+                        </span>
+                      )}
+                      {msg.sourceType === 'rag' && (
+                        <span className="text-[10px] bg-amber-900/40 text-amber-300 rounded px-1.5 py-0.5 border border-amber-800/30">
+                          Knowledge Base
+                        </span>
+                      )}
+                      {msg.sourceType === 'web' && (
+                        <span className="text-[10px] bg-blue-900/40 text-blue-300 rounded px-1.5 py-0.5 border border-blue-800/30">
+                          Internet + AI
+                        </span>
+                      )}
+                      {msg.sourceType === 'scenario' && (
+                        <span className="text-[10px] bg-indigo-900/40 text-indigo-300 rounded px-1.5 py-0.5 border border-indigo-800/30">
+                          Scenario Engine
+                        </span>
+                      )}
+                      {(msg.sourceCount > 0) && (
+                        <span className="text-[10px] text-gray-500">
+                          {msg.sourceCount} source{msg.sourceCount > 1 ? 's' : ''}
+                        </span>
+                      )}
+                      {msg.webSource && (
+                        <span className="text-[10px] text-gray-500 max-w-[120px] truncate" title={msg.webSource}>
+                          EPA data
+                        </span>
+                      )}
+                    </div>
+                  )}
                   {msg.content}
                 </div>
               </div>
@@ -333,7 +421,7 @@ The connection will be restored automatically. In the meantime, you can navigate
                 value={chatMsg}
                 onChange={e => setChatMsg(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
-                placeholder="Ask about permits, CFR, scenarios..."
+                placeholder="Ask about permits, CFR, regulations..."
                 className="flex-1 bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-colors"
                 disabled={thinking}
               />

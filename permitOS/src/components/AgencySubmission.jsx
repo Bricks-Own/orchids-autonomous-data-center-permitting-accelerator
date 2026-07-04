@@ -10,6 +10,22 @@ const AGENCIES = [
   'Local Zoning Board',
 ];
 
+const EPA_PORTALS = [
+  { name: 'EPA CDX (Central Data Exchange)', url: 'https://cdx.epa.gov/', desc: 'CROMERRR-compliant submissions for NSPS, NESHAP, Title V, PSD applications' },
+  { name: 'EPA e-GGRT (GHG Reporting)', url: 'https://ghgreporting.epa.gov/', desc: '40 CFR Part 98 annual GHG reports' },
+  { name: 'EPA NetDMR (NPDES DMRs)', url: 'https://netdmr.epa.gov/', desc: 'Discharge Monitoring Report submissions' },
+  { name: 'EPA NPDES eReporting', url: 'https://www.epa.gov/npdes/npdes-ereporting', desc: 'NPDES permit applications, NOIs, and compliance reports' },
+  { name: 'EPA SPCC Plan Guidance', url: 'https://www.epa.gov/oil-spills-prevention-and-preparedness-spcc', desc: 'SPCC plan submission and management' },
+  { name: 'TCEQ STEERS (Texas)', url: 'https://www.tceq.texas.gov/steers/', desc: 'Texas Commission on Environmental Quality e-filing' },
+  { name: 'VA DEQ eFile (Virginia)', url: 'https://www.deq.virginia.gov/landing/efile', desc: 'Virginia DEQ online permitting' },
+  { name: 'Ohio EPA eBusiness Center', url: 'https://www.epa.state.oh.us/obusinesscenter', desc: 'Ohio EPA electronic business center' },
+  { name: 'GA EPD GEOS (Georgia)', url: 'https://geos.gaepd.org/', desc: 'Georgia EPD online permitting system' },
+  { name: 'CARB (California)', url: 'https://www.arb.ca.gov/', desc: 'California Air Resources Board' },
+  { name: 'EPA EJScreen', url: 'https://ejscreen.epa.gov/', desc: 'Environmental justice screening and mapping' },
+  { name: 'eCFR (Electronic Code of Federal Regulations)', url: 'https://www.ecfr.gov/', desc: 'All 40 CFR regulatory text' },
+  { name: 'EPA PAC (PSD/NSR Permitting)', url: 'https://www.epa.gov/caa-permitting/psd-and-nsr-permitting', desc: 'PSD and NSR permit application guidance' },
+];
+
 const DOC_CATEGORIES = [
   {
     label: 'Air Documents',
@@ -87,7 +103,9 @@ export default function AgencySubmission({ inputs, results, siteId, onNotify }) 
   };
 
   const selectedDocName = () => {
+    if (!selectedDoc) return 'No document selected';
     for (const cat of DOC_CATEGORIES) {
+      if (!cat.docs) continue;
       const found = cat.docs.find(d => d.key === selectedDoc);
       if (found) return found.name;
     }
@@ -129,7 +147,28 @@ export default function AgencySubmission({ inputs, results, siteId, onNotify }) 
   };
 
   return (
-    <div className="space-y-4">
+    <>
+    
+      {/* EPA Submission Portals */}
+      <div className="rounded-xl border border-blue-700/30 bg-blue-950/20 p-4 mb-4">
+        <h3 className="text-sm font-semibold text-blue-300 mb-3">EPA Submission Portals</h3>
+        <p className="text-xs text-gray-500 mb-3">
+          Click any portal below to access the submission system for your permit documents.
+          Tracking IDs are provided for your permit record and agency correspondence.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          {EPA_PORTALS.map((p) => (
+            <a key={i} href={p.url} target="_blank" rel="noopener noreferrer"
+              key={p.url} className="flex flex-col bg-blue-900/20 border border-blue-800/30 rounded-lg p-3 hover:bg-blue-900/30 hover:border-blue-700/50 transition-colors group">
+              <span className="text-xs font-medium text-blue-300 group-hover:text-blue-200 transition-colors">{p.name}</span>
+              <span className="text-xs text-blue-600/60 group-hover:text-blue-500/80 mt-0.5">{p.url.replace('https://','')}</span>
+              <span className="text-[10px] text-gray-500 mt-1">{p.desc}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+
+<div className="space-y-4">
       {/* Header */}
       <div className="rounded-xl border border-amber-700/30 bg-amber-950/20 p-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -337,5 +376,6 @@ export default function AgencySubmission({ inputs, results, siteId, onNotify }) 
         </div>
       )}
     </div>
+    </>
   );
 }

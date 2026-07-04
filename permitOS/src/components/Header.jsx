@@ -11,12 +11,15 @@ export default function Header({ activeTab, setActiveTab, results, onLogout }) {
     { id: 'intake',      label: 'Site Intake',          icon: '📋',  group: 'work' },
     { id: 'air',         label: 'Air Permit AI',        icon: '💨',  group: 'work' },
     { id: 'water',       label: 'Water Permit AI',      icon: '💧',  group: 'work' },
+    { id: 'building',    label: 'Building Permitting',    icon: '🏗️', group: 'work' },
+    { id: 'power',       label: 'Power Permitting',       icon: '⚡', group: 'work' },
     { id: 'milestones',  label: 'Milestone Timeline',   icon: '📅',  group: 'work' },
     { id: 'docs',        label: 'Document Factory',     icon: '📄',  group: 'work' },
     { id: 'simulation',  label: 'Digital Twin',         icon: '⚡',  group: 'advanced' },
     { id: 'compliance',  label: 'Compliance OS',        icon: '🛡',  group: 'advanced' },
     { id: 'copilot',     label: 'Regulator Copilot',    icon: '🤖',  group: 'advanced' },
     { id: 'knowledge',   label: 'Knowledge Hub',        icon: '📚',  group: 'advanced' },
+
   ];
 
   return (

@@ -27,7 +27,7 @@ const defaultInputs = {
   coolingMGD: 2.8,
   blowdownPct: 20,
   waterMGD: 1.2,
-  datacenterMW: 160,
+  datacenterMW: 133,
   pueTarget: 1.35,
   phases: 3,
   codTarget: '2026-Q3',
@@ -125,6 +125,23 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
         pathway: calcResults.pathway,
         water: calcResults.water,
         genset: calcResults.genset,
+        // Compute building pathway from inputs
+        building: {
+          ibcClass: (inputs.turbines * inputs.mwPerTurbine) > 400 ? 'Type IB' : 'Type IIB',
+          stories: inputs.stories || 2,
+          fireSuppression: inputs.fireSuppression || 'Pre-action sprinkler',
+          emergencyConfig: inputs.emergencyPowerConfig || 'N+1',
+          buildingSqFt: inputs.buildingSqFt || Math.round((inputs.datacenterMW || 100) * 125),
+          occupancy: inputs.occupancyType || 'Business (B)',
+        },
+        // Compute power/interconnection pathway from inputs
+        power: {
+          totalMW: inputs.turbines * inputs.mwPerTurbine,
+          interconnectionVoltage: inputs.interconnectionVoltage || ((inputs.turbines * inputs.mwPerTurbine) > 500 ? 345 : (inputs.turbines * inputs.mwPerTurbine) > 200 ? 138 : 69),
+          transformerCapacity: inputs.transformerCapacity || Math.round((inputs.turbines * inputs.mwPerTurbine) * 1.15),
+          powerSource: inputs.powerSourceType || 'Hybrid (Grid + On-site Generation)',
+          gensetTotalMW: ((inputs.gensetCount || 0) * (inputs.gensetHP || 0) * 0.746) / 1000,
+        },
       });
     } catch {
       // Fallback to local calculation if API unavailable
@@ -240,7 +257,23 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
         {/* Data Center + Water */}
         <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5 space-y-4">
           <h3 className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Data Center & Water Systems</h3>
-          <Field label="Data Center IT Load (MW)"><Input value={inputs.datacenterMW} onChange={v => update('datacenterMW', v)} type="number" /></Field>
+          <div className="flex items-end gap-2">
+            <div className="flex-1">
+              <Field label="Data Center IT Load (MW)"><Input value={inputs.datacenterMW} onChange={v => update('datacenterMW', v)} type="number" /></Field>
+            </div>
+            <button
+              onClick={() => {
+                const totalMW = (inputs.turbines || 0) * (inputs.mwPerTurbine || 0);
+                const pue = inputs.pueTarget || 1.35;
+                const derived = Math.round(totalMW / (pue + 0.15));
+                update('datacenterMW', derived);
+              }}
+              className="text-[10px] bg-indigo-700 hover:bg-indigo-600 text-indigo-200 px-2 py-1.5 rounded-lg mb-1 transition-colors whitespace-nowrap"
+              title="Derive IT load from installed capacity and PUE: datacenterMW = totalMW / (PUE + 0.15)"
+            >
+              Auto-derive ⚡
+            </button>
+          </div>
           <Field label="Target PUE"><Input value={inputs.pueTarget} onChange={v => update('pueTarget', v)} type="number" step="0.01" /></Field>
           <Field label="Number of Build Phases"><Input value={inputs.phases} onChange={v => update('phases', v)} type="number" /></Field>
           <Field label="Brick Load Reduction (%)" hint="Efficiency gains from Brick controls vs. baseline">

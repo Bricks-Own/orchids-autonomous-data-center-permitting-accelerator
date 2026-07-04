@@ -160,16 +160,28 @@ async function callClaude(messages, options = {}) {
  * Falls back to RAG-only response if Claude is unavailable.
  */
 export async function queryLLM(query, context = {}) {
-  const { inputs, results, conversationHistory = [] } = context;
+  const { inputs, results, conversationHistory = [], webContent, webSource, ragResults } = context;
 
-  // Search regulations for relevant context
-  const regulatoryResults = searchRegulations(query, { limit: 5 });
+  // Search regulations for relevant context (skip if pre-searched)
+  const regulatoryResults = ragResults && ragResults.length > 0
+    ? ragResults
+    : searchRegulations(query, { limit: 5 });
 
-  const ragContext = regulatoryResults.length > 0
-    ? regulatoryResults.map(r =>
-        `[${r.title} (${r.category}, relevance: ${r.relevance}%)]\n${r.text}`
-      ).join('\n\n')
-    : 'No specific regulatory text matched your query. Provide a general regulatory response based on standard environmental permitting knowledge.';
+  // Build RAG context string
+  let ragContextText = '';
+  if (regulatoryResults && regulatoryResults.length > 0) {
+    ragContextText = regulatoryResults.map(r =>
+      `[${r.title} (${r.category}, relevance: ${r.relevance}%)]\n${r.text}`
+    ).join('\n\n');
+  } else {
+    ragContextText = 'No specific regulatory text matched your query. Provide a general regulatory response based on standard environmental permitting knowledge.';
+  }
+
+  // Add internet data if available
+  let internetDataSection = '';
+  if (webContent) {
+    internetDataSection = `\n\nInternet data from authoritative source (${webSource || 'EPA/eCFR'}):\n${typeof webContent === 'string' ? webContent.substring(0, 10000) : JSON.stringify(webContent).substring(0, 10000)}`;
+  }
 
   // Build site context if available
   let siteContext = '';
@@ -228,8 +240,8 @@ export async function queryLLM(query, context = {}) {
     }
   }
 
-  // Build the user message with RAG context
-  const userMessage = `Regulatory context from permit database:\n\n${ragContext}\n\n${siteContext}\n\nUser question: ${query}`;
+  // Build the user message with RAG context and internet data
+  const userMessage = `Regulatory context from permit database:\n\n${ragContextText}${internetDataSection}\n\n${siteContext}\n\nUser question: ${query}`;
   messages.push({ role: 'user', content: userMessage });
 
   try {

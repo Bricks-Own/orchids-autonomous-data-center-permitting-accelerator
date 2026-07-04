@@ -62,6 +62,9 @@ export default function AuthModal({ onAuth }) {
           <p className="text-sm text-gray-500">
             Data center permitting intelligence platform
           </p>
+          <p className="text-xs text-gray-600 mt-2">
+            First time? Simply register with your email and password to get started.
+          </p>
         </div>
 
         {/* Form */}

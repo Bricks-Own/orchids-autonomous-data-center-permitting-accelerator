@@ -524,5 +524,164 @@ export function createApiRouter(db) {
     } catch (err) { next(err); }
   });
 
+  // ─── Internet Data Pull for Chatbot ─────────────────────────────────────
+  // Fetches publicly available EPA/CFR content from authoritative sources
+  router.post('/agent/web-fetch', async (req, res, next) => {
+    try {
+      const { url, query } = req.body;
+      if (!url && !query) return res.status(400).json({ error: 'url or query required' });
+
+      // Target URLs for EPA regulatory content
+      const fetchUrl = url || buildEPAQueryUrl(query);
+
+      const response = await fetch(fetchUrl, {
+        headers: {
+          'User-Agent': 'Brick-PermitOS/1.0 (regulatory analysis tool; contact@bigwattdigital.com)',
+          'Accept': 'text/html,application/json',
+        },
+        signal: AbortSignal.timeout(15000),
+      });
+
+      if (!response.ok) {
+        // Silently return null — the chatbot will use RAG fallback
+        res.json({ content: null, source: fetchUrl, error: `HTTP ${response.status}` });
+        return;
+      }
+
+      const contentType = response.headers.get('content-type') || '';
+      let content;
+      if (contentType.includes('application/json')) {
+        content = await response.json();
+      } else {
+        content = await response.text();
+        // Truncate very long responses
+        if (content.length > 20000) {
+          content = content.substring(0, 20000) + '...[truncated]';
+        }
+      }
+
+      res.json({ content, source: fetchUrl, fetchedAt: new Date().toISOString() });
+    } catch (err) {
+      // Don't fail the request — just return null so chatbot uses RAG fallback
+      res.json({ content: null, source: url || query, error: err.message });
+    }
+  });
+
+  // ─── AI Query with Internet Data Augmentation ───────────────────────────
+  // Combines RAG + internet data + full site context for accurate answers
+  router.post('/agent/ask-with-web', async (req, res, next) => {
+    try {
+      const { query, inputs, results, conversationHistory } = req.body;
+      if (!query) return res.status(400).json({ error: 'query required' });
+
+      // Step 1: Search RAG knowledge base
+      const ragResults = searchRegulations(query, { limit: 5 });
+
+      // Step 2: Try to fetch internet data from EPA URL based on query
+      let webContent = null;
+      let webSource = null;
+      try {
+        const epaUrl = buildEPAQueryUrl(query);
+        const webResp = await fetch(epaUrl, {
+          headers: {
+            'User-Agent': 'Brick-PermitOS/1.0 (regulatory analysis; contact@bigwattdigital.com)',
+            'Accept': 'text/html',
+          },
+          signal: AbortSignal.timeout(10000),
+        });
+        if (webResp.ok) {
+          webContent = (await webResp.text()).substring(0, 15000);
+          webSource = epaUrl;
+        }
+      } catch {
+        // Internet fetch failed — proceed with RAG only
+      }
+
+      // Step 3: Query LLM with combined context
+      const enhancedContext = {
+        inputs,
+        results,
+        conversationHistory,
+        webContent,
+        webSource,
+        ragResults: ragResults.slice(0, 5),
+      };
+
+      const response = await queryLLM(query, enhancedContext);
+
+      // Include internet data source info in response
+      const result = {
+        ...response,
+        webSource: webSource || null,
+        ragSourceCount: ragResults.length,
+      };
+
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
   return router;
+}
+
+// ─── Helper: Build EPA/code URL from natural language query ──────────────
+function buildEPAQueryUrl(query) {
+  const q = query.toLowerCase();
+
+  // Route to specific EPA sections based on query topic
+  if (q.includes('cfr') || q.includes('40 cfr') || q.includes('regulation')) {
+    // Search the eCFR API by topic
+    if (q.includes('nsps') || q.includes('subpart kkkk') || q.includes('turbine')) {
+      return 'https://www.ecfr.gov/api/search/v1/results?query=40+CFR+60+subpart+KKKK+gas+turbine&per_page=5';
+    }
+    if (q.includes('psd') || q.includes('major source') || q.includes('nsr') || q.includes('bact') || q.includes('laer')) {
+      return 'https://www.ecfr.gov/api/search/v1/results?query=40+CFR+52+PSD+preconstruction+review&per_page=5';
+    }
+    if (q.includes('title v') || q.includes('operating permit')) {
+      return 'https://www.ecfr.gov/api/search/v1/results?query=40+CFR+70+Title+V+operating+permit&per_page=5';
+    }
+    if (q.includes('npdes') || q.includes('water') || q.includes('discharge')) {
+      return 'https://www.ecfr.gov/api/search/v1/results?query=40+CFR+122+NPDES+permit&per_page=5';
+    }
+    if (q.includes('spcc') || q.includes('oil') || q.includes('spill')) {
+      return 'https://www.ecfr.gov/api/search/v1/results?query=40+CFR+112+SPCC+oil+spill&per_page=5';
+    }
+    if (q.includes('ghg') || q.includes('greenhouse') || q.includes('co2') || q.includes('carbon')) {
+      return 'https://www.ecfr.gov/api/search/v1/results?query=40+CFR+98+GHGRP+greenhouse+gas&per_page=5';
+    }
+    if (q.includes('neshap') || q.includes('hazardous') || q.includes('hap') || q.includes('mact')) {
+      return 'https://www.ecfr.gov/api/search/v1/results?query=40+CFR+63+NESHAP+hazardous+air+pollutants&per_page=5';
+    }
+    if (q.includes('nonattainment') || q.includes('attainment') || q.includes('laer')) {
+      return 'https://www.ecfr.gov/api/search/v1/results?query=40+CFR+51+nonattainment+NSR+implementation&per_page=5';
+    }
+    // Generic CFR search
+    const searchTerms = encodeURIComponent(query.substring(0, 100));
+    return `https://www.ecfr.gov/api/search/v1/results?query=${searchTerms}&per_page=5`;
+  }
+
+  if (q.includes('epa') || q.includes('guidance') || q.includes('policy')) {
+    const searchTerms = encodeURIComponent(query.substring(0, 100));
+    return `https://www.epa.gov/search?search=${searchTerms}`;
+  }
+
+  if (q.includes('state') && (q.includes('regulation') || q.includes('permit') || q.includes('requirement'))) {
+    // Extract state name from query for targeted search
+    const states = ['alabama','alaska','arizona','arkansas','california','colorado','connecticut',
+      'delaware','florida','georgia','hawaii','idaho','illinois','indiana','iowa','kansas',
+      'kentucky','louisiana','maine','maryland','massachusetts','michigan','minnesota',
+      'mississippi','missouri','montana','nebraska','nevada','new hampshire','new jersey',
+      'new mexico','new york','north carolina','north dakota','ohio','oklahoma','oregon',
+      'pennsylvania','rhode island','south carolina','south dakota','tennessee','texas',
+      'utah','vermont','virginia','washington','west virginia','wisconsin','wyoming'];
+    const foundState = states.find(s => q.includes(s));
+    if (foundState) {
+      return `https://www.ecfr.gov/api/search/v1/results?query=${foundState}+air+permit+data+center+gas+turbine&per_page=5`;
+    }
+  }
+
+  // Default to EPA search
+  const searchTerms = encodeURIComponent(query.substring(0, 100));
+  return `https://www.epa.gov/search?search=${searchTerms}`;
 }

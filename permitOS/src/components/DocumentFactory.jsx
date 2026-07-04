@@ -649,7 +649,7 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
     address: '15000 Innovation Blvd, Gainesville, VA 20156', lat: '38.79', lon: '77.62',
     turbines: 8, mwPerTurbine: 50, heatRate: 7.5, noxFactor: 0.028, coFactor: 0.015,
     hours: 6000, brickSavings: 22, gensetCount: 24, gensetHP: 2000, gensetHours: 100,
-    coolingMGD: 2.8, blowdownPct: 20, waterMGD: 0.15, datacenterMW: 300, pueTarget: 1.35,
+    coolingMGD: 2.8, blowdownPct: 20, waterMGD: 0.15, datacenterMW: 267, pueTarget: 1.35,
     phases: 2, codTarget: 'Q3 2027', siteAcres: 85, stackHeight: 120, nearestReceptorFt: 1800,
     turbineType: 'GE 7F.05 / Siemens SGT6-5000F', nonAttainment: false,
   };

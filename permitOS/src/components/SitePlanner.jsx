@@ -1,8 +1,22 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { calcPTE } from '../utils/calculations';
-import { US_STATES } from '../data/permitData';
+import { US_STATES, STATE_BOUNDING_BOXES, STATES_ATTAINMENT } from '../data/permitData';
+import 'leaflet/dist/leaflet.css';
 
 // ─── Leaflet Map Component ──────────────────────────────────────────────────
+// Reverse geocode lat/lon to US state using bounding boxes
+function getStateFromCoords(lat, lon) {
+  const latNum = parseFloat(lat);
+  const lonNum = parseFloat(lon);
+  if (isNaN(latNum) || isNaN(lonNum)) return null;
+  for (const [state, [minLat, maxLat, minLon, maxLon]] of Object.entries(STATE_BOUNDING_BOXES)) {
+    if (latNum >= minLat && latNum <= maxLat && lonNum >= minLon && lonNum <= maxLon) {
+      return state;
+    }
+  }
+  return null;
+}
+
 function SiteMap({ lat, lon, onLatLonChange, onBoundaryChange, siteAcres }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -10,11 +24,10 @@ function SiteMap({ lat, lon, onLatLonChange, onBoundaryChange, siteAcres }) {
   const rectangleRef = useRef(null);
   const [leaflet, setLeaflet] = useState(null);
   const [mapReady, setMapReady] = useState(false);
+  const [mapLayer, setMapLayer] = useState('street');
 
   useEffect(() => {
-    // Dynamically import leaflet to avoid SSR issues
     import('leaflet').then(L => {
-      // Fix default icon path for webpack/vite
       delete L.Icon.Default.prototype._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -33,36 +46,74 @@ function SiteMap({ lat, lon, onLatLonChange, onBoundaryChange, siteAcres }) {
       center: [parseFloat(lat) || 36.1627, parseFloat(lon) || -86.7816],
       zoom: 14,
       zoomControl: true,
-      attributionControl: false,
+      attributionControl: true,
     });
 
-    leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Street layer (OpenStreetMap)
+    const streetLayer = leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
+      attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>',
+      className: 'map-tiles',
+    });
+
+    // Satellite layer (ESRI World Imagery — free, no API key needed)
+    const satelliteLayer = leaflet.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://esri.com">ESRI</a>',
+      className: 'map-tiles',
+    });
+
+    // Add layer control
+    const baseLayers = {
+      'Street Map': streetLayer,
+      'Satellite': satelliteLayer,
+    };
+
+    leaflet.control.layers(baseLayers, null, {
+      position: 'topright',
+      collapsed: false,
     }).addTo(map);
 
-    // Add marker for site location
+    // Start with street layer
+    streetLayer.addTo(map);
+
+    // Add scale control
+    leaflet.control.scale({
+      position: 'bottomleft',
+      metric: true,
+      imperial: true,
+    }).addTo(map);
+
+    // Add marker
     const marker = leaflet.marker([parseFloat(lat) || 36.1627, parseFloat(lon) || -86.7816], {
       draggable: true,
     }).addTo(map);
 
     marker.on('dragend', function() {
       const pos = this.getLatLng();
-      onLatLonChange(pos.lat.toFixed(4), pos.lng.toFixed(4));
+      const newLat = pos.lat.toFixed(4);
+      const newLon = pos.lng.toFixed(4);
+      onLatLonChange(newLat, newLon);
     });
 
     markerRef.current = marker;
+
+    // Show coordinates on map click
+    map.on('click', function(e) {
+      const newLat = e.latlng.lat.toFixed(4);
+      const newLon = e.latlng.lng.toFixed(4);
+      onLatLonChange(newLat, newLon);
+    });
+
     mapInstanceRef.current = map;
-
-    // Draw initial boundary rectangle
     updateBoundary(leaflet, map, parseFloat(lat) || 36.1627, parseFloat(lon) || -86.7816);
-
     setMapReady(true);
 
     return () => {
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, [leaflet, lat, lon]);
+  }, [leaflet]);
 
   // Update marker position when lat/lon changes externally
   useEffect(() => {
@@ -78,10 +129,8 @@ function SiteMap({ lat, lon, onLatLonChange, onBoundaryChange, siteAcres }) {
       map.removeLayer(rectangleRef.current);
     }
 
-    // Approximate 45 acres as a ~1400ft x 1400ft square (0.0043 deg)
-    // Scale from siteAcres if available
     const acres = Math.max(1, siteAcres || 45);
-    const sideDeg = Math.sqrt(acres) * 0.00036; // rough conversion
+    const sideDeg = Math.sqrt(acres) * 0.00036;
 
     const bounds = [
       [latVal - sideDeg, lonVal - sideDeg],
@@ -92,37 +141,36 @@ function SiteMap({ lat, lon, onLatLonChange, onBoundaryChange, siteAcres }) {
       color: '#6366f1',
       weight: 2,
       fillColor: '#6366f1',
-      fillOpacity: 0.1,
+      fillOpacity: 0.12,
       dashArray: '5, 5',
     }).addTo(map);
 
-    // Allow resize by dragging corners
-    rect.editing = true;
     rectangleRef.current = rect;
+
+    // Fit map to show the boundary
+    const padding = Math.max(sideDeg * 3, 0.003);
+    map.fitBounds([
+      [latVal - sideDeg - padding, lonVal - sideDeg - padding],
+      [latVal + sideDeg + padding, lonVal + sideDeg + padding],
+    ], { padding: [20, 20] });
 
     if (onBoundaryChange) {
       onBoundaryChange(acres);
     }
   };
 
-  // Helper: rough lat-lng to area calculation
-  const calcAcresFromBounds = useCallback((bounds) => {
-    const [sw, ne] = bounds;
-    const latDiff = Math.abs(ne[0] - sw[0]);
-    const lngDiff = Math.abs(ne[1] - sw[1]);
-    // 1 deg lat ≈ 69 mi, 1 deg lng ≈ 69*cos(lat) mi
-    const latMi = latDiff * 69;
-    const lngMi = lngDiff * 69 * Math.cos((parseFloat(lat) || 36) * Math.PI / 180);
-    const sqMi = latMi * lngMi;
-    return Math.round(sqMi * 640); // sq mi to acres
-  }, [lat]);
-
   return (
-    <div className="rounded-xl overflow-hidden border border-gray-700/40">
-      <div ref={mapRef} style={{ height: '400px', width: '100%', background: '#111827' }} />
+    <div className="rounded-xl overflow-hidden border border-gray-700/40 relative">
+      <div ref={mapRef} style={{ height: '420px', width: '100%' }} />
       {!leaflet && (
-        <div className="h-[400px] flex items-center justify-center bg-gray-900 text-gray-500 text-sm">
-          Loading map...
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-900 text-gray-500 text-sm z-[1000]">
+          <div className="flex items-center gap-2">
+            <svg className="animate-spin h-4 w-4 text-indigo-400" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            Loading map tiles...
+          </div>
         </div>
       )}
     </div>
@@ -130,27 +178,34 @@ function SiteMap({ lat, lon, onLatLonChange, onBoundaryChange, siteAcres }) {
 }
 
 // ─── Quick Scenario Test ────────────────────────────────────────────────────
-function ScenarioTest({ inputs, onApply }) {
+function ScenarioTest({ inputs, onApply, onNavigateToIntake }) {
   const [params, setParams] = useState({ ...inputs });
   const [results, setResults] = useState(null);
 
   const updateParam = (key, value) => {
     const updated = { ...params, [key]: value };
     setParams(updated);
-    // Recalculate PTE instantly
     try {
       const calc = calcPTE(updated);
       setResults(calc);
-    } catch { /* ignore calculation errors */ }
+    } catch { /* ignore */ }
   };
 
-  // Generate initial results
   useEffect(() => {
     try {
       const calc = calcPTE(params);
       setResults(calc);
     } catch { /* ignore */ }
   }, []);
+
+  // Sync local params when external inputs change (e.g., location preset click)
+  useEffect(() => {
+    setParams(prev => {
+      // Only update if values actually differ
+      if (JSON.stringify(prev) === JSON.stringify(inputs)) return prev;
+      return { ...inputs };
+    });
+  }, [inputs]);
 
   const sliders = [
     { key: 'turbines', label: 'Gas Turbines', min: 1, max: 20, step: 1, unit: '' },
@@ -171,7 +226,6 @@ function ScenarioTest({ inputs, onApply }) {
 
   return (
     <div className="space-y-4">
-      {/* Sliders */}
       <div className="grid md:grid-cols-2 gap-4">
         {sliders.map(s => (
           <div key={s.key}>
@@ -192,7 +246,6 @@ function ScenarioTest({ inputs, onApply }) {
         ))}
       </div>
 
-      {/* Instant PTE Results */}
       {results && (
         <div className="bg-gray-900/60 border border-gray-700/40 rounded-xl p-4">
           <h4 className="text-xs font-semibold text-gray-400 mb-3">Instant PTE Results (tpy)</h4>
@@ -216,7 +269,6 @@ function ScenarioTest({ inputs, onApply }) {
             })}
           </div>
 
-          {/* Pathway summary */}
           <div className="mt-3 flex flex-wrap gap-2">
             {results.pathway?.requiresPSD && (
               <span className="text-xs px-2 py-0.5 rounded bg-red-900/30 text-red-400 border border-red-800/40">PSD Major Source</span>
@@ -234,9 +286,8 @@ function ScenarioTest({ inputs, onApply }) {
         </div>
       )}
 
-      {/* Apply button */}
       <button
-        onClick={() => onApply(params)}
+        onClick={() => { onApply(params); onNavigateToIntake && onNavigateToIntake(); }}
         className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2"
       >
         Apply Parameters to Site Intake
@@ -251,13 +302,30 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
   const [lon, setLon] = useState(inputs.lon || '-86.7816');
   const [siteAcres, setSiteAcres] = useState(inputs.siteAcres || 45);
   const [selectedState, setSelectedState] = useState(inputs.state || 'Tennessee');
-  const [searchQuery, setSearchQuery] = useState('');
   const [showScenario, setShowScenario] = useState(false);
 
   const handleLatLonChange = (newLat, newLon) => {
     setLat(newLat);
     setLon(newLon);
-    setInputs(prev => ({ ...prev, lat: newLat, lon: newLon }));
+    // Auto-detect state from coordinates
+    const detected = getStateFromCoords(newLat, newLon);
+    setInputs(prev => {
+      const updates = { lat: newLat, lon: newLon };
+      if (detected) {
+        updates.state = detected;
+        // Auto-set nonattainment flags if state has nonattainment
+        const status = STATES_ATTAINMENT[detected] || '';
+        const isNon = status.includes('Nonattainment');
+        updates.nonAttainment = isNon;
+        if (isNon) {
+          updates.nonAttainNOx = true;
+          updates.nonAttainPM25 = true;
+          updates.nonAttainOzone = true;
+        }
+      }
+      return { ...prev, ...updates };
+    });
+    if (detected) setSelectedState(detected);
   };
 
   const handleBoundaryChange = (acres) => {
@@ -275,16 +343,15 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
     setInputs(prev => ({ ...prev, siteAcres: acres }));
   };
 
-  // Quick state / location presets for testing
   const locationPresets = [
-    { label: 'BigWatt HQ — Nashville, TN', state: 'Tennessee', lat: '36.1627', lon: '-86.7816', acres: 45 },
+    { label: 'BigWatt HQ — Nashville, TN', state: 'Tennessee', lat: '36.1627', lon: '-86.7816', acres: 50 },
     { label: 'Ashburn, VA (Data Center Alley)', state: 'Virginia', lat: '39.0438', lon: '-77.4874', acres: 35 },
-    { label: 'Phoenix, AZ (Edge)', state: 'Arizona', lat: '33.4484', lon: '-112.0740', acres: 20 },
-    { label: 'Dallas, TX (Hyperscale)', state: 'Texas', lat: '32.7767', lon: '-96.7970', acres: 80 },
-    { label: 'Silicon Valley, CA', state: 'California', lat: '37.3861', lon: '-122.0839', acres: 15 },
-    { label: 'Columbus, OH (AWS Region)', state: 'Ohio', lat: '39.9612', lon: '-82.9988', acres: 60 },
-    { label: 'Atlanta, GA (Edge)', state: 'Georgia', lat: '33.7490', lon: '-84.3880', acres: 25 },
-    { label: 'Northern Virginia (AWS/US East)', state: 'Virginia', lat: '38.8339', lon: '-77.3373', acres: 100 },
+    { label: 'Phoenix, AZ (Edge)', state: 'Arizona', lat: '33.4484', lon: '-112.0740', acres: 22 },
+    { label: 'Dallas, TX (Hyperscale)', state: 'Texas', lat: '32.7767', lon: '-96.7970', acres: 200 },
+    { label: 'Silicon Valley, CA', state: 'California', lat: '37.3861', lon: '-122.0839', acres: 35 },
+    { label: 'Columbus, OH (AWS Region)', state: 'Ohio', lat: '39.9612', lon: '-82.9988', acres: 80 },
+    { label: 'Atlanta, GA (Edge)', state: 'Georgia', lat: '33.7490', lon: '-84.3880', acres: 22 },
+    { label: 'Northern Virginia (AWS/US East)', state: 'Virginia', lat: '38.8339', lon: '-77.3373', acres: 150 },
   ];
 
   return (
@@ -294,19 +361,19 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <h2 className="text-base font-semibold text-white mb-1">Site Planner — BigWatt Digital Test Bed</h2>
-            <p className="text-xs text-gray-500">Explore different site configurations, visualize boundaries on the map, and instantly test how parameters affect your permit pathway.</p>
+            <p className="text-xs text-gray-500">Explore site configurations on an interactive map with street/satellite views, scale controls, and draggable markers. Toggle between OpenStreetMap road map and high-res ESRI satellite imagery.</p>
           </div>
           <button
             onClick={() => setActiveTab('intake')}
             className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg border border-gray-700/60 transition-colors"
           >
-            → Open Full Site Intake
+            &rarr; Open Full Site Intake
           </button>
         </div>
       </div>
 
       <div className="grid lg:grid-cols-5 gap-6">
-        {/* Left Column: Map Controls */}
+        {/* Left Column: Map */}
         <div className="lg:col-span-3 space-y-4">
           {/* Location Presets */}
           <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4">
@@ -345,7 +412,11 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs font-semibold text-gray-400">Site Boundary Map</h3>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-600">Drag marker to reposition site</span>
+                <div className="flex items-center gap-1 text-xs bg-gray-800/60 rounded-lg px-2 py-1">
+                  <span className="text-indigo-400 font-medium">Street/Satellite</span>
+                  <span className="text-gray-600">|</span>
+                  <span className="text-gray-500">Layer toggle (top-right)</span>
+                </div>
                 <div className="flex items-center gap-1 text-xs">
                   <span className="text-gray-500">Lat:</span>
                   <input
@@ -371,7 +442,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
               onLatLonChange={handleLatLonChange}
               onBoundaryChange={handleBoundaryChange}
             />
-            <div className="mt-2 flex items-center justify-between">
+            <div className="mt-2 flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <label className="text-xs text-gray-500">Site Area (acres):</label>
                 <input
@@ -382,10 +453,15 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                   max={500}
                   className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-gray-300 font-mono text-sm"
                 />
+                <span className="text-xs text-gray-600">(~{Math.round(siteAcres * 0.4047)} ha)</span>
               </div>
               <div className="flex items-center gap-3 text-xs text-gray-600">
                 <span>State: <span className="text-gray-400 font-medium">{selectedState}</span></span>
-                <span>~{Math.round(siteAcres * 0.4047)} hectares</span>
+                <span className="text-gray-700">|</span>
+                <span className="text-gray-500">
+                  <span className="text-indigo-400">{locationPresets.find(p => p.state === selectedState && p.lat === lat)?.label || selectedState}</span>
+                </span>
+                <span className="text-gray-500">Drag marker / click map to reposition</span>
               </div>
             </div>
           </div>
@@ -395,7 +471,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
             <h3 className="text-xs font-semibold text-gray-400 mb-3">Current Site Configuration</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
               {[
-                { label: 'Turbines', value: `${inputs.turbines} × ${inputs.mwPerTurbine} MW` },
+                { label: 'Turbines', value: `${inputs.turbines} \u00d7 ${inputs.mwPerTurbine} MW` },
                 { label: 'Annual Hours', value: `${inputs.hours.toLocaleString()} hr/yr` },
                 { label: 'Brick Savings', value: `${inputs.brickSavings}%` },
                 { label: 'Gensets', value: `${inputs.gensetCount} @ ${inputs.gensetHours} hr/yr` },
@@ -418,7 +494,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                 {showScenario ? 'Hide Scenario Test' : 'Quick Scenario Test'}
               </button>
               <button
-                onClick={() => { setInputs(prev => ({ ...prev, lat, lon, siteAcres })); setActiveTab('intake'); }}
+                onClick={() => { const detected = getStateFromCoords(lat, lon); const stateToUse = detected || selectedState; setInputs(prev => ({ ...prev, state: stateToUse, lat, lon, siteAcres })); setActiveTab('intake'); }}
                 className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded-lg font-semibold transition-all"
               >
                 Send to Site Intake
@@ -431,94 +507,197 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
             <div className="rounded-xl border border-violet-700/30 bg-violet-950/20 p-5">
               <h3 className="text-sm font-semibold text-violet-300 mb-4">Quick Scenario Test</h3>
               <p className="text-xs text-gray-500 mb-4">Adjust sliders to see instant PTE and pathway changes. Apply to sync with Site Intake.</p>
-              <ScenarioTest inputs={inputs} onApply={handleApplyScenario} />
+              <ScenarioTest inputs={inputs} onApply={handleApplyScenario} onNavigateToIntake={() => setActiveTab('intake')} />
             </div>
           )}
         </div>
 
-        {/* Right Column: Info Panel */}
+        {/* Right Column: Scenario Explorer */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Test Use Cases */}
-          <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
-            <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-3">Test Scenarios</h3>
-            <div className="space-y-3">
+          {/* Scenario Explorer */}
+          <div className="rounded-xl border border-indigo-700/30 bg-indigo-950/20 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-semibold text-indigo-300">Scenario Explorer</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Click any scenario to instantly see emissions, pathway, and compliance impact</p>
+              </div>
+              <button
+                onClick={() => setShowScenario(!showScenario)}
+                className={`text-xs ${showScenario ? 'bg-violet-600 hover:bg-violet-500' : 'bg-gray-700 hover:bg-gray-600'} text-white px-3 py-1.5 rounded-lg font-semibold transition-all`}
+              >
+                {showScenario ? 'Hide Sliders' : 'Custom Sliders'}
+              </button>
+            </div>
+
+            {/* Scenario Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
                 {
                   title: 'Edge Site (Small)',
-                  icon: 'Small',
-                  desc: '4 turbines × 15 MW, 4000 hr/yr, 20% savings, 20 acres',
-                  params: { turbines: 4, mwPerTurbine: 15, hours: 4000, brickSavings: 20, gensetCount: 6, gensetHours: 100, datacenterMW: 40, siteAcres: 20 },
-                },
-                {
-                  title: 'Hyperscale Campus (Large)',
-                  icon: 'Large',
-                  desc: '16 turbines × 50 MW, 7000 hr/yr, 25% savings, 100 acres',
-                  params: { turbines: 16, mwPerTurbine: 50, hours: 7000, brickSavings: 25, gensetCount: 24, gensetHours: 100, datacenterMW: 500, siteAcres: 100 },
+                  badge: 'SMALL',
+                  badgeColor: 'bg-green-900/30 text-green-400 border-green-800/40',
+                  icon: '📡',
+                  desc: 'Distributed edge node, minimal footprint',
+                  params: { turbines: 4, mwPerTurbine: 15, hours: 4000, brickSavings: 20, gensetCount: 6, gensetHours: 100, datacenterMW: 40, siteAcres: 22 },
+                  highlight: 'Fastest permit path',
+                  highlightColor: 'text-green-400',
+                  metrics: { mw: 60, nox: '19.8', psd: 'No', title5: 'No' },
                 },
                 {
                   title: 'Colocation Expansion',
-                  icon: 'Mid',
-                  desc: '8 turbines × 25 MW, 6000 hr/yr, 15% savings, 45 acres',
-                  params: { turbines: 8, mwPerTurbine: 25, hours: 6000, brickSavings: 15, gensetCount: 12, gensetHours: 150, datacenterMW: 160, siteAcres: 45 },
+                  badge: 'MID',
+                  badgeColor: 'bg-blue-900/30 text-blue-400 border-blue-800/40',
+                  icon: '🏢',
+                  desc: 'Existing campus expansion, moderate scale',
+                  params: { turbines: 8, mwPerTurbine: 25, hours: 6000, brickSavings: 15, gensetCount: 12, gensetHours: 150, datacenterMW: 133, siteAcres: 50 },
+                  highlight: 'Synthetic minor viable',
+                  highlightColor: 'text-amber-400',
+                  metrics: { mw: 200, nox: '52.8', psd: 'No', title5: 'Yes' },
                 },
                 {
-                  title: 'California Nonattainment',
-                  icon: 'CA',
-                  desc: '6 turbines × 20 MW, 5000 hr/yr, 30% savings, CA location',
-                  params: { turbines: 6, mwPerTurbine: 20, hours: 5000, brickSavings: 30, gensetCount: 8, gensetHours: 80, datacenterMW: 80, siteAcres: 15, state: 'California', nonAttainment: true, nonAttainNOx: true, nonAttainPM25: true, nonAttainOzone: true },
+                  title: 'Hyperscale Campus',
+                  badge: 'LARGE',
+                  badgeColor: 'bg-red-900/30 text-red-400 border-red-800/40',
+                  icon: '🏗️',
+                  desc: 'Full hyperscale buildout, major source',
+                  params: { turbines: 16, mwPerTurbine: 50, hours: 7000, brickSavings: 25, gensetCount: 24, gensetHours: 100, datacenterMW: 533, siteAcres: 200 },
+                  highlight: 'PSD major source',
+                  highlightColor: 'text-red-400',
+                  metrics: { mw: 800, nox: '186.7', psd: 'Yes', title5: 'Yes' },
+                },
+                {
+                  title: 'CA Nonattainment',
+                  badge: 'CA',
+                  badgeColor: 'bg-amber-900/30 text-amber-400 border-amber-800/40',
+                  icon: '🌴',
+                  desc: 'California site with NNSR/LAER requirements',
+                  params: { turbines: 6, mwPerTurbine: 20, hours: 5000, brickSavings: 30, gensetCount: 8, gensetHours: 80, datacenterMW: 80, siteAcres: 35, state: 'California', lat: '37.3861', lon: '-122.0839', nonAttainment: true, nonAttainNOx: true, nonAttainPM25: true, nonAttainOzone: true },
+                  highlight: 'LAER + offsets needed',
+                  highlightColor: 'text-amber-400',
+                  metrics: { mw: 120, nox: '28.3', psd: 'No', title5: 'Yes' },
                 },
               ].map(scenario => (
-                <div key={scenario.title} className="border border-gray-700/40 rounded-lg p-3 hover:border-indigo-700/40 transition-colors">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <h4 className="text-sm font-semibold text-gray-200">{scenario.title}</h4>
-                    <span className="text-xs bg-gray-800 text-gray-500 px-1.5 py-0.5 rounded">{scenario.icon}</span>
+                <div key={scenario.title}
+                  onClick={() => {
+                    const s = scenario.params;
+                    // Use a flag to indicate scenario loaded state
+                    setInputs(prev => ({ ...prev, ...s, _scenario: scenario.title }));
+                    if (s.lat) setLat(s.lat);
+                    if (s.lon) setLon(s.lon);
+                    if (s.siteAcres) setSiteAcres(s.siteAcres);
+                    if (s.state) { setSelectedState(s.state); setInputs(prev => ({ ...prev, state: s.state })); }
+                  }}
+                  className={`rounded-xl border p-4 cursor-pointer transition-all duration-200
+                    ${inputs._scenario === scenario.title 
+                      ? 'border-indigo-500 bg-indigo-900/20 shadow-lg shadow-indigo-900/20' 
+                      : 'border-gray-700/40 bg-gray-900/40 hover:border-indigo-700/40 hover:bg-gray-900/60'}`}
+                >
+                  {/* Header row */}
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{scenario.icon}</span>
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-200">{scenario.title}</h4>
+                        <p className="text-[10px] text-gray-500">{scenario.desc}</p>
+                      </div>
+                    </div>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded border ${scenario.badgeColor}`}>{scenario.badge}</span>
                   </div>
-                  <p className="text-xs text-gray-500 mb-2">{scenario.desc}</p>
-                  <button
-                    onClick={() => {
-                      setInputs(prev => ({ ...prev, ...scenario.params }));
-                      if (scenario.params.lat) { setLat(scenario.params.lat); }
-                      if (scenario.params.lon) { setLon(scenario.params.lon); }
-                      if (scenario.params.state) { setSelectedState(scenario.params.state); }
-                      if (scenario.params.siteAcres) { setSiteAcres(scenario.params.siteAcres); }
-                    }}
-                    className="text-xs bg-indigo-900/40 hover:bg-indigo-800/40 text-indigo-400 px-2.5 py-1 rounded-lg border border-indigo-800/40 transition-colors"
-                  >
-                    Load Scenario
-                  </button>
+
+                  {/* Metric badges */}
+                  <div className="grid grid-cols-4 gap-1.5 mb-2">
+                    <div className="bg-gray-800/60 rounded-lg p-1.5 text-center">
+                      <div className="text-[10px] text-gray-500">Capacity</div>
+                      <div className="text-xs font-bold text-gray-200">{scenario.metrics.mw} MW</div>
+                    </div>
+                    <div className="bg-gray-800/60 rounded-lg p-1.5 text-center">
+                      <div className="text-[10px] text-gray-500">NOx</div>
+                      <div className="text-xs font-bold text-gray-200">{scenario.metrics.nox} tpy</div>
+                    </div>
+                    <div className="bg-gray-800/60 rounded-lg p-1.5 text-center">
+                      <div className="text-[10px] text-gray-500">PSD</div>
+                      <div className={`text-xs font-bold ${scenario.metrics.psd === 'Yes' ? 'text-red-400' : 'text-green-400'}`}>{scenario.metrics.psd}</div>
+                    </div>
+                    <div className="bg-gray-800/60 rounded-lg p-1.5 text-center">
+                      <div className="text-[10px] text-gray-500">Title V</div>
+                      <div className={`text-xs font-bold ${scenario.metrics.title5 === 'Yes' ? 'text-amber-400' : 'text-green-400'}`}>{scenario.metrics.title5}</div>
+                    </div>
+                  </div>
+
+                  {/* Highlight & action */}
+                  <div className="flex items-center justify-between">
+                    <span className={`text-[10px] font-medium ${scenario.highlightColor}`}>{scenario.highlight}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const s = scenario.params;
+                        setInputs(prev => ({ ...prev, ...s, _scenario: scenario.title }));
+                        if (s.lat) setLat(s.lat);
+                        if (s.lon) setLon(s.lon);
+                        if (s.siteAcres) setSiteAcres(s.siteAcres);
+                        if (s.state) { setSelectedState(s.state); setInputs(prev => ({ ...prev, state: s.state })); }
+                        setActiveTab('intake');
+                      }}
+                      className="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded-lg font-medium transition-all"
+                    >
+                      Apply → Intake
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* Quick Stats */}
-          <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
-            <h3 className="text-xs font-semibold text-gray-400 mb-3">Quick Reference</h3>
-            <div className="space-y-2 text-xs">
-              <div className="bg-gray-800/40 rounded-lg p-2.5">
-                <div className="text-gray-500 mb-1">PSD Threshold</div>
-                <div className="text-gray-300 font-mono">100 tpy per criteria pollutant</div>
-              </div>
-              <div className="bg-gray-800/40 rounded-lg p-2.5">
-                <div className="text-gray-500 mb-1">Typical Data Center Acreage</div>
-                <div className="text-gray-300 font-mono">15-100 acres (varies by MW)</div>
-              </div>
-              <div className="bg-gray-800/40 rounded-lg p-2.5">
-                <div className="text-gray-500 mb-1">1 acre ≈</div>
-                <div className="text-gray-300 font-mono">43,560 sq ft · 0.4047 ha · ~208 ft × 208 ft</div>
-              </div>
-              <div className="bg-gray-800/40 rounded-lg p-2.5">
-                <div className="text-gray-500 mb-1">Leaflet Map Layer</div>
-                <div className="text-gray-300">OpenStreetMap (free, no API key)</div>
-              </div>
-              <div className="bg-gray-800/40 rounded-lg p-2.5">
-                <div className="text-gray-500 mb-1">Google Maps Alternative</div>
-                <div className="text-gray-300">Requires API key — contact BigWatt IT</div>
-              </div>
+            {/* Scenario summary note */}
+            <div className="mt-3 text-center">
+              <span className="text-[10px] text-gray-600">
+                Click any card to preview its impact on the map and metrics. 
+                <span className="text-indigo-500"> Apply &rarr; Intake</span> to run full screening.
+              </span>
             </div>
           </div>
-        </div>
-      </div>
+
+          {/* Custom Scenario Sliders (togglable) */}
+          {showScenario && (
+            <div className="rounded-xl border border-violet-700/30 bg-violet-950/20 p-5">
+              <h3 className="text-sm font-semibold text-violet-300 mb-4">Custom Scenario Builder</h3>
+              <p className="text-xs text-gray-500 mb-4">Fine-tune parameters manually and see instant PTE results. Apply to sync with Site Intake.</p>
+              <ScenarioTest inputs={inputs} onApply={handleApplyScenario} onNavigateToIntake={() => setActiveTab('intake')} />
+            </div>
+          )}
+
+          {/* Quick Map Reference */}
+          <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4">
+            <h3 className="text-xs font-semibold text-gray-400 mb-2 flex items-center gap-1.5">
+              <span>Quick Reference</span>
+              <span className="text-[10px] text-gray-600 font-normal">Map controls &amp; site info</span>
+            </h3>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="bg-gray-800/40 rounded-lg p-2 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 flex-shrink-0 opacity-60"></span>
+                <span className="text-gray-400">Drag marker / click map to reposition</span>
+              </div>
+              <div className="bg-gray-800/40 rounded-lg p-2 flex items-center gap-2">
+                <div className="w-4 h-2 border border-indigo-400 border-dashed rounded flex-shrink-0"></div>
+                <span className="text-gray-400">Boundary auto-scaled to acreage</span>
+              </div>
+              <div className="bg-gray-800/40 rounded-lg p-2 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded bg-blue-500 flex-shrink-0"></span>
+                <span className="text-gray-400">Toggle Street / Satellite (top-right)</span>
+              </div>
+              <div className="bg-gray-800/40 rounded-lg p-2 flex items-center gap-2">
+                <span className="text-gray-500 font-mono text-[10px]">+/-</span>
+                <span className="text-gray-400">Zoom controls &amp; mouse wheel</span>
+              </div>
+            </div>
+            <div className="mt-2 flex items-center justify-between text-[10px] text-gray-600">
+              <span>Current: <span className="text-gray-400 font-medium">{inputs.turbines}&times;{inputs.mwPerTurbine}MW</span></span>
+              <span className="text-gray-700">|</span>
+              <span>State: <span className="text-gray-400">{selectedState}</span></span>
+              <span className="text-gray-700">|</span>
+              <span>Acres: <span className="text-gray-400">{siteAcres}</span></span>
+            </div>
+          </div>
+        </div></div>
     </div>
   );
 }

@@ -14,6 +14,8 @@ import ExecutiveSummary from './components/ExecutiveSummary';
 import KnowledgeHub from './components/KnowledgeHub';
 import SitePlanner from './components/SitePlanner';
 import SiteAssistant from './components/SiteAssistant';
+import BuildingPermitAI from './components/BuildingPermitAI';
+import PowerPermitAI from './components/PowerPermitAI';
 import { isAuthenticated, getAuthToken, setAuthToken, logout } from './utils/api';
 
 export const defaultInputs = {
@@ -38,7 +40,7 @@ export const defaultInputs = {
   coolingMGD: 2.8,
   blowdownPct: 20,
   waterMGD: 1.2,
-  datacenterMW: 160,
+  datacenterMW: 133,
   pueTarget: 1.35,
   phases: 3,
   codTarget: '2026-Q3',
@@ -100,6 +102,8 @@ function App() {
       case 'copilot':     return <RegulatorCopilot results={results} inputs={inputs} />;
       case 'executive':   return <ExecutiveSummary results={results} inputs={inputs} setActiveTab={setActiveTab} />;
       case 'knowledge':   return <KnowledgeHub inputs={inputs} results={results} />;
+      case 'building':    return <BuildingPermitAI inputs={inputs} results={results} setActiveTab={setActiveTab} />;
+      case 'power':       return <PowerPermitAI inputs={inputs} results={results} setActiveTab={setActiveTab} />;
       default:            return <Overview setActiveTab={setActiveTab} />;
     }
   };
