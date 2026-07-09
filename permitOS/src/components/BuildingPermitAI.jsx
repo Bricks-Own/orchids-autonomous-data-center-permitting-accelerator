@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BUILDING_MODULES } from '../data/permitData';
+import { computeBuildingMetrics } from '../utils/buildPowerCalc';
 
 export default function BuildingPermitAI({ inputs, results, setActiveTab }) {
   const [expanded, setExpanded] = useState(null);
@@ -20,31 +21,14 @@ export default function BuildingPermitAI({ inputs, results, setActiveTab }) {
 
   // Read from results if available (post-screening), otherwise compute from inputs
   const buildingData = results?.building || {};
-  const totalMW = (inputs.turbines || 0) * (inputs.mwPerTurbine || 0);
-  const buildingSqFt = buildingData.buildingSqFt || inputs.buildingSqFt || Math.round((inputs.datacenterMW || 100) * 125);
-  const stories = buildingData.stories || inputs.stories || 2;
-  const occupancy = buildingData.occupancy || inputs.occupancyType || 'Business (B)';
-  const suppression = buildingData.fireSuppression || inputs.fireSuppression || 'Pre-action sprinkler';
-  const emergencyConf = buildingData.emergencyConfig || inputs.emergencyPowerConfig || 'N+1';
-  // Remove duplicate declarations below
-
-  const totalGensetKW = (inputs.gensetCount || 0) * (inputs.gensetHP || 0) * 0.746; // HP to kW
-
-  // Determine typical fire-resistance rating based on stories
-  const fireRating = stories >= 4 ? '2-hour minimum' : '1-hour minimum';
-
-  // Zoning complexity estimate
-  const noiseConcern = totalMW > 200 ? 'High — dedicated noise study needed' : 'Moderate — standard sound barrier required';
-
-  // IBC classification estimate
-  const ibcClass = totalMW > 400 ? 'Type IB (Fire Resistive) — required for hyperscale' : 'Type IIB (Non-combustible) — typical';
+  const m = computeBuildingMetrics(inputs, buildingData);
 
   const buildingMetrics = [
-    { label: 'Estimated Building Area', value: `${buildingSqFt.toLocaleString()} sqft`, sub: `${stories} stories · ${ibcClass}`, color: 'text-indigo-400' },
-    { label: 'Fire Suppression', value: suppression, sub: `Type ${suppression.includes('Pre-action') ? 'I' : 'II'} System`, color: 'text-red-400' },
-    { label: 'Emergency Power Config', value: `${emergencyConf} configuration`, sub: `${(inputs.gensetCount || 0)} gensets · ${(totalGensetKW / 1000).toFixed(1)} MW total`, color: 'text-amber-400' },
-    { label: 'Fire-Rating Required', value: fireRating, sub: `Occupancy: ${occupancy}`, color: 'text-orange-400' },
-    { label: 'Zoning Noise Concern', value: noiseConcern, sub: `Assumes ${totalMW} MW generation on site`, color: noiseConcern.includes('High') ? 'text-red-400' : 'text-green-400' },
+    { label: 'Estimated Building Area', value: `${m.buildingSqFt.toLocaleString()} sqft`, sub: `${m.stories} stories · ${m.ibcClass}`, color: 'text-indigo-400' },
+    { label: 'Fire Suppression', value: m.suppression, sub: `Type ${m.suppression.includes('Pre-action') ? 'I' : 'II'} System`, color: 'text-red-400' },
+    { label: 'Emergency Power Config', value: `${m.emergencyConf} configuration`, sub: `${(inputs.gensetCount || 0)} gensets · ${m.totalGensetMW.toFixed(1)} MW total`, color: 'text-amber-400' },
+    { label: 'Fire-Rating Required', value: m.fireRating, sub: `Occupancy: ${m.occupancy}`, color: 'text-orange-400' },
+    { label: 'Zoning Noise Concern', value: m.noiseConcern, sub: `Assumes ${m.totalMW} MW generation on site`, color: m.noiseConcern.includes('High') ? 'text-red-400' : 'text-green-400' },
   ];
 
   return (

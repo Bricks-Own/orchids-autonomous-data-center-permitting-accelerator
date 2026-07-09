@@ -32,6 +32,16 @@ const defaultInputs = {
   phases: 3,
   codTarget: '2026-Q3',
   siteAcres: 45,
+  // Building permit fields
+  buildingSqFt: Math.round(133 * 125),      // auto-derived: ~16,625 sqft for 133MW IT load
+  stories: 2,
+  occupancyType: 'Business (B)',
+  fireSuppression: 'Pre-action sprinkler',
+  emergencyPowerConfig: 'N+1',
+  // Power permit fields
+  powerSourceType: 'Hybrid (Grid + On-site Generation)',
+  interconnectionVoltage: 138,
+  transformerCapacity: Math.round(200 * 1.15),
   stackHeight: 65,
   nearestReceptorFt: 1200,
   nonAttainment: false,
@@ -252,6 +262,56 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           </div>
           <Field label="Stack Height (ft)"><Input value={inputs.stackHeight} onChange={v => update('stackHeight', v)} type="number" /></Field>
           <Field label="Nearest Receptor (ft)" hint="For AERMOD modeling scope"><Input value={inputs.nearestReceptorFt} onChange={v => update('nearestReceptorFt', v)} type="number" /></Field>
+        </div>
+
+        {/* Building Permitting Parameters */}
+        <div className="rounded-xl border border-indigo-700/30 bg-indigo-950/10 p-5 space-y-4">
+          <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Building Permitting Parameters</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <Field label="Building Footprint (sqft)"><Input value={inputs.buildingSqFt} onChange={v => update('buildingSqFt', v)} type="number" /></Field>
+            <Field label="Stories"><Input value={inputs.stories} onChange={v => update('stories', v)} type="number" min="1" max="12" /></Field>
+            <Field label="Occupancy Type">
+              <select value={inputs.occupancyType} onChange={e => update('occupancyType', e.target.value)}
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200">
+                {['Business (B)','Industrial (F-1)','Storage (S-1)','Mixed (B/S-1)'].map(o =>
+                  <option key={o} value={o}>{o}</option>
+                )}
+              </select>
+            </Field>
+            <Field label="Fire Suppression">
+              <select value={inputs.fireSuppression} onChange={e => update('fireSuppression', e.target.value)}
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200">
+                {['Pre-action sprinkler','Wet pipe sprinkler','Dry pipe sprinkler','Clean agent (FM-200/Novec)','Hybrid (pre-action + clean agent)'].map(o =>
+                  <option key={o} value={o}>{o}</option>
+                )}
+              </select>
+            </Field>
+            <Field label="Emergency Power Config">
+              <select value={inputs.emergencyPowerConfig} onChange={e => update('emergencyPowerConfig', e.target.value)}
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200">
+                {['N','N+1','2N','2N+1'].map(o =>
+                  <option key={o} value={o}>{o}</option>
+                )}
+              </select>
+            </Field>
+          </div>
+        </div>
+
+        {/* Power Permitting Parameters */}
+        <div className="rounded-xl border border-yellow-700/30 bg-yellow-950/10 p-5 space-y-4">
+          <h3 className="text-xs font-semibold text-yellow-400 uppercase tracking-wider">Power Permitting Parameters</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <Field label="Power Source Type">
+              <select value={inputs.powerSourceType} onChange={e => update('powerSourceType', e.target.value)}
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200">
+                {['Grid-only','On-site Generation','Hybrid (Grid + On-site)','Microgrid'].map(o =>
+                  <option key={o} value={o}>{o}</option>
+                )}
+              </select>
+            </Field>
+            <Field label="Interconnection Voltage (kV)"><Input value={inputs.interconnectionVoltage} onChange={v => update('interconnectionVoltage', v)} type="number" /></Field>
+            <Field label="Transformer Capacity (MVA)"><Input value={inputs.transformerCapacity} onChange={v => update('transformerCapacity', v)} type="number" /></Field>
+          </div>
         </div>
 
         {/* Data Center + Water */}

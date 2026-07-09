@@ -286,6 +286,196 @@ async function runAsyncTests() {
     assert.ok(results.genset.gensetVoc > 0, 'Genset VOC should be computed');
   });
 
+  section('Building & Power Permitting Calculations');
+
+  const { 
+    calcIbcClass, calcFireRating, calcNoiseConcern, calcBuildingArea,
+    detectISO, calcFercJurisdiction, calcNercApplicability, calcCpcnRequirement,
+    calcInterconnectionVoltage, calcTransformerMVA,
+    computeBuildingMetrics, computePowerMetrics 
+  } = await import('../../src/utils/buildPowerCalc.js');
+
+  // ── Building Logic Tests ──
+  test('calcIbcClass returns Type IIB for totalMW <= 400', () => {
+    assert.equal(calcIbcClass(0), 'Type IIB (Non-combustible) — typical');
+    assert.equal(calcIbcClass(200), 'Type IIB (Non-combustible) — typical');
+    assert.equal(calcIbcClass(400), 'Type IIB (Non-combustible) — typical', 'Boundary: 400 should be IIB');
+    assert.ok(calcIbcClass(400).includes('IIB'), '400 MW should be Type IIB');
+  });
+
+  test('calcIbcClass returns Type IB for totalMW > 400', () => {
+    assert.equal(calcIbcClass(401), 'Type IB (Fire Resistive) — required for hyperscale');
+    assert.equal(calcIbcClass(800), 'Type IB (Fire Resistive) — required for hyperscale');
+    assert.ok(calcIbcClass(401).includes('IB'), '401 MW should be Type IB');
+  });
+
+  test('calcFireRating returns 2-hour for stories >= 4', () => {
+    assert.equal(calcFireRating(4), '2-hour minimum');
+    assert.equal(calcFireRating(5), '2-hour minimum');
+    assert.equal(calcFireRating(12), '2-hour minimum');
+  });
+
+  test('calcFireRating returns 1-hour for stories < 4', () => {
+    assert.equal(calcFireRating(1), '1-hour minimum');
+    assert.equal(calcFireRating(2), '1-hour minimum');
+    assert.equal(calcFireRating(3), '1-hour minimum');
+  });
+
+  test('calcFireRating handles null/undefined/zero', () => {
+    assert.equal(calcFireRating(null), '1-hour minimum (default)');
+    assert.equal(calcFireRating(undefined), '1-hour minimum (default)');
+    assert.equal(calcFireRating(0), '1-hour minimum (default)');
+  });
+
+  test('calcNoiseConcern returns High for totalMW > 200', () => {
+    assert.ok(calcNoiseConcern(201).includes('High'));
+    assert.ok(calcNoiseConcern(800).includes('High'));
+  });
+
+  test('calcNoiseConcern returns Moderate for totalMW <= 200', () => {
+    assert.ok(calcNoiseConcern(0).includes('Low'));
+    assert.ok(calcNoiseConcern(100).includes('Moderate'));
+    assert.ok(calcNoiseConcern(200).includes('Moderate'), 'Boundary: 200 should be Moderate');
+  });
+
+  // ── Power Logic Tests ──
+  test('detectISO returns correct ISO for each state', () => {
+    assert.equal(detectISO('Texas'), 'ERCOT');
+    assert.equal(detectISO('California'), 'CAISO');
+    assert.equal(detectISO('New York'), 'NYISO');
+    assert.equal(detectISO('Virginia'), 'PJM');
+    assert.equal(detectISO('Tennessee'), 'PJM');
+    assert.equal(detectISO('Ohio'), 'PJM');
+    assert.equal(detectISO('Michigan'), 'PJM');
+    assert.equal(detectISO('Massachusetts'), 'ISO-NE');
+    assert.equal(detectISO('Connecticut'), 'ISO-NE');
+  });
+
+  test('detectISO returns Non-ISO for states not in any RTO', () => {
+    assert.equal(detectISO('Alaska'), 'Non-ISO (Vertically Integrated Utility)');
+    assert.equal(detectISO('Hawaii'), 'Non-ISO (Vertically Integrated Utility)');
+    assert.equal(detectISO(null), '—');
+    assert.equal(detectISO(''), '—');
+  });
+
+  test('detectISO handles edge states that appear in multiple ISOs', () => {
+    // Texas appears in ERCOT and MISO and SPP — should return ERCOT (first match)
+    assert.equal(detectISO('Texas'), 'ERCOT');
+  });
+
+  test('calcFercJurisdiction returns FERC for totalMW > 20', () => {
+    assert.ok(calcFercJurisdiction(21).includes('FERC-jurisdictional'));
+    assert.ok(calcFercJurisdiction(100).includes('FERC-jurisdictional'));
+    assert.ok(calcFercJurisdiction(200).includes('FERC-jurisdictional'));
+  });
+
+  test('calcFercJurisdiction returns non-jurisdictional for totalMW <= 20', () => {
+    assert.ok(calcFercJurisdiction(0).includes('Non-jurisdictional'));
+    assert.ok(calcFercJurisdiction(20).includes('Non-jurisdictional'), 'Boundary: 20 should be non-jurisdictional');
+    assert.ok(calcFercJurisdiction(15).includes('Non-jurisdictional'));
+  });
+
+  test('calcNercApplicability returns required for onSiteMW > 20', () => {
+    assert.ok(calcNercApplicability(21).includes('registration required'));
+    assert.ok(calcNercApplicability(200).includes('registration required'));
+  });
+
+  test('calcNercApplicability returns below threshold for onSiteMW <= 20', () => {
+    assert.ok(calcNercApplicability(0).includes('Below'));
+    assert.ok(calcNercApplicability(20).includes('Below'), 'Boundary: 20 should be Below');
+    assert.ok(calcNercApplicability(10).includes('Below'));
+  });
+
+  test('calcCpcnRequirement returns CPCN for totalMW > 50 with on-site generation', () => {
+    assert.ok(calcCpcnRequirement(51, 'On-site Generation').includes('CPCN'));
+    assert.ok(calcCpcnRequirement(100, 'Hybrid (Grid + On-site)').includes('CPCN'));
+  });
+
+  test('calcCpcnRequirement returns exemption for <= 50 or no on-site', () => {
+    assert.ok(calcCpcnRequirement(50, 'On-site Generation').includes('exemption'), 'Boundary: 50 should be exemption');
+    assert.ok(calcCpcnRequirement(100, 'Grid-only').includes('exemption'));
+    assert.ok(calcCpcnRequirement(0, 'Grid-only').includes('exemption'));
+  });
+
+  test('calcInterconnectionVoltage returns correct kV by totalMW', () => {
+    assert.equal(calcInterconnectionVoltage(0), 69);
+    assert.equal(calcInterconnectionVoltage(100), 69);
+    assert.equal(calcInterconnectionVoltage(200), 138, 'Boundary: 200 should be 138');
+    assert.equal(calcInterconnectionVoltage(201), 138, 'Boundary: 201 should be 138');
+    assert.equal(calcInterconnectionVoltage(500), 345, 'Boundary: 500 should be 345');
+    assert.equal(calcInterconnectionVoltage(501), 345, 'Boundary: 501 should be 345');
+    assert.equal(calcInterconnectionVoltage(800), 345);
+  });
+
+  test('calcInterconnectionVoltage respects override value', () => {
+    assert.equal(calcInterconnectionVoltage(800, 230), 230, 'Override should take precedence');
+    assert.equal(calcInterconnectionVoltage(100, 69), 69);
+  });
+
+  test('calcTransformerMVA returns ~115% of totalMW', () => {
+    assert.equal(calcTransformerMVA(200), 230);
+    assert.equal(calcTransformerMVA(100), 115);
+    assert.equal(calcTransformerMVA(800), 920);
+    assert.equal(calcTransformerMVA(0), 0);
+  });
+
+  test('computeBuildingMetrics returns correct structure for valid inputs', () => {
+    const inputs = { turbines: 8, mwPerTurbine: 25, datacenterMW: 133, gensetCount: 12, gensetHP: 2000, stories: 2 };
+    const m = computeBuildingMetrics(inputs);
+    assert.equal(m.totalMW, 200);
+    assert.equal(m.stories, 2);
+    assert.ok(m.fireRating.includes('1-hour'));
+    assert.ok(m.noiseConcern.includes('Moderate'));
+    assert.ok(m.ibcClass.includes('IIB'));
+    assert.ok(m.totalGensetKW > 0);
+  });
+
+  test('computePowerMetrics returns correct structure for valid inputs', () => {
+    const inputs = { turbines: 8, mwPerTurbine: 25, state: 'Texas', gensetCount: 12, gensetHP: 2000 };
+    const m = computePowerMetrics(inputs);
+    assert.equal(m.totalMW, 200);
+    assert.equal(m.iso, 'ERCOT');
+    assert.ok(m.ferc.includes('FERC-jurisdictional'));
+    assert.ok(m.nerc.includes('registration required'));
+    assert.equal(m.interconnectionKV, 138);
+    assert.equal(m.transformerMVA, 230);
+  });
+
+  test('computePowerMetrics handles edge state Alaska (no ISO)', () => {
+    const inputs = { turbines: 4, mwPerTurbine: 15, state: 'Alaska', gensetCount: 4, gensetHP: 1500 };
+    const m = computePowerMetrics(inputs);
+    assert.equal(m.iso, 'Non-ISO (Vertically Integrated Utility)');
+    assert.equal(m.totalMW, 60);
+    assert.equal(m.interconnectionKV, 69);
+  });
+
+  test('computePowerMetrics handles large hyperscale inputs', () => {
+    const inputs = { turbines: 16, mwPerTurbine: 50, state: 'Virginia', gensetCount: 24, gensetHP: 3000 };
+    const m = computePowerMetrics(inputs);
+    assert.equal(m.totalMW, 800);
+    assert.equal(m.iso, 'PJM');
+    assert.equal(m.interconnectionKV, 345);
+    assert.equal(m.transformerMVA, 920);
+    assert.ok(m.ferc.includes('FERC'));
+  });
+
+  test('computeBuildingMetrics handles hyperscale inputs', () => {
+    const inputs = { turbines: 16, mwPerTurbine: 50, datacenterMW: 533, gensetCount: 24, gensetHP: 3000, stories: 5 };
+    const m = computeBuildingMetrics(inputs);
+    assert.equal(m.totalMW, 800);
+    assert.ok(m.ibcClass.includes('IB'));
+    assert.ok(m.fireRating.includes('2-hour'));
+    assert.ok(m.noiseConcern.includes('High'));
+  });
+
+  test('computeBuildingMetrics handles minimal inputs (edge case)', () => {
+    const m = computeBuildingMetrics({});
+    assert.equal(m.totalMW, 0);
+    assert.equal(m.stories, 2, 'Default stories should be 2');
+    assert.ok(m.noiseConcern.includes('Low'));
+    assert.ok(m.ibcClass.includes('IIB'));
+  });
+
   section('Document Generator');
 
   const { generateDocument } = await import('../../src/utils/documentGenerator.js');
