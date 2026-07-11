@@ -68,7 +68,7 @@ export default function SiteAssistant({ inputs, results, setActiveTab }) {
   const formatResponse = (response) => {
     if (!response) return null;
     const answerText = response?.content || response?.answer || response?.response || '';
-    const sourceType = response?.type || (response?.webSource ? 'web' : 'llm');
+    const sourceType = response?.limited ? 'rag' : (response?.type === 'rag' ? 'rag' : (response?.webSource ? 'web' : 'llm'));
     const sourceCount = response?.sources?.length || 0;
     const ragSourceCount = response?.ragSourceCount || 0;
     const webSource = response?.webSource || null;
@@ -309,8 +309,8 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
                         </span>
                       )}
                       {msg.sourceType === 'rag' && (
-                        <span className="text-[10px] bg-amber-900/40 text-amber-300 rounded px-1.5 py-0.5 border border-amber-800/30">
-                          Knowledge Base
+                        <span className="text-[10px] bg-amber-900/60 text-amber-300 rounded px-1.5 py-0.5 border border-amber-700/50 font-semibold">
+                          Limited mode — AI not connected
                         </span>
                       )}
                       {msg.sourceType === 'web' && (
@@ -321,6 +321,11 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
                       {msg.sourceType === 'scenario' && (
                         <span className="text-[10px] bg-indigo-900/40 text-indigo-300 rounded px-1.5 py-0.5 border border-indigo-800/30">
                           Scenario Engine
+                        </span>
+                      )}
+                      {msg.sourceType === 'fallback' && (
+                        <span className="text-[10px] bg-red-900/60 text-red-300 rounded px-1.5 py-0.5 border border-red-700/50 font-semibold">
+                          AI unavailable — limited results
                         </span>
                       )}
                       {(msg.sourceCount > 0) && (

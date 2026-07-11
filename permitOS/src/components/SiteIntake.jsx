@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { US_STATES, STATES_ATTAINMENT, NOX_EMISSION_FACTORS, CO_EMISSION_FACTORS } from '../data/permitData';
 import { calcPTE } from '../utils/calculations';
 import { calculatePTE as apiPTE, analyzeScenario, listScenarios } from '../utils/api';
@@ -33,7 +33,7 @@ const defaultInputs = {
   codTarget: '2026-Q3',
   siteAcres: 45,
   // Building permit fields
-  buildingSqFt: Math.round(133 * 125),      // auto-derived: ~16,625 sqft for 133MW IT load
+  buildingSqFt: Math.round(133 * 800),      // auto-derived: ~106,400 sqft for 133MW IT load (realistic: 750-1000+ sqft/MW)
   stories: 2,
   occupancyType: 'Business (B)',
   fireSuppression: 'Pre-action sprinkler',
@@ -109,16 +109,18 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
     }).catch(() => {});
   }, []);
 
-  // Run scenario analysis when scenario type or inputs change
+  // Run scenario analysis when scenario type or inputs change (debounced 500ms)
   useEffect(() => {
     if (!inputs) return;
     let cancelled = false;
-    setScenarioLoading(true);
-    analyzeScenario(scenario, inputs).then(data => {
-      if (!cancelled && data?.analysis) setScenarioAnalysis(data.analysis);
-      if (!cancelled) setScenarioLoading(false);
-    }).catch(() => { if (!cancelled) setScenarioLoading(false); });
-    return () => { cancelled = true; };
+    const timer = setTimeout(() => {
+      setScenarioLoading(true);
+      analyzeScenario(scenario, inputs).then(data => {
+        if (!cancelled && data?.analysis) setScenarioAnalysis(data.analysis);
+        if (!cancelled) setScenarioLoading(false);
+      }).catch(() => { if (!cancelled) setScenarioLoading(false); });
+    }, 500);
+    return () => { cancelled = true; clearTimeout(timer); };
   }, [scenario, inputs]);
 
   const runScreening = async () => {
@@ -141,7 +143,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           stories: inputs.stories || 2,
           fireSuppression: inputs.fireSuppression || 'Pre-action sprinkler',
           emergencyConfig: inputs.emergencyPowerConfig || 'N+1',
-          buildingSqFt: inputs.buildingSqFt || Math.round((inputs.datacenterMW || 100) * 125),
+          buildingSqFt: inputs.buildingSqFt || Math.round((inputs.datacenterMW || 133) * 800),
           occupancy: inputs.occupancyType || 'Business (B)',
         },
         // Compute power/interconnection pathway from inputs
@@ -348,7 +350,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           <div className="border-t border-gray-700/40 pt-3">
             <p className="text-xs text-gray-500 mb-3 font-medium">Water Systems</p>
             <div className="space-y-3">
-              <Field label="Cooling Water Use (MGD)" hint="Cooling tower makeup + blowdown"><Input value={inputs.coolingMGD} onChange={v => update('coolingMGD', v)} type="number" step="0.1" /></Field>
+              <Field label="Cooling Water Use (MGD)" hint="Evaporation rate only (blowdown added separately below)"><Input value={inputs.coolingMGD} onChange={v => update('coolingMGD', v)} type="number" step="0.1" /></Field>
               <Field label="Blowdown Fraction (%)" hint="% of circulating water discharged"><Input value={inputs.blowdownPct} onChange={v => update('blowdownPct', v)} type="number" /></Field>
               <Field label="Process Water Use (MGD)"><Input value={inputs.waterMGD} onChange={v => update('waterMGD', v)} type="number" step="0.1" /></Field>
             </div>

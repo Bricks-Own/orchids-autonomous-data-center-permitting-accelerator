@@ -26,3 +26,36 @@
 {"duration":4,"ip":"::1","level":"info","message":"POST /api/rag/search 200 4ms","method":"POST","service":"permitos-api","status":200,"timestamp":"2026-06-21T02:58:09.864Z","url":"/api/rag/search"}
 {"level":"info","message":"[DEBUG] POST /api/calculate - IP: ::1, Host: localhost:5173, Origin: undefined, UA: node","service":"permitos-api","timestamp":"2026-06-21T02:58:09.866Z"}
 {"duration":1,"ip":"::1","level":"info","message":"POST /api/calculate 200 1ms","method":"POST","service":"permitos-api","status":200,"timestamp":"2026-06-21T02:58:09.867Z","url":"/api/calculate"}
+{"level":"info","message":"RAG engine initialized with 38 regulatory documents","service":"permitos-api","timestamp":"2026-07-11T18:43:20.092Z"}
+{"level":"info","message":"Database initialized","service":"permitos-api","timestamp":"2026-07-11T18:43:20.112Z"}
+{"level":"info","message":"Serving frontend from /home/user/app/permitOS/dist (development mode)","service":"permitos-api","timestamp":"2026-07-11T18:43:20.114Z"}
+{"level":"info","message":"PermitOS listening on port 3001 (development mode)","service":"permitos-api","timestamp":"2026-07-11T18:43:20.116Z"}
+{"level":"info","message":"[DEBUG] POST /api/agent/web-fetch - IP: ::ffff:127.0.0.1, Host: localhost:3001, Origin: undefined, UA: curl/7.88.1","service":"permitos-api","timestamp":"2026-07-11T18:43:32.026Z"}
+{"duration":11,"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/agent/web-fetch 403 11ms","method":"POST","service":"permitos-api","status":403,"timestamp":"2026-07-11T18:43:32.037Z","url":"/api/agent/web-fetch"}
+{"level":"info","message":"[DEBUG] POST /api/agent/web-fetch - IP: ::ffff:127.0.0.1, Host: localhost:3001, Origin: undefined, UA: curl/7.88.1","service":"permitos-api","timestamp":"2026-07-11T18:43:32.054Z"}
+{"duration":3,"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/agent/web-fetch 403 3ms","method":"POST","service":"permitos-api","status":403,"timestamp":"2026-07-11T18:43:32.057Z","url":"/api/agent/web-fetch"}
+{"level":"info","message":"[DEBUG] POST /api/agent/web-fetch - IP: ::ffff:127.0.0.1, Host: localhost:3001, Origin: undefined, UA: curl/7.88.1","service":"permitos-api","timestamp":"2026-07-11T18:43:32.078Z"}
+{"duration":169,"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/agent/web-fetch 200 169ms","method":"POST","service":"permitos-api","status":200,"timestamp":"2026-07-11T18:43:32.247Z","url":"/api/agent/web-fetch"}
+{"level":"info","message":"[DEBUG] POST /api/agent/web-fetch - IP: ::ffff:127.0.0.1, Host: localhost:3001, Origin: undefined, UA: curl/7.88.1","service":"permitos-api","timestamp":"2026-07-11T18:43:40.272Z"}
+{"duration":123,"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/agent/web-fetch 200 123ms","method":"POST","service":"permitos-api","status":200,"timestamp":"2026-07-11T18:43:40.396Z","url":"/api/agent/web-fetch"}
+{"level":"info","message":"Shutting down...","service":"permitos-api","timestamp":"2026-07-11T18:45:30.022Z"}
+{"level":"info","message":"RAG engine initialized with 38 regulatory documents","service":"permitos-api","timestamp":"2026-07-11T18:45:31.177Z"}
+{"level":"info","message":"Database initialized","service":"permitos-api","timestamp":"2026-07-11T18:45:31.197Z"}
+{"level":"info","message":"Serving frontend from /home/user/app/permitOS/dist (development mode)","service":"permitos-api","timestamp":"2026-07-11T18:45:31.199Z"}
+{"level":"info","message":"PermitOS listening on port 3001 (development mode)","service":"permitos-api","timestamp":"2026-07-11T18:45:31.201Z"}
+{"level":"info","message":"Shutting down...","service":"permitos-api","timestamp":"2026-07-11T18:51:49.351Z"}
+{"level":"info","message":"RAG engine initialized with 38 regulatory documents","service":"permitos-api","timestamp":"2026-07-11T18:51:50.510Z"}
+{"level":"info","message":"Database initialized","service":"permitos-api","timestamp":"2026-07-11T18:51:50.536Z"}
+{"level":"info","message":"Serving frontend from /home/user/app/permitOS/dist (development mode)","service":"permitos-api","timestamp":"2026-07-11T18:51:50.538Z"}
+{"level":"info","message":"PermitOS listening on port 3001 (development mode)","service":"permitos-api","timestamp":"2026-07-11T18:51:50.540Z"}
+{"level":"info","message":"[DEBUG] POST /api/auth/register - IP: ::ffff:127.0.0.1, Host: localhost:3001, Origin: undefined, UA: curl/7.88.1","service":"permitos-api","timestamp":"2026-07-11T18:51:57.689Z"}
+{"duration":43,"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/auth/register 201 43ms","method":"POST","service":"permitos-api","status":201,"timestamp":"2026-07-11T18:51:57.732Z","url":"/api/auth/register"}
+{"level":"info","message":"[DEBUG] POST /api/auth/login - IP: ::ffff:127.0.0.1, Host: localhost:3001, Origin: undefined, UA: curl/7.88.1","service":"permitos-api","timestamp":"2026-07-11T18:52:03.474Z"}
+{"duration":80,"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/auth/login 200 80ms","method":"POST","service":"permitos-api","status":200,"timestamp":"2026-07-11T18:52:03.554Z","url":"/api/auth/login"}
+{"level":"info","message":"[DEBUG] GET / - IP: 172.20.0.1, Host: localhost:3001, Origin: undefined, UA: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap","service":"permitos-api","timestamp":"2026-07-11T18:55:35.097Z"}
+{"duration":6,"ip":"172.20.0.1","level":"info","message":"GET /?_cb=1783796133497 200 6ms","method":"GET","service":"permitos-api","status":200,"timestamp":"2026-07-11T18:55:35.103Z","url":"/?_cb=1783796133497"}
+{"level":"info","message":"[DEBUG] GET / - IP: 172.20.0.1, Host: localhost:3001, Origin: undefined, UA: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Ap","service":"permitos-api","timestamp":"2026-07-11T18:58:43.178Z"}
+{"duration":2,"ip":"172.20.0.1","level":"info","message":"GET /?_cb=1783796321319 200 2ms","method":"GET","service":"permitos-api","status":200,"timestamp":"2026-07-11T18:58:43.180Z","url":"/?_cb=1783796321319"}
+{"level":"info","message":"[DEBUG] GET / - IP: ::ffff:127.0.0.1, Host: localhost:3001, Origin: undefined, UA: curl/7.88.1","service":"permitos-api","timestamp":"2026-07-11T19:02:25.914Z"}
+{"duration":1,"ip":"::ffff:127.0.0.1","level":"info","message":"GET / 200 1ms","method":"GET","service":"permitos-api","status":200,"timestamp":"2026-07-11T19:02:25.915Z","url":"/"}
+{"level":"info","message":"Shutting down...","service":"permitos-api","timestamp":"2026-07-11T19:13:08.181Z"}

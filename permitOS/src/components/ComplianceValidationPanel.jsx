@@ -439,7 +439,6 @@ function validateDocument(docKey, inputs, results) {
       description: reg.description,
       required: reg.required,
       status: 'pass',
-      ragMatchScore: 92 + Math.floor(Math.random() * 8),
       ragSnippet: '',
     });
   }
@@ -505,7 +504,6 @@ function validateDocument(docKey, inputs, results) {
         description: `${pollutant} ${type === 'psd' ? 'PTE vs PSD Threshold' : type === 'controlled' ? 'Controlled vs Threshold' : type === 'ghg' ? 'GHG vs Reporting Threshold' : type === 'operational' ? 'Operational vs Threshold' : 'Emissions vs Limit'}: ${actualValue !== null ? (typeof actualValue === 'number' ? actualValue.toFixed(1) : actualValue) : 'N/A'} ${unit} (Limit: ${limit} ${unit})`,
         required: type !== 'warning',
         status,
-        ragMatchScore: 100,
         ragSnippet: '',
       });
     }
@@ -522,6 +520,23 @@ function validateDocument(docKey, inputs, results) {
 
   const resolution = getResolution(docKey, overallStatus);
 
+  // Compute ragMatchScore from actual validation results
+  // Weight: 50% required regulation presence + 50% threshold check pass rate
+  const requiredRegs = validations.filter(v => v.required);
+  const regPresenceScore = requiredRegs.length > 0
+    ? (requiredRegs.filter(v => v.status === 'pass').length / requiredRegs.length) * 100
+    : 100;
+  const allPassed = validations.filter(v => v.status === 'pass').length;
+  const thresholdPassRate = validations.length > 0
+    ? (allPassed / validations.length) * 100
+    : 100;
+  const ragMatchScore = Math.round(regPresenceScore * 0.5 + thresholdPassRate * 0.5);
+
+  // Assign the computed score to all validation items
+  for (const v of validations) {
+    v.ragMatchScore = ragMatchScore;
+  }
+
   return {
     key: docKey,
     title: docInfo.title,
@@ -530,6 +545,7 @@ function validateDocument(docKey, inputs, results) {
     passed,
     failed,
     warnings,
+    ragMatchScore,
     validations,
     resolution,
   };
@@ -746,7 +762,7 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                       <span className="text-xs font-medium text-gray-300 truncate">{doc.title}</span>
                     </div>
                     <div className="text-[10px] text-gray-600 mt-0.5">
-                      {doc.checks} validation checks · {doc.passed} passed · {doc.failed} failed · {doc.warnings} warnings
+                      {doc.checks} validation checks · {doc.passed} passed · {doc.failed} failed · {doc.warnings} warnings · <span className="text-indigo-400">RAG: {doc.ragMatchScore}%</span>
                     </div>
                   </div>
                 </div>
@@ -789,7 +805,7 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                             <p className="text-[10px] text-gray-600 mt-1 italic leading-relaxed line-clamp-2">{v.ragSnippet}</p>
                           )}
                           <div className="flex items-center gap-2 mt-1.5">
-                            {v.ragMatchScore > 0 && v.ragMatchScore < 100 && (
+                            {v.ragMatchScore > 0 && (
                               <span className="text-[9px] text-gray-600">
                                 RAG match: {v.ragMatchScore}%
                               </span>

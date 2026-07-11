@@ -30,17 +30,17 @@ export function createAuthRouter(db) {
 
       const userId = crypto.randomUUID();
       db.prepare('INSERT INTO users (id, tenant_id, email, password_hash, name, role) VALUES (?, ?, ?, ?, ?, ?)')
-        .run(userId, tenant.id, email.toLowerCase(), passwordHash, name, 'admin');
+        .run(userId, tenant.id, email.toLowerCase(), passwordHash, name, 'user');
 
       const token = jwt.sign(
-        { userId, tenantId: tenant.id, role: 'admin' },
+        { userId, tenantId: tenant.id, role: 'user' },
         JWT_SECRET,
         { expiresIn: TOKEN_EXPIRY }
       );
 
       res.status(201).json({
         token,
-        user: { id: userId, email, name, role: 'admin', tenantId: tenant.id },
+        user: { id: userId, email, name, role: 'user', tenantId: tenant.id },
       });
     } catch (err) {
       if (err.message?.includes('UNIQUE constraint')) {

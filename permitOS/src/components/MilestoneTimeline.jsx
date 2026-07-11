@@ -11,6 +11,83 @@ const TRACK_COLORS = {
 
 const WEEKS_TOTAL = 60;
 
+function getGanttTracks({ totalMW = 200, isNonAttain = false, pathway = {} }) {
+  const { requiresPSD, syntheticMinorViable } = pathway;
+  // True minor: below all PSD thresholds → shortest review
+  // Synthetic minor: PSD-major but can accept permit limits to stay under → shorter review
+  // PSD major: full PSD review → longest review
+  const isTrueMinor = !requiresPSD;
+  const isSyntheticMinor = requiresPSD && syntheticMinorViable;
+
+  // MW scaling factor: 200MW = 1.0, caps at 0.7x–1.5x
+  const mwFactor = Math.max(0.7, Math.min(1.5, totalMW / 200));
+
+  // Air review multiplier: attainment + pathway combine
+  // Nonattainment extends review ~50%, synthetic minor shortens ~40%
+  const attainmentMul = isNonAttain ? 1.5 : 1.0;
+  let pathwayMul;
+  if (isTrueMinor) pathwayMul = 0.4;       // minor source — minimal agency review
+  else if (isSyntheticMinor) pathwayMul = 0.55; // synthetic minor — shorter than full PSD
+  else pathwayMul = 1.0;                   // PSD major — full review
+  const airReviewMul = Math.min(1.8, mwFactor * attainmentMul * pathwayMul);
+
+  // Compute dynamic air review weeks
+  // Baseline: PSD major attainment = 12-40 (28wk duration)
+  let airReviewStart = 12;
+  let airReviewEnd, airIssuanceStart, airIssuanceEnd;
+
+  if (isTrueMinor) {
+    airReviewEnd = Math.round(12 + 10 * airReviewMul);
+    airIssuanceStart = Math.round(airReviewEnd - 2);
+    airIssuanceEnd = Math.round(airIssuanceStart + 8 * Math.min(mwFactor * attainmentMul, 1.5));
+  } else if (isSyntheticMinor) {
+    airReviewEnd = Math.round(12 + 16 * airReviewMul);
+    airIssuanceStart = Math.round(airReviewEnd - 4);
+    airIssuanceEnd = Math.round(airIssuanceStart + 12 * Math.min(mwFactor * attainmentMul, 1.5));
+  } else {
+    airReviewEnd = Math.round(12 + 28 * airReviewMul);
+    airIssuanceStart = Math.round(airReviewEnd - 4);
+    airIssuanceEnd = Math.round(airIssuanceStart + 16 * Math.min(mwFactor * attainmentMul, 1.5));
+  }
+
+  // Clamp to WEEKS_TOTAL
+  airReviewEnd = Math.min(airReviewEnd, WEEKS_TOTAL - 2);
+  airIssuanceEnd = Math.min(airIssuanceEnd, WEEKS_TOTAL);
+
+  // Helper: scale a [start, end] range by mwFactor
+  const s = (start, end) => ({
+    start: Math.max(1, Math.round(start * mwFactor)),
+    end: Math.max(2, Math.round(end * mwFactor)),
+  });
+
+  return [
+    // Air tracks
+    { label: 'Site Intake & Data Collection', ...s(1, 3), color: TRACK_COLORS.air, cat: 'Air / Multi' },
+    { label: 'Air Applicability & PTE', ...s(2, 5), color: TRACK_COLORS.air, cat: 'Air' },
+    { label: 'BACT/LAER Top-Down Analysis', ...s(3, 7), color: TRACK_COLORS.air, cat: 'Air' },
+    { label: 'AERMOD Dispersion Modeling', ...s(4, 10), color: TRACK_COLORS.air, cat: 'Air' },
+    { label: 'Air Application Assembly', ...s(7, 11), color: TRACK_COLORS.air, cat: 'Air' },
+    { label: 'Air Agency Review', start: airReviewStart, end: airReviewEnd, color: 'bg-red-800', cat: 'Air' },
+    { label: 'Air Permit Issuance (est.)', start: airIssuanceStart, end: airIssuanceEnd, color: 'bg-red-900', cat: 'Air' },
+    // Water tracks
+    { label: 'Wetlands / WOTUS Screening', ...s(1, 4), color: TRACK_COLORS.water, cat: 'Water' },
+    { label: 'Construction SW CGP NOI', ...s(1, 4), color: TRACK_COLORS.water, cat: 'Water' },
+    { label: 'NPDES / SPCC / 316(b)', ...s(2, 7), color: TRACK_COLORS.water, cat: 'Water' },
+    { label: 'Water Applications', ...s(6, 10), color: TRACK_COLORS.water, cat: 'Water' },
+    { label: 'NPDES Permit Review', ...s(10, 28), color: 'bg-blue-800', cat: 'Water' },
+    // Other
+    { label: 'Zoning / Land Use', ...s(1, 20), color: TRACK_COLORS.other, cat: 'Other' },
+    { label: 'Building / Fire / Electrical', ...s(4, 18), color: TRACK_COLORS.other, cat: 'Other' },
+    { label: 'Utility Interconnect', ...s(4, 52), color: 'bg-gray-700', cat: 'Other' },
+    // Brick deliverables
+    { label: 'Brick AI Applicability Engine', ...s(1, 2), color: TRACK_COLORS.brick, cat: 'Brick PermitOS' },
+    { label: 'Brick PTE + Water Balance', ...s(2, 4), color: TRACK_COLORS.brick, cat: 'Brick PermitOS' },
+    { label: 'Brick CFR Document Factory', ...s(3, 8), color: TRACK_COLORS.brick, cat: 'Brick PermitOS' },
+    { label: 'Brick Digital Twin Setup', ...s(6, 10), color: TRACK_COLORS.brick, cat: 'Brick PermitOS' },
+    { label: 'Brick Compliance OS (post-COD)', ...s(36, 60), color: TRACK_COLORS.brick, cat: 'Brick PermitOS' },
+  ];
+}
+
 function GanttBar({ startWk, endWk, color, label }) {
   const left = (startWk / WEEKS_TOTAL) * 100;
   const width = ((endWk - startWk) / WEEKS_TOTAL) * 100;
@@ -26,33 +103,6 @@ function GanttBar({ startWk, endWk, color, label }) {
   );
 }
 
-const GANTT_TRACKS = [
-  // Air tracks
-  { label: 'Site Intake & Data Collection', start: 1, end: 3, color: TRACK_COLORS.air, cat: 'Air / Multi' },
-  { label: 'Air Applicability & PTE', start: 2, end: 5, color: TRACK_COLORS.air, cat: 'Air' },
-  { label: 'BACT/LAER Top-Down Analysis', start: 3, end: 7, color: TRACK_COLORS.air, cat: 'Air' },
-  { label: 'AERMOD Dispersion Modeling', start: 4, end: 10, color: TRACK_COLORS.air, cat: 'Air' },
-  { label: 'Air Application Assembly', start: 7, end: 11, color: TRACK_COLORS.air, cat: 'Air' },
-  { label: 'Air Agency Review', start: 12, end: 40, color: 'bg-red-800', cat: 'Air' },
-  { label: 'Air Permit Issuance (est.)', start: 36, end: 52, color: 'bg-red-900', cat: 'Air' },
-  // Water tracks
-  { label: 'Wetlands / WOTUS Screening', start: 1, end: 4, color: TRACK_COLORS.water, cat: 'Water' },
-  { label: 'Construction SW CGP NOI', start: 1, end: 4, color: TRACK_COLORS.water, cat: 'Water' },
-  { label: 'NPDES / SPCC / 316(b)', start: 2, end: 7, color: TRACK_COLORS.water, cat: 'Water' },
-  { label: 'Water Applications', start: 6, end: 10, color: TRACK_COLORS.water, cat: 'Water' },
-  { label: 'NPDES Permit Review', start: 10, end: 28, color: 'bg-blue-800', cat: 'Water' },
-  // Other
-  { label: 'Zoning / Land Use', start: 1, end: 20, color: TRACK_COLORS.other, cat: 'Other' },
-  { label: 'Building / Fire / Electrical', start: 4, end: 18, color: TRACK_COLORS.other, cat: 'Other' },
-  { label: 'Utility Interconnect', start: 4, end: 52, color: 'bg-gray-700', cat: 'Other' },
-  // Brick deliverables
-  { label: 'Brick AI Applicability Engine', start: 1, end: 2, color: TRACK_COLORS.brick, cat: 'Brick PermitOS' },
-  { label: 'Brick PTE + Water Balance', start: 2, end: 4, color: TRACK_COLORS.brick, cat: 'Brick PermitOS' },
-  { label: 'Brick CFR Document Factory', start: 3, end: 8, color: TRACK_COLORS.brick, cat: 'Brick PermitOS' },
-  { label: 'Brick Digital Twin Setup', start: 6, end: 10, color: TRACK_COLORS.brick, cat: 'Brick PermitOS' },
-  { label: 'Brick Compliance OS (post-COD)', start: 36, end: 60, color: TRACK_COLORS.brick, cat: 'Brick PermitOS' },
-];
-
 const CATEGORIES = ['All', 'Air', 'Water', 'Other', 'Brick PermitOS'];
 
 export default function MilestoneTimeline({ results, inputs }) {
@@ -60,8 +110,13 @@ export default function MilestoneTimeline({ results, inputs }) {
   const attainment = STATES_ATTAINMENT[inputs?.state || 'Tennessee'] || 'Attainment';
   const isNonAttain = attainment.includes('Nonattainment');
   const siteMW = results?.totalMW || 200;
+  const pathway = results?.pathway || {};
 
+  const GANTT_TRACKS = getGanttTracks({ totalMW: siteMW, isNonAttain, pathway });
   const filteredTracks = GANTT_TRACKS.filter(t => filter === 'All' || t.cat === filter);
+  // Earliest COD = air issuance start week (when permit is expected to be issued)
+  const airIssuanceTrack = GANTT_TRACKS.find(t => t.label === 'Air Permit Issuance (est.)');
+  const codWeek = airIssuanceTrack ? airIssuanceTrack.start : 36;
   const weekMarkers = [0, 4, 8, 12, 16, 20, 26, 32, 40, 52, 60];
 
   return (
@@ -170,7 +225,7 @@ export default function MilestoneTimeline({ results, inputs }) {
             {/* COD marker */}
             <div className="relative" style={{ marginLeft: '140px', height: '24px' }}>
               {results && (
-                <div className="absolute flex items-center" style={{ left: `${(36 / WEEKS_TOTAL) * 100}%` }}>
+                <div className="absolute flex items-center" style={{ left: `${(codWeek / WEEKS_TOTAL) * 100}%` }}>
                   <div className="border-l-2 border-dashed border-green-500 h-full" style={{ height: `${(filteredTracks.length + 2) * 28}px`, marginTop: `-${(filteredTracks.length + 1) * 28}px` }}></div>
                   <div className="text-green-400 text-xs ml-1 font-medium whitespace-nowrap">Earliest COD</div>
                 </div>

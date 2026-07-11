@@ -128,7 +128,7 @@ export default function AgencySubmission({ inputs, results, siteId, onNotify }) 
       const data = await agencySubmit(siteId, selectedDoc, docNum || selectedDoc, selectedAgency, notes);
       setLastSubmission(data.submission);
       setStep('done');
-      onNotify('Agency submission completed successfully.');
+      onNotify('Document saved as draft, ready to file.');
       loadHistory();
     } catch (err) {
       onNotify(`Submission failed: ${err.message}`);
@@ -173,22 +173,22 @@ export default function AgencySubmission({ inputs, results, siteId, onNotify }) 
       <div className="rounded-xl border border-amber-700/30 bg-amber-950/20 p-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-amber-300">Auto-Agency Submission Tool</h3>
+            <h3 className="text-sm font-semibold text-amber-300">Agency Document Drafting Tool</h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              Submit permit documents and compliance reports directly to regulatory agencies.
-              Each submission receives a unique tracking ID for your permit record.
+              Prepare permit documents and compliance reports in draft form for agency filing.
+              Each draft receives a unique tracking ID for your permit record.
             </p>
           </div>
           <div className="flex gap-2">
             {!historyView ? (
               <button onClick={() => setHistoryView(true)}
                 className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-3 py-1.5 border border-gray-700 transition-colors">
-                View Submission History
+                View Draft History
               </button>
             ) : (
               <button onClick={() => setHistoryView(false)}
                 className="text-xs bg-amber-800 hover:bg-amber-700 text-amber-300 rounded-lg px-3 py-1.5 border border-amber-700 transition-colors">
-                New Submission
+                New Draft
               </button>
             )}
           </div>
@@ -198,12 +198,12 @@ export default function AgencySubmission({ inputs, results, siteId, onNotify }) 
       {/* Submission History */}
       {historyView && (
         <div className="space-y-3">
-          <h4 className="text-xs font-semibold text-gray-400">Submission History</h4>
+          <h4 className="text-xs font-semibold text-gray-400">Draft History</h4>
           {historyLoading ? (
             <div className="text-xs text-gray-500">Loading history...</div>
           ) : history.length === 0 ? (
             <div className="text-xs text-gray-600 bg-gray-900/40 border border-gray-800 rounded-xl p-6 text-center">
-              No submissions yet. Use the form above to submit your first document.
+              No drafts saved yet. Use the form above to save your first document draft.
             </div>
           ) : (
             <div className="space-y-2">
@@ -293,7 +293,7 @@ export default function AgencySubmission({ inputs, results, siteId, onNotify }) 
               disabled={!selectedDoc || !selectedAgency}
               className="mt-4 w-full bg-amber-700 hover:bg-amber-600 disabled:bg-gray-700 disabled:text-gray-600 text-white text-xs rounded-xl px-4 py-2.5 font-semibold transition-colors"
             >
-              Review & Submit
+              Review & Save Draft
             </button>
           </div>
         </div>
@@ -302,7 +302,7 @@ export default function AgencySubmission({ inputs, results, siteId, onNotify }) 
       {/* Step 2: Review */}
       {!historyView && step === 'review' && (
         <div className="bg-gray-900/40 border border-gray-700/40 rounded-xl p-6 space-y-5 max-w-xl">
-          <h4 className="text-sm font-semibold text-white">Step 2: Review Submission</h4>
+          <h4 className="text-sm font-semibold text-white">Step 2: Review & Save Draft</h4>
 
           <div className="space-y-3">
             <div className="bg-gray-800/40 border border-gray-700/40 rounded-xl p-3">
@@ -342,7 +342,7 @@ export default function AgencySubmission({ inputs, results, siteId, onNotify }) 
               disabled={submitting}
               className="flex-1 bg-green-700 hover:bg-green-600 disabled:bg-gray-700 disabled:text-gray-600 text-white text-xs rounded-xl px-4 py-2.5 font-semibold transition-colors"
             >
-              {submitting ? 'Submitting...' : 'Submit to Agency'}
+              {submitting ? 'Saving...' : 'Save as Draft (Ready to File)'}
             </button>
           </div>
         </div>
@@ -353,24 +353,24 @@ export default function AgencySubmission({ inputs, results, siteId, onNotify }) 
         <div className="max-w-xl">
           <div className="bg-green-900/20 border border-green-700/40 rounded-2xl p-8 text-center space-y-4">
             <div className="text-4xl">&#10003;</div>
-            <h4 className="text-base font-semibold text-green-400">Submission Complete</h4>
+            <h4 className="text-base font-semibold text-green-400">Draft Saved</h4>
             <div className="bg-gray-900/60 border border-gray-700/40 rounded-xl p-4 inline-block">
               <p className="text-xs text-gray-500 mb-1">Tracking ID</p>
               <p className="text-lg font-bold text-white font-mono">{lastSubmission.trackingId}</p>
             </div>
             <p className="text-xs text-gray-400">
-              Document <strong className="text-gray-300">{selectedDocName()}</strong> submitted to{' '}
+              Document <strong className="text-gray-300">{selectedDocName()}</strong> saved as draft for{' '}
               <strong className="text-gray-300">{lastSubmission.agency}</strong>
             </p>
             <p className="text-xs text-gray-500">
-              Submitted: {new Date(lastSubmission.submittedAt).toLocaleString()}
+              Saved: {new Date(lastSubmission.submittedAt).toLocaleString()}
             </p>
             <p className="text-xs text-gray-600">
-              Retain the Tracking ID for your permit record and agency correspondence.
+              This draft is saved locally. Use the agency portal links above to file when ready.
             </p>
             <button onClick={handleReset}
               className="bg-amber-700 hover:bg-amber-600 text-white text-xs rounded-xl px-6 py-2.5 font-semibold transition-colors">
-              Submit Another Document
+              Save Another Document Draft
             </button>
           </div>
         </div>

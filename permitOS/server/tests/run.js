@@ -344,7 +344,7 @@ async function runAsyncTests() {
     assert.equal(detectISO('California'), 'CAISO');
     assert.equal(detectISO('New York'), 'NYISO');
     assert.equal(detectISO('Virginia'), 'PJM');
-    assert.equal(detectISO('Tennessee'), 'PJM');
+    assert.equal(detectISO('Tennessee'), 'Non-ISO (Vertically Integrated Utility)');
     assert.equal(detectISO('Ohio'), 'PJM');
     assert.equal(detectISO('Michigan'), 'PJM');
     assert.equal(detectISO('Massachusetts'), 'ISO-NE');

@@ -20,7 +20,7 @@ export function calcNoiseConcern(totalMW) {
 export function calcBuildingArea(datacenterMW, buildingSqFt) {
   if (buildingSqFt && buildingSqFt > 0) return Math.round(buildingSqFt);
   const mw = datacenterMW || 100;
-  return Math.round(mw * 125);
+  return Math.round(mw * 800);
 }
 
 // ─── Power Calculations ────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ export function calcBuildingArea(datacenterMW, buildingSqFt) {
 // ISO/RTO mapping for all 50 states + DC
 const ISO_MAPPING = [
   { iso: 'ERCOT', states: ['Texas'] },
-  { iso: 'PJM', states: ['Delaware','Illinois','Indiana','Kentucky','Maryland','Michigan','New Jersey','North Carolina','Ohio','Pennsylvania','Tennessee','Virginia','West Virginia','Washington DC'] },
+  { iso: 'PJM', states: ['Delaware','Illinois','Indiana','Kentucky','Maryland','Michigan','New Jersey','North Carolina','Ohio','Pennsylvania','Virginia','West Virginia','Washington DC'] },
   { iso: 'MISO', states: ['Arkansas','Illinois','Indiana','Iowa','Kentucky','Louisiana','Michigan','Minnesota','Mississippi','Missouri','Montana','North Dakota','South Dakota','Wisconsin'] },
   { iso: 'CAISO', states: ['California'] },
   { iso: 'NYISO', states: ['New York'] },

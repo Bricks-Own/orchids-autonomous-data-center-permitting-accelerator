@@ -492,7 +492,7 @@ export function createApiRouter(db) {
     } catch (err) { next(err); }
   });
 
-  // ─── Agency Submission ─────────────────────────────────────────────────
+  // ─── Agency Submission (saves as draft — no external filing) ────────────
   router.post('/agency/submit', (req, res, next) => {
     try {
       const { siteId, docType, docNum, agency, notes } = req.body;
@@ -502,10 +502,10 @@ export function createApiRouter(db) {
       const trackingId = `BPS-${new Date().getFullYear()}-${crypto.randomBytes(4).readUInt32BE(0).toString(16).toUpperCase()}`;
 
       db.prepare('INSERT INTO submissions (id, site_id, user_id, agency, doc_type, doc_num, status, tracking_id, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
-        .run(id, siteId, req.user.userId, agency, docType, docNum || null, 'submitted', trackingId, notes || null);
+        .run(id, siteId, req.user.userId, agency, docType, docNum || null, 'draft', trackingId, notes || null);
 
       res.status(201).json({
-        submission: { id, trackingId, agency, docType, docNum, status: 'submitted', submittedAt: new Date().toISOString() },
+        submission: { id, trackingId, agency, docType, docNum, status: 'draft', submittedAt: new Date().toISOString() },
       });
     } catch (err) { next(err); }
   });
@@ -533,6 +533,12 @@ export function createApiRouter(db) {
 
       // Target URLs for EPA regulatory content
       const fetchUrl = url || buildEPAQueryUrl(query);
+
+      // SSRF protection: validate URL against trusted domain allowlist
+      const validationError = validateFetchUrl(fetchUrl);
+      if (validationError) {
+        return res.status(403).json({ error: validationError, source: fetchUrl });
+      }
 
       const response = await fetch(fetchUrl, {
         headers: {
@@ -684,4 +690,114 @@ function buildEPAQueryUrl(query) {
   // Default to EPA search
   const searchTerms = encodeURIComponent(query.substring(0, 100));
   return `https://www.epa.gov/search?search=${searchTerms}`;
+}
+
+// ─── SSRF Protection — Trusted Domain Allowlist ─────────────────────────────
+// Only allow fetches to known regulatory/government domains.
+// Prevents the /agent/web-fetch endpoint from being used as an open proxy.
+const TRUSTED_DOMAINS = [
+  'epa.gov',
+  'ecfr.gov',
+  'ghgreporting.epa.gov',
+  'netdmr.epa.gov',
+  'ejscreen.epa.gov',
+  'cdx.epa.gov',
+  'www.epa.gov',
+  'www.ecfr.gov',
+  // State environmental agency domains
+  'tceq.texas.gov',
+  'deq.virginia.gov',
+  'epa.state.oh.us',
+  'geos.gaepd.org',
+  'arb.ca.gov',
+  'waterboards.ca.gov',
+  'dec.alabama.gov',
+  'azdeq.gov',
+  'adeq.state.ar.us',
+  'cdph.ca.gov',
+  'cdpr.ca.gov',
+  'energy.ca.gov',
+  'dphe.colorado.gov',
+  'ct.gov/deep',
+  'dnrec.delaware.gov',
+  'floridadep.gov',
+  'epd.georgia.gov',
+  'health.hawaii.gov',
+  'deq.idaho.gov',
+  'epa.illinois.gov',
+  'idem.in.gov',
+  'iowadnr.gov',
+  'kdhe.ks.gov',
+  'eec.ky.gov',
+  'deq.louisiana.gov',
+  'maine.gov/dep',
+  'mde.maryland.gov',
+  'mass.gov/eea',
+  'michigan.gov/egle',
+  'pca.state.mn.us',
+  'deq.ms.gov',
+  'dnr.mo.gov',
+  'deq.mt.gov',
+  'deq.ne.gov',
+  'ndep.nv.gov',
+  'des.nh.gov',
+  'dep.nj.gov',
+  'env.nm.gov',
+  'dec.ny.gov',
+  'deq.nc.gov',
+  'deq.nd.gov',
+  'epa.ohio.gov',
+  'deq.ok.gov',
+  'oregon.gov/deq',
+  'dep.pa.gov',
+  'dem.ri.gov',
+  'scdhec.gov',
+  'denr.sd.gov',
+  'tn.gov/environment',
+  'tceq.texas.gov',
+  'deq.utah.gov',
+  'dec.vermont.gov',
+  'deq.virginia.gov',
+  'ecology.wa.gov',
+  'dep.wv.gov',
+  'dnr.wi.gov',
+  'deq.wyoming.gov',
+  // FERC
+  'ferc.gov',
+  'www.ferc.gov',
+  // NERC
+  'nerc.com',
+  'www.nerc.com',
+];
+
+function validateFetchUrl(url) {
+  if (!url || typeof url !== 'string') {
+    return 'Invalid URL';
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return 'Invalid URL — could not parse';
+  }
+
+  // Only allow HTTPS
+  if (parsed.protocol !== 'https:') {
+    return 'Only HTTPS URLs are allowed';
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+
+  // Check against allowlist
+  const allowed = TRUSTED_DOMAINS.some(domain => {
+    // Exact match or subdomain match
+    return hostname === domain || hostname.endsWith('.' + domain);
+  });
+
+  if (!allowed) {
+    return `URL domain not in allowlist. Only trusted regulatory domains (epa.gov, ecfr.gov, state agency domains) are permitted. Got: ${hostname}`;
+  }
+
+  return null; // valid
 }

@@ -118,7 +118,7 @@ function runMigrations(db) {
       agency TEXT NOT NULL,
       doc_type TEXT NOT NULL,
       doc_num TEXT,
-      status TEXT NOT NULL DEFAULT 'submitted',
+      status TEXT NOT NULL DEFAULT 'draft',
       tracking_id TEXT,
       notes TEXT,
       submitted_at TEXT DEFAULT (datetime('now'))

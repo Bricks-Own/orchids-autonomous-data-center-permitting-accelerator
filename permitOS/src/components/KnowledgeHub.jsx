@@ -109,7 +109,7 @@ export default function KnowledgeHub({ inputs, results }) {
             <h2 className="text-base font-semibold text-white mb-1">Regulatory Knowledge Hub</h2>
             <p className="text-xs text-gray-500">
               Search EPA guidance, consultant best practices, RBLC precedents, and state-specific regulatory intelligence.
-              Cite authoritative sources in permit applications and RAI responses.
+              Standard search uses keyword matching; toggle AI for AI-assisted analysis (requires API key).
             </p>
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function KnowledgeHub({ inputs, results }) {
                 ${showAi
                   ? 'bg-violet-900/30 border-violet-700/40 text-violet-300'
                   : 'bg-gray-800 border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-600'}`}
-              title="Toggle AI-powered search"
+              title="Toggle AI-assisted analysis (requires API key)"
             >
               AI
             </button>
@@ -236,7 +236,7 @@ export default function KnowledgeHub({ inputs, results }) {
             </h3>
             {resultsList.length > 0 && (
               <span className="text-xs text-gray-600">
-                Sorted by relevance
+                Sorted by relevance — keyword-based (use AI toggle for semantic analysis)
               </span>
             )}
           </div>

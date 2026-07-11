@@ -320,6 +320,7 @@ function buildFallbackResponse(query, regulatoryResults, inputs, results, errMsg
 
   return {
     type: 'rag',
+    limited: true,
     content,
     sources: regulatoryResults.map(r => ({ title: r.title, relevance: r.relevance })),
   };
@@ -343,7 +344,12 @@ export async function generateRAIResponse(question, siteData) {
 
   try {
     if (!ANTHROPIC_API_KEY) {
-      return `[RAI Response — ANTHROPIC_API_KEY required]\n\nBased on the regulatory database, the inquiry relates to:\n${regulatoryResults.map(r => `- ${r.title}`).join('\n')}\n\nPlease configure a valid ANTHROPIC_API_KEY to enable full AI-powered response generation with regulatory citations.`;
+      return {
+        type: 'rag',
+        limited: true,
+        content: `[RAI Response — ANTHROPIC_API_KEY required]\n\nBased on the regulatory database, the inquiry relates to:\n${regulatoryResults.map(r => `- ${r.title}`).join('\n')}\n\nPlease configure a valid ANTHROPIC_API_KEY to enable full AI-powered response generation with regulatory citations.`,
+        sources: regulatoryResults.map(r => ({ title: r.title, relevance: r.relevance })),
+      };
     }
 
     const response = await callClaude(messages, { temperature: 0.2 });

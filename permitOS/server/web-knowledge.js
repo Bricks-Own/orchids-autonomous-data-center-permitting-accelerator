@@ -196,26 +196,80 @@ const KNOWLEDGE_BASE = [
 ];
 
 // ─── Search Knowledge Base ───────────────────────────────────────────────────
+// Uses keyword matching with synonym expansion, phrase weighting, and
+// TF-IDF-inspired normalization. True semantic search (embedding-based)
+// would require an AI API key for vector embeddings.
 export function searchRegulatoryKnowledge(query, { category = null, limit = 10 } = {}) {
-  const queryLower = query.toLowerCase();
+  const queryLower = query.toLowerCase().trim();
   const queryTokens = queryLower.split(/\s+/).filter(t => t.length > 2);
 
   if (queryTokens.length === 0) return [];
 
-  // Score entries by keyword match
+  // Synonym expansion for common regulatory terms
+  const SYNONYM_MAP = {
+    nox: ['nitrogen oxides', 'nitrogen oxide'],
+    co: ['carbon monoxide'],
+    co2: ['carbon dioxide'],
+    ghg: ['greenhouse gas', 'carbon', 'climate', 'co2e'],
+    epa: ['environmental protection agency'],
+    psd: ['prevention of significant deterioration'],
+    nsr: ['new source review'],
+    bact: ['best available control technology'],
+    aermod: ['dispersion modeling'],
+    npdes: ['national pollutant discharge elimination system'],
+    spcc: ['spill prevention'],
+    ej: ['environmental justice', 'community'],
+    naaqs: ['national ambient air quality standard'],
+    turbine: ['gas turbine', 'combustion turbine'],
+    scr: ['selective catalytic reduction'],
+    dln: ['dry low nox', 'lean premix'],
+    rblc: ['racht/bact/laer', 'clearinghouse'],
+    cfr: ['code of federal regulations', '40 cfr'],
+    nepa: ['national environmental policy act'],
+    epcra: ['emergency planning', 'community right to know'],
+    rcra: ['resource conservation and recovery act', 'hazardous waste'],
+    swppp: ['stormwater', 'storm water pollution prevention'],
+  };
+
+  // Expand query with synonyms
+  const expandedTokens = new Set(queryTokens);
+  for (const token of queryTokens) {
+    for (const [key, synonyms] of Object.entries(SYNONYM_MAP)) {
+      if (synonyms.some(s => token.includes(s) || s.includes(token)) || token.includes(key)) {
+        synonyms.forEach(s => expandedTokens.add(s));
+      }
+    }
+  }
+
+  // Score entries by keyword match with improved ranking
   const scored = KNOWLEDGE_BASE.map(entry => {
     let score = 0;
     const searchText = `${entry.title} ${entry.summary} ${entry.source} ${entry.citation} ${entry.applicability.join(' ')}`.toLowerCase();
 
-    for (const token of queryTokens) {
-      const count = (searchText.match(new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
+    // Token matching with expanded term set
+    for (const token of expandedTokens) {
+      const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const count = (searchText.match(new RegExp(escaped, 'g')) || []).length;
       score += count * (entry.confidence === 'high' ? 2 : entry.confidence === 'medium' ? 1 : 0.5);
     }
 
-    // Boost for exact title match
-    if (entry.title.toLowerCase().includes(queryLower)) score += 5;
-    // Boost for category match
+    // Strong boost for exact phrase match in title
+    if (entry.title.toLowerCase().includes(queryLower)) score += 10;
+    // Boost for exact phrase in summary
+    if (entry.summary.toLowerCase().includes(queryLower)) score += 5;
+    // Category match boost
     if (entry.category === category) score += 3;
+    // Applicability tag match
+    const appText = entry.applicability.join(' ').toLowerCase();
+    for (const token of queryTokens) {
+      if (appText.includes(token)) score += 2;
+    }
+
+    // Normalize by document length to avoid bias toward longer entries
+    const docLength = searchText.length;
+    if (docLength > 0) {
+      score = score * (1 + 200 / (docLength + 200));
+    }
 
     return { ...entry, score };
   });

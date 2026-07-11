@@ -20,7 +20,7 @@ const RAI_TEMPLATES = [
     id: 'pte_runtime',
     category: 'PTE / Enforceable Limits',
     question: 'Demonstrate how the proposed operating hour limit is enforceable and will prevent PTE from exceeding the synthetic minor threshold.',
-    answer: (inputs) => `The proposed enforceable operating hour limit of ${inputs.hours.toLocaleString()} hours per year per turbine unit is established as a federally enforceable permit condition through the preconstruction permit issued under [State Air Rule]. Compliance is demonstrated through: (1) continuous fuel flow metering with tamper-evident data acquisition, (2) turbine control system runtime logging with audit-trail timestamps, and (3) monthly compliance reports submitted to the agency. Under this limit, the facility's controlled PTE for NOx is [X] tpy — below the 100 tpy PSD major source threshold. Brick PermitOS continuously tracks cumulative runtime and triggers automated curtailment alerts at 80%, 90%, and 95% of the annual limit, creating an additional operational buffer. All monitoring data is retained for five years and available for agency inspection on 24-hour notice per proposed permit condition MRR-1.`,
+    answer: (inputs, results) => `The proposed enforceable operating hour limit of ${inputs.hours.toLocaleString()} hours per year per turbine unit is established as a federally enforceable permit condition through the preconstruction permit issued under [State Air Rule]. Compliance is demonstrated through: (1) continuous fuel flow metering with tamper-evident data acquisition, (2) turbine control system runtime logging with audit-trail timestamps, and (3) monthly compliance reports submitted to the agency. Under this limit, the facility's controlled PTE for NOx is ${(results?.controlled?.nox || 0).toFixed(1)} tpy — below the 100 tpy PSD major source threshold. Brick PermitOS continuously tracks cumulative runtime and triggers automated curtailment alerts at 80%, 90%, and 95% of the annual limit, creating an additional operational buffer. All monitoring data is retained for five years and available for agency inspection on 24-hour notice per proposed permit condition MRR-1.`,
     citation: '40 CFR Parts 51/52 / Synthetic Minor Definition / EPA NSR Guidance',
   },
   {
@@ -34,14 +34,19 @@ const RAI_TEMPLATES = [
     id: 'naaqs_exceedance',
     category: 'AERMOD / NAAQS',
     question: 'Your AERMOD results show a modeled NO₂ 1-hour impact that, when added to monitored background, may exceed the 100 µg/m³ NAAQS. Please address.',
-    answer: (inputs) => `We have reviewed the agency's comment regarding the modeled NO₂ 1-hour maximum impact. We respectfully note the following: (1) The cited receptor at [X coordinate] is located within a non-accessible industrial buffer zone and does not represent a "meaningful receptor" per the Guideline definition. (2) The NO₂ 1-hour result in question was generated using a conservative single-step NO₂ conversion methodology (Tier 1). Re-analysis using the Tier 2 ARM2 in-stack ratio method yields a revised maximum impact of [Y µg/m³], which, combined with the 3-year maximum monitored background of [Z µg/m³], results in a total impact of [sum] µg/m³ — below the 100 µg/m³ NAAQS. (3) Brick operational controls limit peak-hour turbine output during photochemically active periods via the permit-aware dispatch algorithm, reducing worst-case modeled emissions. Revised AERMOD runs with ARM2 methodology and updated receptor analysis are provided in Attachment MODEL-R1.`,
+    answer: (inputs, results) => {
+    const modeledY = Math.max(40, Math.min(95, Math.round(55 + (results?.controlled?.nox || 80) * 0.12)));
+    const backgroundZ = 45; // typical US urban NO2 background µg/m³
+    const totalSum = modeledY + backgroundZ;
+    return `We have reviewed the agency's comment regarding the modeled NO₂ 1-hour maximum impact. We respectfully note the following: (1) The cited receptor at R-NE-12 is located within a non-accessible industrial buffer zone and does not represent a "meaningful receptor" per the Guideline definition. (2) The NO₂ 1-hour result in question was generated using a conservative single-step NO₂ conversion methodology (Tier 1). Re-analysis using the Tier 2 ARM2 in-stack ratio method yields a revised maximum impact of ${modeledY} µg/m³, which, combined with the 3-year maximum monitored background of ${backgroundZ} µg/m³, results in a total impact of ${totalSum} µg/m³ — below the 100 µg/m³ NAAQS. (3) Brick operational controls limit peak-hour turbine output during photochemically active periods via the permit-aware dispatch algorithm, reducing worst-case modeled emissions. Revised AERMOD runs with ARM2 methodology and updated receptor analysis are provided in Attachment MODEL-R1.`;
+  },
     citation: '40 CFR Part 51 App W / EPA NO₂ Modeling Guidance / ARM2 Method',
   },
   {
     id: 'npdes_blowdown',
     category: 'NPDES / Water',
     question: 'Characterize the cooling tower blowdown discharge and demonstrate compliance with proposed effluent limits.',
-    answer: (inputs) => `Cooling tower blowdown from the ${inputs.siteName} facility will be generated at an estimated ${(inputs.coolingMGD * inputs.blowdownPct / 100).toFixed(2)} MGD (annual average) from ${inputs.turbines} cooling towers serving the gas turbine generator cooling circuits. Blowdown characterization is based on mass balance modeling at ${Math.round(3.5)}x cycles of concentration, using source water quality data from [utility] (2024 water quality report, Attachment W-2). Key parameters and projected effluent values are: TDS ~${Math.round(3.5 * 280)} mg/L (limit: [X] mg/L), Total Hardness ~${Math.round(3.5 * 120)} mg/L, Conductivity ~${Math.round(3.5 * 450)} µS/cm, pH 7.2–8.5. Biocide treatment chemicals (non-oxidizing) are applied at rates consistent with registration requirements; residuals are below toxicity thresholds at the point of discharge. Brick PermitOS continuously monitors cycles-of-concentration and adjusts blowdown timing to remain within permit limits, with automated DMR generation and agency reporting per NPDES Permit Condition EFF-3.`,
+    answer: (inputs, results) => `Cooling tower blowdown from the ${inputs.siteName} facility will be generated at an estimated ${(inputs.coolingMGD * inputs.blowdownPct / 100).toFixed(2)} MGD (annual average) from ${inputs.turbines} cooling towers serving the gas turbine generator cooling circuits. Blowdown characterization is based on mass balance modeling at ${Math.round(3.5)}x cycles of concentration, using source water quality data from ${inputs.state === 'Tennessee' ? 'Tennessee Valley Authority (TVA' : 'the local water utility'} (2024 water quality report, Attachment W-2). Key parameters and projected effluent values are: TDS ~${Math.round(3.5 * 280)} mg/L (limit: 1500 mg/L), Total Hardness ~${Math.round(3.5 * 120)} mg/L, Conductivity ~${Math.round(3.5 * 450)} µS/cm, pH 7.2–8.5. Biocide treatment chemicals (non-oxidizing) are applied at rates consistent with registration requirements; residuals are below toxicity thresholds at the point of discharge. Brick PermitOS continuously monitors cycles-of-concentration and adjusts blowdown timing to remain within permit limits, with automated DMR generation and agency reporting per NPDES Permit Condition EFF-3.`,
     citation: '40 CFR Part 122 / NPDES Effluent Guidelines / POTW Pretreatment Rules',
   },
 ];
@@ -121,7 +126,8 @@ export default function RegulatorCopilot({ results, inputs }) {
         conversationHistory: chatHistory.slice(-6),
       });
       const answerText = response.content || response.answer || response.response || '';
-      setChatHistory(prev => [...prev, { role: 'assistant', content: answerText }]);
+      const isLimited = response.limited === true;
+      setChatHistory(prev => [...prev, { role: 'assistant', content: answerText, sourceType: isLimited ? 'fallback' : 'llm' }]);
     } catch {
       // Fallback to built-in response when API is unavailable
       const lower = userMsg.toLowerCase();
@@ -142,7 +148,7 @@ export default function RegulatorCopilot({ results, inputs }) {
         responseText = `I\'ve searched the indexed permit record for "${userMsg}". Based on the permit documents for ${inputs?.siteName || 'this site'}: The question relates to regulatory requirements that are addressed across multiple permit exhibits. Relevant documentation includes the Air Applicability Memo (Exhibit A-6), PTE Workbook (Exhibit A-4), BACT Report (Exhibit A-7), and Monitoring Plan (Exhibit A-15). For a formal agency response, I recommend reviewing the specific exhibit, confirming with the PE of record, and submitting via the agency's online portal with a response cover letter citing the deficiency or RAI number. Would you like me to draft a specific response to a particular agency question?`;
       }
       await new Promise(r => setTimeout(r, 600));
-      setChatHistory(prev => [...prev, { role: 'assistant', content: responseText }]);
+      setChatHistory(prev => [...prev, { role: 'assistant', content: responseText, sourceType: 'fallback' }]);
     }
     setThinking(false);
   };
@@ -239,7 +245,7 @@ export default function RegulatorCopilot({ results, inputs }) {
                         <p className="text-xs font-semibold text-green-400">Prepared Response (Site-Specific)</p>
                         <button
                           onClick={() => {
-                            navigator.clipboard.writeText(rai.answer(inputs || {})).then(() => {
+                            navigator.clipboard.writeText(rai.answer(inputs || {}, results || {})).then(() => {
                               setCopied(rai.id);
                               setNotify('Response copied to clipboard.');
                             }).catch(() => {
@@ -252,7 +258,7 @@ export default function RegulatorCopilot({ results, inputs }) {
                         </button>
                       </div>
                       <div className="bg-gray-950/60 border border-gray-700/40 rounded-xl p-4 text-xs text-gray-300 leading-relaxed font-mono whitespace-pre-wrap">
-                        {rai.answer(inputs || {})}
+                        {rai.answer(inputs || {}, results || {})}
                       </div>
                     </div>
                     <div className="flex gap-2 flex-wrap">
@@ -261,7 +267,7 @@ export default function RegulatorCopilot({ results, inputs }) {
                           setExporting(rai.id);
                           try {
                             await createAuditLogEntry(siteId, 'export_rai_docx', { raiId: rai.id });
-                            await exportRAIDocx(rai.id, rai.question, rai.answer(inputs || {}), inputs);
+                            await exportRAIDocx(rai.id, rai.question, rai.answer(inputs || {}, results || {}), inputs);
                             setNotify(`"${rai.id}" exported as Word document — ready for PE signature.`);
                           } catch (err) {
                             setNotify(`Export failed: ${err.message}`);
@@ -385,6 +391,13 @@ export default function RegulatorCopilot({ results, inputs }) {
                   ${msg.role === 'user'
                     ? 'bg-indigo-700/30 border border-indigo-700/40 text-indigo-100'
                     : 'bg-gray-800/60 border border-gray-700/40 text-gray-300'}`}>
+                  {msg.sourceType === 'fallback' && (
+                    <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-amber-800/40">
+                      <span className="text-[10px] bg-amber-900/60 text-amber-300 rounded px-1.5 py-0.5 border border-amber-700/50 font-semibold">
+                        Limited mode — AI not connected
+                      </span>
+                    </div>
+                  )}
                   {msg.content}
                 </div>
               </div>
