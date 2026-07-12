@@ -313,7 +313,7 @@ export default function KnowledgeHub({ inputs, results }) {
             <span className="text-gray-500">Knowledge Base</span>
             <div className="flex items-center gap-4">
               <span className="text-gray-400">{stats.totalEntries || 0} entries</span>
-              <span className="text-gray-400">{stats.categories || 0} categories</span>
+              <span className="text-gray-400">{stats.categories?.length || 0} categories</span>
               <span className="text-gray-600">Cache TTL: 1hr</span>
             </div>
           </div>
