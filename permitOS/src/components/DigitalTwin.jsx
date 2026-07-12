@@ -69,23 +69,20 @@ function MiniChart({ data, keyBaseline, keyOptimized, color, label, unit }) {
 export default function DigitalTwin({ results, inputs }) {
   const [hour, setHour] = useState(12);
   const [simData, setSimData] = useState(null);
-  const [running, setRunning] = useState(false);
 
   const run = () => {
     if (!results) return;
-    setRunning(true);
-    // Use requestAnimationFrame to let the UI update before computing
-    requestAnimationFrame(() => {
-      const data = simulate24h({
-        totalMW: results.totalMW,
-        brickSavings: inputs.brickSavings,
-        heatRate: inputs.heatRate,
-        noxFactor: inputs.noxFactor,
-        coolingMGD: inputs.coolingMGD,
-      });
-      setSimData(data);
-      setRunning(false);
+    const data = simulate24h({
+      totalMW: results.totalMW,
+      brickSavings: inputs.brickSavings,
+      heatRate: inputs.heatRate,
+      noxFactor: inputs.noxFactor,
+      coolingMGD: inputs.coolingMGD,
+      datacenterMW: inputs.datacenterMW,
+      pueTarget: inputs.pueTarget,
+      hours: inputs.hours,
     });
+    setSimData(data);
   };
 
   const current = simData?.[hour];
@@ -102,12 +99,10 @@ export default function DigitalTwin({ results, inputs }) {
               This is not a BAS dashboard. Every output is linked to a permit condition.
             </p>
           </div>
-          <button onClick={run} disabled={running || !results}
+          <button onClick={run} disabled={!results}
             className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2
-              ${running || !results ? 'bg-amber-800/40 text-amber-400/50 cursor-not-allowed' : 'bg-amber-600 hover:bg-amber-500 text-white'}`}>
-            {running ? (
-              <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Simulating…</>
-            ) : '▶ Run 24-Hour Simulation'}
+              ${!results ? 'bg-amber-800/40 text-amber-400/50 cursor-not-allowed' : 'bg-amber-600 hover:bg-amber-500 text-white'}`}>
+            ▶ Run 24-Hour Simulation
           </button>
         </div>
       </div>
@@ -119,7 +114,7 @@ export default function DigitalTwin({ results, inputs }) {
         </div>
       )}
 
-      {results && !simData && !running && (
+      {results && !simData && (
         <div className="text-center py-16 border border-gray-800/40 rounded-xl bg-gray-900/20">
           <div className="text-4xl mb-3">⚡</div>
           <p className="text-gray-500 text-sm mb-4">Click "Run 24-Hour Simulation" to see the permit-linked digital twin in action.</p>
@@ -239,6 +234,11 @@ export default function DigitalTwin({ results, inputs }) {
             <MiniChart data={simData} keyBaseline="water_gpm" keyOptimized="water_optimized"
               color="#34d399" label="Water Use (GPM)" unit="GPM" />
           </div>
+
+          {/* Model disclaimer */}
+          <p className="text-xs text-gray-500 italic text-center">
+            Modeled from typical data center/turbine operating patterns and site parameters — not live equipment telemetry.
+          </p>
 
           {/* Permit compliance envelope */}
           <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
