@@ -1,3 +1,3 @@
 {
-  "startupCommands": ["cd /home/user/app/permitOS && pkill -f 'node server/server.js' 2>/dev/null; sleep 1; npm install && npm run build && node server/server.js"]
+  "startupCommands": ["cd /home/user/app/permitOS && pkill -f 'node server' 2>/dev/null; pkill -f 'vite' 2>/dev/null; sleep 1; PORT=3001 node server/server.js & npm run dev -- --host 0.0.0.0 --port 5173"]
 }

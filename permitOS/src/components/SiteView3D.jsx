@@ -51,10 +51,10 @@ function Building({ position, size, color, label, hovered, onHover, onClick }) {
 }
 
 // ─── Cooling Tower (cylinder) ─────────────────────────────────────────────
-function CoolingTower({ position, height, radius, color, label, hovered, onHover }) {
+function CoolingTower({ position, height, radius, color, label, hovered, onHover, onClick }) {
   return (
     <group position={position}>
-      <mesh onPointerOver={(e) => { e.stopPropagation(); onHover(label); }} onPointerOut={() => onHover(null)}>
+      <mesh onPointerOver={(e) => { e.stopPropagation(); onHover(label); }} onPointerOut={() => onHover(null)} onClick={onClick}>
         <cylinderGeometry args={[radius * 0.6, radius, height, 16]} />
         <meshStandardMaterial color={color} roughness={0.8} metalness={0.05} />
       </mesh>
@@ -72,7 +72,7 @@ function CoolingTower({ position, height, radius, color, label, hovered, onHover
 }
 
 // ─── Substation Equipment ─────────────────────────────────────────────────
-function SubstationGear({ position, color, label, hovered, onHover }) {
+function SubstationGear({ position, color, label, hovered, onHover, onClick }) {
   return (
     <group position={position}>
       {[0, 0.5, 1].map((x, i) => (
@@ -81,6 +81,7 @@ function SubstationGear({ position, color, label, hovered, onHover }) {
           position={[x - 0.5, 0.2, 0]}
           onPointerOver={(e) => { e.stopPropagation(); onHover(label); }}
           onPointerOut={() => onHover(null)}
+          onClick={onClick}
         >
           <boxGeometry args={[0.2, 0.4, 0.3]} />
           <meshStandardMaterial color={color} roughness={0.6} metalness={0.3} />
@@ -112,7 +113,7 @@ function SiteScene({ milestoneDetails, progressPct, onHover, hovered, setSelecte
 
   // Map milestones to structure colors
   const getPhase = (name) => milestoneDetails.find(m => m.name === name);
-  const pct = (name) => getPhase(name)?.pctComplete || 0;
+  const pct = (name) => getPhase(name)?.displayPct || 0;
 
   // Structure sizes adjusted by overall project scale
   const scale = 1;
@@ -183,6 +184,7 @@ function SiteScene({ milestoneDetails, progressPct, onHover, hovered, setSelecte
         label="Cooling Towers"
         hovered={hovered}
         onHover={onHover}
+        onClick={() => setSelectedPhase('Cooling System Installation')}
       />
       <CoolingTower
         position={[3.5, 0, -1.5]}
@@ -192,6 +194,7 @@ function SiteScene({ milestoneDetails, progressPct, onHover, hovered, setSelecte
         label="Cooling Towers"
         hovered={hovered}
         onHover={onHover}
+        onClick={() => setSelectedPhase('Cooling System Installation')}
       />
       <CoolingTower
         position={[3.0, 0, -2.3]}
@@ -201,6 +204,7 @@ function SiteScene({ milestoneDetails, progressPct, onHover, hovered, setSelecte
         label="Cooling Towers"
         hovered={hovered}
         onHover={onHover}
+        onClick={() => setSelectedPhase('Cooling System Installation')}
       />
 
       {/* Substation / Switchgear Yard */}
@@ -210,6 +214,7 @@ function SiteScene({ milestoneDetails, progressPct, onHover, hovered, setSelecte
         label="Substation"
         hovered={hovered}
         onHover={onHover}
+        onClick={() => setSelectedPhase('Electrical & Switchgear Installation')}
       />
 
       {/* Admin Building */}
@@ -224,7 +229,7 @@ function SiteScene({ milestoneDetails, progressPct, onHover, hovered, setSelecte
       />
 
       {/* Fire Protection tank */}
-      <mesh position={[-1.5, 0.15, -2.5]} onPointerOver={() => onHover('Fire Protection')} onPointerOut={() => onHover(null)}>
+      <mesh position={[-1.5, 0.15, -2.5]} onPointerOver={() => onHover('Fire Protection')} onPointerOut={() => onHover(null)} onClick={() => setSelectedPhase('Fire Protection & Life Safety')}>
         <cylinderGeometry args={[0.3, 0.3, 0.3, 8]} />
         <meshStandardMaterial color={fireColor} roughness={0.8} />
       </mesh>
@@ -274,6 +279,16 @@ export default function SiteView3D({ data }) {
         { name: 'Commissioning & Testing', phase: 10, pctComplete: 0, status: 'not_started' },
       ];
 
+  // Map structure hover/click labels to milestone names
+  const LABEL_TO_MILESTONE = {
+    'Main Data Hall': 'Structural Steel Erection',
+    'Turbine Hall': 'Electrical & Switchgear Installation',
+    'Cooling Towers': 'Cooling System Installation',
+    'Substation': 'Electrical & Switchgear Installation',
+    'Admin Building': 'Interior Finishes & Fitout',
+    'Fire Protection': 'Fire Protection & Life Safety',
+  };
+
   // Compute per-milestone display data at the current progressPct
   const displayMilestones = useMemo(() => {
     return milestones.map((m) => {
@@ -287,12 +302,13 @@ export default function SiteView3D({ data }) {
     });
   }, [milestones, progressPct]);
 
-  // Info for the selected/hovered phase
-  const infoMilestone = selectedPhase
-    ? milestones.find(m => m.name === selectedPhase)
-    : hovered
-      ? milestones.find(m => m.name === hovered)
-      : null;
+  // Info for the selected/hovered phase — resolve label to milestone name
+  const infoMilestone = (() => {
+    const key = selectedPhase || hovered;
+    if (!key) return null;
+    const milestoneName = LABEL_TO_MILESTONE[key] || key;
+    return displayMilestones.find(m => m.name === milestoneName);
+  })();
 
   return (
     <div className="flex gap-4 h-full">
@@ -362,16 +378,16 @@ export default function SiteView3D({ data }) {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-gray-500">Completion</span>
-                  <span className="text-xs font-medium" style={{ color: getColor(infoMilestone.pctComplete) }}>
-                    {infoMilestone.pctComplete}%
+                  <span className="text-xs font-medium" style={{ color: getColor(infoMilestone.displayPct) }}>
+                    {infoMilestone.displayPct}%
                   </span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-300"
                     style={{
-                      width: `${infoMilestone.pctComplete}%`,
-                      backgroundColor: getColor(infoMilestone.pctComplete),
+                      width: `${infoMilestone.displayPct}%`,
+                      backgroundColor: getColor(infoMilestone.displayPct),
                     }}
                   />
                 </div>
@@ -379,12 +395,12 @@ export default function SiteView3D({ data }) {
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-500">Status</span>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                  infoMilestone.status === 'complete' ? 'text-green-400 bg-green-900/30 border border-green-700/40' :
-                  infoMilestone.status === 'in_progress' ? 'text-amber-400 bg-amber-900/30 border border-amber-700/40' :
+                  infoMilestone.displayPct >= 100 ? 'text-green-400 bg-green-900/30 border border-green-700/40' :
+                  infoMilestone.displayPct > 0 ? 'text-amber-400 bg-amber-900/30 border border-amber-700/40' :
                   'text-gray-500 bg-gray-800/30 border border-gray-700/40'
                 }`}>
-                  {infoMilestone.status === 'complete' ? 'Complete' :
-                   infoMilestone.status === 'in_progress' ? 'In Progress' : 'Not Started'}
+                  {infoMilestone.displayPct >= 100 ? 'Complete' :
+                   infoMilestone.displayPct > 0 ? 'In Progress' : 'Not Started'}
                 </span>
               </div>
               {infoMilestone.varianceDays > 0 && (
