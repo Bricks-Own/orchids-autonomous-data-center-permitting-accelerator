@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { calcPTE } from '../utils/calculations';
+import { applyLocation } from '../utils/locationUtils';
 import { US_STATES, STATE_BOUNDING_BOXES, STATES_ATTAINMENT } from '../data/permitData';
 import 'leaflet/dist/leaflet.css';
 
@@ -309,23 +310,12 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
     setLon(newLon);
     // Auto-detect state from coordinates
     const detected = getStateFromCoords(newLat, newLon);
-    setInputs(prev => {
-      const updates = { lat: newLat, lon: newLon };
-      if (detected) {
-        updates.state = detected;
-        // Auto-set nonattainment flags if state has nonattainment
-        const status = STATES_ATTAINMENT[detected] || '';
-        const isNon = status.includes('Nonattainment');
-        updates.nonAttainment = isNon;
-        if (isNon) {
-          updates.nonAttainNOx = true;
-          updates.nonAttainPM25 = true;
-          updates.nonAttainOzone = true;
-        }
-      }
-      return { ...prev, ...updates };
-    });
-    if (detected) setSelectedState(detected);
+    if (detected) {
+      setSelectedState(detected);
+      applyLocation(setInputs, { state: detected, lat: newLat, lon: newLon });
+    } else {
+      setInputs(prev => ({ ...prev, lat: newLat, lon: newLon }));
+    }
   };
 
   const handleBoundaryChange = (acres) => {
@@ -387,13 +377,13 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                     setLat(p.lat);
                     setLon(p.lon);
                     setSiteAcres(p.acres);
-                    setInputs(prev => ({
-                      ...prev,
+                    applyLocation(setInputs, {
                       state: p.state,
                       lat: p.lat,
                       lon: p.lon,
-                      siteAcres: p.acres,
-                    }));
+                      acres: p.acres,
+                      presetLabel: p.label,
+                    });
                   }}
                   className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${
                     selectedState === p.state && lat === p.lat
@@ -494,7 +484,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                 {showScenario ? 'Hide Scenario Test' : 'Quick Scenario Test'}
               </button>
               <button
-                onClick={() => { const detected = getStateFromCoords(lat, lon); const stateToUse = detected || selectedState; setInputs(prev => ({ ...prev, state: stateToUse, lat, lon, siteAcres })); setActiveTab('intake'); }}
+                onClick={() => { const detected = getStateFromCoords(lat, lon); const stateToUse = detected || selectedState; applyLocation(setInputs, { state: stateToUse, lat, lon, acres: siteAcres }); setActiveTab('intake'); }}
                 className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded-lg font-semibold transition-all"
               >
                 Send to Site Intake
@@ -538,7 +528,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                   badgeColor: 'bg-green-900/30 text-green-400 border-green-800/40',
                   icon: '📡',
                   desc: 'Distributed edge node, minimal footprint',
-                  params: { turbines: 4, mwPerTurbine: 15, hours: 4000, brickSavings: 20, gensetCount: 6, gensetHours: 100, datacenterMW: 40, siteAcres: 22, buildingSqFt: 5000, stories: 1, occupancyType: 'Business (B)', fireSuppression: 'Pre-action sprinkler', emergencyPowerConfig: '2N', powerSourceType: 'Grid-only', interconnectionVoltage: 69, transformerCapacity: 70 },
+                  params: { turbines: 4, mwPerTurbine: 15, hours: 4000, brickSavings: 20, gensetCount: 6, gensetHours: 100, datacenterMW: 40, siteAcres: 22, pueTarget: 1.40, stackHeight: 40, buildingSqFt: 5000, stories: 1, occupancyType: 'Business (B)', fireSuppression: 'Pre-action sprinkler', emergencyPowerConfig: '2N', powerSourceType: 'Grid-only', interconnectionVoltage: 69, transformerCapacity: 70 },
                   highlight: 'Fastest permit path',
                   highlightColor: 'text-green-400',
                   metrics: { mw: 60, nox: '19.8', psd: 'No', title5: 'No' },
@@ -549,7 +539,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                   badgeColor: 'bg-blue-900/30 text-blue-400 border-blue-800/40',
                   icon: '🏢',
                   desc: 'Existing campus expansion, moderate scale',
-                  params: { turbines: 8, mwPerTurbine: 25, hours: 6000, brickSavings: 15, gensetCount: 12, gensetHours: 150, datacenterMW: 133, siteAcres: 50, buildingSqFt: 16000, stories: 2, occupancyType: 'Business (B)', fireSuppression: 'Pre-action sprinkler', emergencyPowerConfig: 'N+1', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 138, transformerCapacity: 230 },
+                  params: { turbines: 8, mwPerTurbine: 25, hours: 6000, brickSavings: 15, gensetCount: 12, gensetHours: 150, datacenterMW: 133, siteAcres: 50, pueTarget: 1.35, stackHeight: 55, buildingSqFt: 16000, stories: 2, occupancyType: 'Business (B)', fireSuppression: 'Pre-action sprinkler', emergencyPowerConfig: 'N+1', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 138, transformerCapacity: 230 },
                   highlight: 'Synthetic minor viable',
                   highlightColor: 'text-amber-400',
                   metrics: { mw: 200, nox: '52.8', psd: 'No', title5: 'Yes' },
@@ -560,7 +550,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                   badgeColor: 'bg-red-900/30 text-red-400 border-red-800/40',
                   icon: '🏗️',
                   desc: 'Full hyperscale buildout, major source',
-                  params: { turbines: 16, mwPerTurbine: 50, hours: 7000, brickSavings: 25, gensetCount: 24, gensetHours: 100, datacenterMW: 533, siteAcres: 200, buildingSqFt: 65000, stories: 5, occupancyType: 'Business (B)', fireSuppression: 'Hybrid (pre-action + clean agent)', emergencyPowerConfig: '2N', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 345, transformerCapacity: 920 },
+                  params: { turbines: 16, mwPerTurbine: 50, hours: 7000, brickSavings: 25, gensetCount: 24, gensetHours: 100, datacenterMW: 533, siteAcres: 200, pueTarget: 1.30, stackHeight: 80, buildingSqFt: 65000, stories: 5, occupancyType: 'Business (B)', fireSuppression: 'Hybrid (pre-action + clean agent)', emergencyPowerConfig: '2N', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 345, transformerCapacity: 920 },
                   highlight: 'PSD major source',
                   highlightColor: 'text-red-400',
                   metrics: { mw: 800, nox: '186.7', psd: 'Yes', title5: 'Yes' },
@@ -571,7 +561,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                   badgeColor: 'bg-amber-900/30 text-amber-400 border-amber-800/40',
                   icon: '🌴',
                   desc: 'California site with NNSR/LAER requirements',
-                  params: { turbines: 6, mwPerTurbine: 20, hours: 5000, brickSavings: 30, gensetCount: 8, gensetHours: 80, datacenterMW: 80, siteAcres: 35, state: 'California', lat: '37.3861', lon: '-122.0839', nonAttainment: true, nonAttainNOx: true, nonAttainPM25: true, nonAttainOzone: true, buildingSqFt: 10000, stories: 2, occupancyType: 'Business (B)', fireSuppression: 'Clean agent (FM-200/Novec)', emergencyPowerConfig: 'N+1', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 69, transformerCapacity: 138 },
+                  params: { turbines: 6, mwPerTurbine: 20, hours: 5000, brickSavings: 30, gensetCount: 8, gensetHours: 80, datacenterMW: 80, siteAcres: 35, pueTarget: 1.38, stackHeight: 50, state: 'California', lat: '37.3861', lon: '-122.0839', nonAttainment: true, nonAttainNOx: true, nonAttainPM25: true, nonAttainOzone: true, buildingSqFt: 10000, stories: 2, occupancyType: 'Business (B)', fireSuppression: 'Clean agent (FM-200/Novec)', emergencyPowerConfig: 'N+1', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 69, transformerCapacity: 138 },
                   highlight: 'LAER + offsets needed',
                   highlightColor: 'text-amber-400',
                   metrics: { mw: 120, nox: '28.3', psd: 'No', title5: 'Yes' },
@@ -580,12 +570,23 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                 <div key={scenario.title}
                   onClick={() => {
                     const s = scenario.params;
-                    // Use a flag to indicate scenario loaded state
-                    setInputs(prev => ({ ...prev, ...s, _scenario: scenario.title }));
-                    if (s.lat) setLat(s.lat);
-                    if (s.lon) setLon(s.lon);
-                    if (s.siteAcres) setSiteAcres(s.siteAcres);
-                    if (s.state) { setSelectedState(s.state); setInputs(prev => ({ ...prev, state: s.state })); }
+                    if (s.lat && s.lon && s.state) {
+                      // Cards with location data (CA Nonattainment)
+                      setLat(s.lat);
+                      setLon(s.lon);
+                      setSelectedState(s.state);
+                      setSiteAcres(s.siteAcres || 45);
+                      const { lat, lon, state, siteAcres, ...rest } = s;
+                      applyLocation(setInputs, {
+                        state, lat, lon, acres: siteAcres,
+                        scenarioTitle: scenario.title,
+                        extraParams: { ...rest, _scenario: scenario.title },
+                      });
+                    } else {
+                      // Cards without location data — equipment params only
+                      setInputs(prev => ({ ...prev, ...s, _scenario: scenario.title }));
+                      if (s.siteAcres) setSiteAcres(s.siteAcres);
+                    }
                   }}
                   className={`rounded-xl border p-4 cursor-pointer transition-all duration-200
                     ${inputs._scenario === scenario.title 
@@ -631,11 +632,21 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                       onClick={(e) => {
                         e.stopPropagation();
                         const s = scenario.params;
-                        setInputs(prev => ({ ...prev, ...s, _scenario: scenario.title }));
-                        if (s.lat) setLat(s.lat);
-                        if (s.lon) setLon(s.lon);
-                        if (s.siteAcres) setSiteAcres(s.siteAcres);
-                        if (s.state) { setSelectedState(s.state); setInputs(prev => ({ ...prev, state: s.state })); }
+                        if (s.lat && s.lon && s.state) {
+                          setLat(s.lat);
+                          setLon(s.lon);
+                          setSelectedState(s.state);
+                          setSiteAcres(s.siteAcres || 45);
+                          const { lat, lon, state, siteAcres, ...rest } = s;
+                          applyLocation(setInputs, {
+                            state, lat, lon, acres: siteAcres,
+                            scenarioTitle: scenario.title,
+                            extraParams: { ...rest, _scenario: scenario.title },
+                          });
+                        } else {
+                          setInputs(prev => ({ ...prev, ...s, _scenario: scenario.title }));
+                          if (s.siteAcres) setSiteAcres(s.siteAcres);
+                        }
                         setActiveTab('intake');
                       }}
                       className="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded-lg font-medium transition-all"
