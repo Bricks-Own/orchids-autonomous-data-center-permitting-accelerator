@@ -10,12 +10,33 @@ function getStateFromCoords(lat, lon) {
   const latNum = parseFloat(lat);
   const lonNum = parseFloat(lon);
   if (isNaN(latNum) || isNaN(lonNum)) return null;
+  const matches = [];
   for (const [state, [minLat, maxLat, minLon, maxLon]] of Object.entries(STATE_BOUNDING_BOXES)) {
     if (latNum >= minLat && latNum <= maxLat && lonNum >= minLon && lonNum <= maxLon) {
-      return state;
+      matches.push(state);
     }
   }
-  return null;
+  if (matches.length === 0) return null;
+  if (matches.length === 1) return matches[0];
+  // VA/MD border resolution: the Potomac River border in the DC area
+  // means points between ~38.8-39.1 near DC are predominantly Virginia
+  // (Northern Virginia data center territory). Prefer VA when ambiguous.
+  if (matches.includes('Virginia') && matches.includes('Maryland')) {
+    return 'Virginia';
+  }
+  // General tiebreaker: prefer the state with the smaller bounding box area
+  // (more specific = more likely correct for overlapping border regions)
+  let bestState = matches[0];
+  let bestArea = Infinity;
+  for (const state of matches) {
+    const [bMinLat, bMaxLat, bMinLon, bMaxLon] = STATE_BOUNDING_BOXES[state];
+    const area = (bMaxLat - bMinLat) * (bMaxLon - bMinLon);
+    if (area < bestArea) {
+      bestArea = area;
+      bestState = state;
+    }
+  }
+  return bestState;
 }
 
 function SiteMap({ lat, lon, onLatLonChange, onBoundaryChange, siteAcres }) {
@@ -303,11 +324,13 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
   const [lon, setLon] = useState(inputs.lon || '-86.7816');
   const [siteAcres, setSiteAcres] = useState(inputs.siteAcres || 45);
   const [selectedState, setSelectedState] = useState(inputs.state || 'Tennessee');
+  const [selectedLocationLabel, setSelectedLocationLabel] = useState(null);
   const [showScenario, setShowScenario] = useState(false);
 
   const handleLatLonChange = (newLat, newLon) => {
     setLat(newLat);
     setLon(newLon);
+    setSelectedLocationLabel(null); // Manual change — no longer a named preset
     // Auto-detect state from coordinates
     const detected = getStateFromCoords(newLat, newLon);
     if (detected) {
@@ -377,6 +400,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                     setLat(p.lat);
                     setLon(p.lon);
                     setSiteAcres(p.acres);
+                    setSelectedLocationLabel(p.label);
                     applyLocation(setInputs, {
                       state: p.state,
                       lat: p.lat,
@@ -484,7 +508,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                 {showScenario ? 'Hide Scenario Test' : 'Quick Scenario Test'}
               </button>
               <button
-                onClick={() => { const detected = getStateFromCoords(lat, lon); const stateToUse = detected || selectedState; applyLocation(setInputs, { state: stateToUse, lat, lon, acres: siteAcres }); setActiveTab('intake'); }}
+                onClick={() => { applyLocation(setInputs, { state: selectedState, lat, lon, acres: siteAcres, presetLabel: selectedLocationLabel, scenarioTitle: selectedLocationLabel }); setActiveTab('intake'); }}
                 className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded-lg font-semibold transition-all"
               >
                 Send to Site Intake
@@ -576,6 +600,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                       setLon(s.lon);
                       setSelectedState(s.state);
                       setSiteAcres(s.siteAcres || 45);
+                      setSelectedLocationLabel(scenario.title);
                       const { lat, lon, state, siteAcres, ...rest } = s;
                       applyLocation(setInputs, {
                         state, lat, lon, acres: siteAcres,
@@ -637,6 +662,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                           setLon(s.lon);
                           setSelectedState(s.state);
                           setSiteAcres(s.siteAcres || 45);
+                          setSelectedLocationLabel(scenario.title);
                           const { lat, lon, state, siteAcres, ...rest } = s;
                           applyLocation(setInputs, {
                             state, lat, lon, acres: siteAcres,
