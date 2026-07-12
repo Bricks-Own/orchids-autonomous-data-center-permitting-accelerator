@@ -225,6 +225,7 @@ export function calcScheduleInfo(plannedFinish, forecastFinish, milestoneVarianc
 
 // ─── Full Project Rollup ──────────────────────────────────────────────────
 export function calcFullProjectMetrics(data) {
+  data = data || {};
   const evm = calcEVM(
     data.originalBudget || 0,
     data.actualCost || 0,
@@ -333,6 +334,9 @@ export function calcFullProjectMetrics(data) {
     costCategories: data.costCategories || [],
     // Top 5 risks
     topRisks: data.topRisks || [],
+    // Milestone-level details
+    milestoneDetails: data.milestoneDetails || [],
+    percentCompletePhysical: data.percentCompletePhysical || 0,
     // Health summary
     healthSummary: {
       red: redCount,
@@ -352,7 +356,9 @@ export function calcFullProjectMetrics(data) {
 // ALL metrics are dynamically computed from the site's actual inputs and PTE results.
 // No hardcoded demo data — every KPI is derived from real project parameters.
 
-export function generateConstructionData(inputs = {}, results = {}) {
+export function generateConstructionData(inputs, results) {
+  inputs = inputs || {};
+  results = results || {};
   // ── Extract site parameters ─────────────────────────────────────────────
   const siteName = inputs.siteName || 'BigWatt AI Campus — Site A';
   const client = inputs.client || 'BigWatt Digital';
@@ -476,6 +482,35 @@ export function generateConstructionData(inputs = {}, results = {}) {
     'Commissioning & Testing'
   ];
   
+  // Per-milestone completion computed from overall physical progress
+  const milestoneDetails = milestones.map((name, i) => {
+    // Each milestone has equal weight (10% of project per milestone)
+    const expectedPct = ((i + 1) / milestones.length) * 100;
+    const prevExpected = (i / milestones.length) * 100;
+    let pctComplete;
+    if (physicalProgress >= expectedPct) {
+      pctComplete = 100; // fully complete
+    } else if (physicalProgress <= prevExpected) {
+      pctComplete = 0; // not started
+    } else {
+      // In progress — interpolate within this milestone's window
+      pctComplete = Math.round(((physicalProgress - prevExpected) / (expectedPct - prevExpected)) * 100);
+    }
+    // Pct complete is the same for both planned and actual (pre-construction)
+    // Schedule variance: later milestones have more variance
+    const variance = i > 4 ? Math.round(milestoneVarianceDays * (i / milestones.length)) : 0;
+    return {
+      name,
+      phase: i + 1,
+      pctComplete,
+      status: pctComplete >= 100 ? 'complete' : pctComplete > 0 ? 'in_progress' : 'not_started',
+      plannedCompletion: '', // computed from overall schedule
+      varianceDays: variance,
+      budget: Math.round(bac * (1 / milestones.length)),
+      actualCost: Math.round(bac * (1 / milestones.length) * (pctComplete / 100) * (1 + (variance > 0 ? 0.05 : 0))),
+    };
+  });
+
   // ── Dynamic Cost Categories ─────────────────────────────────────────────
   // Standard data center cost breakdown (per Turner & Townsend / JLL benchmarks)
   const COST_CATEGORY_PCT = [
@@ -694,6 +729,7 @@ export function generateConstructionData(inputs = {}, results = {}) {
     forecastFinish: forecastFinish.toISOString().split('T')[0],
     customerNeedDate: customerNeedDate.toISOString().split('T')[0],
     milestoneNames: milestones.join(', '),
+    milestoneDetails,
     milestoneVarianceDays,
     criticalPathLength,
     floatConsumed,

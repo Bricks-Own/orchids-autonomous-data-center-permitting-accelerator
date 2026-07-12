@@ -4,6 +4,7 @@ import {
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import { fetchConstructionData, saveConstructionData } from '../utils/api';
+import SiteView3D from './SiteView3D';
 
 // ─── Color / Style Constants ──────────────────────────────────────────────
 const TL = {
@@ -223,7 +224,7 @@ function DataEntryModal({ open, onClose, onSave, initialData }) {
 }
 
 // ─── Main ConstructionDashboard Component ─────────────────────────────────
-export default function ConstructionDashboard({ inputs, results, setActiveTab }) {
+export default function ConstructionDashboard({ inputs, results }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [subTab, setSubTab] = useState('leadership');
@@ -289,6 +290,7 @@ export default function ConstructionDashboard({ inputs, results, setActiveTab })
     { id: 'trackers', label: 'Other Trackers', icon: '📋' },
     { id: 'risks', label: 'Risk Register', icon: '⚠️' },
     { id: 'pcos', label: 'PCO Tracker', icon: '📝' },
+    { id: '3dview', label: '3D Site View', icon: '🏗️' },
   ];
 
   if (loading) {
@@ -872,6 +874,16 @@ export default function ConstructionDashboard({ inputs, results, setActiveTab })
         )}
 
         {/* PCO Tracker */}
+        {subTab === '3dview' && (
+          <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
+            <h3 className="text-sm font-semibold text-gray-300 mb-4">3D Site View — Construction Progress Model</h3>
+            <p className="text-xs text-gray-500 mb-4">
+              Interactive 3D model of the site. Structures are color-coded: green = complete, amber = in progress, gray = not started.
+              Use the slider to scrub through the project timeline. Hover or click structures for phase details.
+            </p>
+            <SiteView3D data={data} />
+          </div>
+        )}
         {subTab === 'pcos' && (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">

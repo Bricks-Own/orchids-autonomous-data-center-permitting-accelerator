@@ -369,7 +369,9 @@ export async function listAgencySubmissions() {
   return request('/agency/submissions');
 }
 // ─── Construction Platform ──────────────────────────────────────────────
-export async function fetchConstructionData(siteId, inputs = {}, results = {}) {
+export async function fetchConstructionData(siteId, inputs, results) {
+  inputs = inputs || {};
+  results = results || {};
   return request(`/construction/${encodeURIComponent(siteId)}`, {
     method: "POST",
     body: { inputs, results },
