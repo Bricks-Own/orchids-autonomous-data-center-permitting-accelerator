@@ -5,50 +5,7 @@ import { calculatePTE as apiPTE, analyzeScenario, listScenarios } from '../utils
 
 const turbineTypes = Object.keys(NOX_EMISSION_FACTORS);
 
-const defaultInputs = {
-  siteName: 'BigWatt AI Campus — Site A',
-  client: 'BigWatt Digital',
-  state: 'Tennessee',
-  county: 'Davidson County',
-  address: '1200 Industrial Blvd, Nashville, TN 37201',
-  lat: '36.1627',
-  lon: '-86.7816',
-  turbineType: 'Gas Turbine (DLN, modern)',
-  turbines: 8,
-  mwPerTurbine: 25,
-  hours: 6000,
-  heatRate: 8.5,
-  noxFactor: 0.015,
-  coFactor: 0.035,
-  brickSavings: 20,
-  gensetCount: 12,
-  gensetHP: 2000,
-  gensetHours: 100,
-  coolingMGD: 2.8,
-  blowdownPct: 20,
-  waterMGD: 1.2,
-  datacenterMW: 133,
-  pueTarget: 1.35,
-  phases: 3,
-  codTarget: '2026-Q3',
-  siteAcres: 45,
-  // Building permit fields
-  buildingSqFt: Math.round(133 * 800),      // auto-derived: ~106,400 sqft for 133MW IT load (realistic: 750-1000+ sqft/MW)
-  stories: 2,
-  occupancyType: 'Business (B)',
-  fireSuppression: 'Pre-action sprinkler',
-  emergencyPowerConfig: 'N+1',
-  // Power permit fields
-  powerSourceType: 'Hybrid (Grid + On-site Generation)',
-  interconnectionVoltage: 138,
-  transformerCapacity: Math.round(200 * 1.15),
-  stackHeight: 65,
-  nearestReceptorFt: 1200,
-  nonAttainment: false,
-  nonAttainNOx: false,
-  nonAttainPM25: false,
-  nonAttainOzone: false,
-};
+
 
 function Field({ label, children, hint }) {
   return (
@@ -131,12 +88,16 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
       const calcResults = apiResponse.results || apiResponse;
       setResults({
         totalMW: calcResults.totalMW,
+        annualMWh: calcResults.annualMWh,
+        annualMMBtu: calcResults.annualMMBtu,
         baseline: calcResults.baseline,
         controlled: calcResults.controlled,
         avoided: calcResults.avoided,
         pathway: calcResults.pathway,
         water: calcResults.water,
         genset: calcResults.genset,
+        thresholdAnalysis: calcResults.thresholdAnalysis,
+        breaches: calcResults.breaches,
         // Compute building pathway from inputs
         building: {
           ibcClass: (inputs.turbines * inputs.mwPerTurbine) > 400 ? 'Type IB' : 'Type IIB',

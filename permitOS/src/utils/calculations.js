@@ -1215,9 +1215,16 @@ export function simulate24h(inputs) {
   const { totalMW, brickSavings, heatRate, noxFactor, coolingMGD } = inputs;
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
+  // Realistic data center load profile: high base IT load (75-95%)
+  // with diurnal variation driven by cooling load (ambient temp).
+  // Larger facilities have flatter profiles (better thermal inertia).
+  const sizeFactor = Math.min(1, Math.max(0.3, totalMW / 300));
+  const flatness = 0.85 + sizeFactor * 0.1;
   const loadProfile = hours.map(h => {
-    const base = 0.65 + 0.2 * Math.sin((h - 6) / 24 * 2 * Math.PI) + 0.05 * Math.sin(h / 12 * Math.PI);
-    return Math.min(1, Math.max(0.3, base));
+    const itLoad = flatness + (1 - flatness) * 0.4 * (1 + Math.sin((h - 10) / 24 * 2 * Math.PI));
+    const coolingFraction = 0.12 + 0.06 * Math.sin((h - 7) / 24 * 2 * Math.PI);
+    const pue = 1.08 + coolingFraction;
+    return Math.min(1, Math.max(0.75, itLoad / pue * 0.88));
   });
 
   const results = hours.map((h, i) => {

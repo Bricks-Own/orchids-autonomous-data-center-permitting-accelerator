@@ -368,3 +368,17 @@ export async function agencySubmit(siteId, docType, docNum, agency, notes) {
 export async function listAgencySubmissions() {
   return request('/agency/submissions');
 }
+// ─── Construction Platform ──────────────────────────────────────────────
+export async function fetchConstructionData(siteId, inputs = {}, results = {}) {
+  return request(`/construction/${encodeURIComponent(siteId)}`, {
+    method: "POST",
+    body: { inputs, results },
+  });
+}
+
+export async function saveConstructionData(siteId, data) {
+  return request(`/construction/${encodeURIComponent(siteId)}`, {
+    method: 'PUT',
+    body: data,
+  });
+}

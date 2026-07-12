@@ -19,6 +19,7 @@ export default function Header({ activeTab, setActiveTab, results, onLogout }) {
     { id: 'compliance',  label: 'Compliance OS',        icon: '🛡',  group: 'advanced' },
     { id: 'copilot',     label: 'Regulator Copilot',    icon: '🤖',  group: 'advanced' },
     { id: 'knowledge',   label: 'Knowledge Hub',        icon: '📚',  group: 'advanced' },
+    { id: 'construction', label: 'Construction Platform', icon: '🏗️', group: 'advanced' },
 
   ];
 

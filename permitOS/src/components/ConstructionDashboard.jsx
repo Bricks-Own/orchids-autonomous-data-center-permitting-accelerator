@@ -231,12 +231,12 @@ export default function ConstructionDashboard({ inputs, results, setActiveTab })
 
   const fetchData = () => {
     setLoading(true);
-    fetchConstructionData('BIGWATT-SITEA-001').then(res => {
-      if (res?.result) setData(res.result);
+    fetchConstructionData('BIGWATT-SITEA-001', inputs, results).then(res => {
+      if (res?.data) setData(res.data);
     }).catch(() => {}).finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [inputs, results]);
 
   const handleSaveData = async (formData) => {
     const payload = {
@@ -279,12 +279,14 @@ export default function ConstructionDashboard({ inputs, results, setActiveTab })
   }, [data]);
 
   const subTabs = [
+    { id: 'csuite', label: 'C-Suite Dashboard', icon: '🏛️' },
     { id: 'leadership', label: 'Leadership Summary', icon: '📊' },
     { id: 'hse', label: 'HSE', icon: '🛡️' },
     { id: 'quality', label: 'Quality', icon: '✅' },
     { id: 'financials', label: 'Financials', icon: '💰' },
     { id: 'schedule', label: 'Schedule', icon: '📅' },
     { id: 'costcat', label: 'Cost Categories', icon: '📁' },
+    { id: 'trackers', label: 'Other Trackers', icon: '📋' },
     { id: 'risks', label: 'Risk Register', icon: '⚠️' },
     { id: 'pcos', label: 'PCO Tracker', icon: '📝' },
   ];
@@ -309,13 +311,13 @@ export default function ConstructionDashboard({ inputs, results, setActiveTab })
     );
   }
 
-  const evm = data.evm;
-  const safety = data.safety;
-  const quality = data.quality;
-  const schedule = data.schedule;
-  const cont = data.contingency;
-  const chg = data.changeOrders;
-  const health = data.healthSummary;
+  const evm = data.evm || {};
+  const safety = data.safety || {};
+  const quality = data.quality || {};
+  const schedule = data.schedule || {};
+  const cont = data.contingency || {};
+  const chg = data.changeOrders || {};
+  const health = data.healthSummary || {};
   const flags = data.flags || [];
 
   return (
@@ -407,6 +409,78 @@ export default function ConstructionDashboard({ inputs, results, setActiveTab })
       {/* ── Tab Content ── */}
       <div className="min-h-[300px]">
         {/* Leadership Summary */}
+        {subTab === 'csuite' && (
+          <div className="space-y-4">
+            {/* C-Suite Dashboard - High Level Rollup */}
+            <div className="rounded-xl border border-indigo-700/30 bg-indigo-950/20 p-5">
+              <h3 className="text-sm font-semibold text-indigo-300 mb-4 flex items-center gap-2">
+                <span>🏛️</span> C-Suite Dashboard — Total Development Cost (TDC)
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+                <KpiCard title="Baseline Budget" value={`$${(evm?.BAC / 1e6).toFixed(1)}M`} status="green" subtitle="Approved TDC" />
+                <KpiCard title="Forecast EAC" value={`$${(evm?.EAC / 1e6).toFixed(1)}M`} status={evm?.EAC > evm?.BAC ? 'red' : 'green'} subtitle={evm?.EAC > evm?.BAC ? `$${((evm?.EAC - evm?.BAC) / 1e6).toFixed(1)}M over budget` : 'Within budget'} />
+                <KpiCard title="Revenue" value={`$${(data.revenue / 1e6).toFixed(1)}M`} status="green" subtitle={`Margin: ${(data.forecastMargin * 100).toFixed(1)}% actual vs ${(data.plannedMargin * 100).toFixed(1)}% planned`} />
+                <KpiCard title="Net Cash Position" value={`$${(data.netCashPosition / 1e6).toFixed(1)}M`} status={data.netCashPosition < 0 ? 'red' : 'green'} subtitle={data.netCashPosition < 0 ? 'Negative — review AR aging' : 'Positive'} />
+              </div>
+            </div>
+
+            {/* Milestone Volatility + Contingency Burn */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="rounded-xl border border-amber-700/30 bg-amber-950/20 p-4">
+                <h4 className="text-xs font-semibold text-amber-300 mb-3">Milestone Volatility — Variance Days</h4>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-3xl font-bold text-white">{Math.abs(schedule?.scheduleSlipDays || 0)}</span>
+                  <span className="text-sm text-amber-400">days behind schedule</span>
+                </div>
+                <div className="bg-gray-700/40 rounded-full h-2">
+                  <div className="h-2 rounded-full bg-amber-500" style={{ width: `\${Math.min(100, Math.abs(schedule?.scheduleSlipDays || 0))}%` }}></div>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>On track</span>
+                  <span>Critical ({Math.abs(schedule?.scheduleSlipDays || 0)}d slip)</span>
+                </div>
+              </div>
+              <div className="rounded-xl border border-blue-700/30 bg-blue-950/20 p-4">
+                <h4 className="text-xs font-semibold text-blue-300 mb-3">Contingency Burn Rate vs Physical Progress</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <div className="text-xs text-gray-500">Contingency Used</div>
+                    <div className="text-2xl font-bold text-white">{data.contingencyBurnPct || 0}%</div>
+                    <div className="text-xs text-gray-600">of ${(contingency?.budget / 1e6).toFixed(1)}M budget</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500">Physical Progress</div>
+                    <div className="text-2xl font-bold text-white">{schedule?.percentCompletePhysical || 0}%</div>
+                    <div className="text-xs text-gray-600">complete</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Unapproved Claims + Safety */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="rounded-xl border border-red-700/30 bg-red-950/10 p-4">
+                <h4 className="text-xs font-semibold text-red-300 mb-3">Unapproved Claims & Change Order Exposure</h4>
+                <div className="text-2xl font-bold text-red-400">${((chg?.pendingValue || 0) / 1e6).toFixed(1)}M</div>
+                <div className="text-xs text-gray-500 mt-1">{chg?.pendingCount || 0} pending PCOs · Avg {(chg?.avgAgingDays || 0)}d aging</div>
+              </div>
+              <div className="rounded-xl border border-green-700/30 bg-green-950/10 p-4">
+                <h4 className="text-xs font-semibold text-green-300 mb-3">Safety & Health Compliance — TRIR</h4>
+                <div className="text-2xl font-bold text-green-400">{safety?.trir || 0}</div>
+                <div className="text-xs text-gray-500 mt-1">TRIR · {safety?.safetyDaysSinceLast || 0} days since last incident · {safety?.recordableIncidents || 0} recordable</div>
+              </div>
+            </div>
+
+            {/* Top 5 Risk Register */}
+            <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4">
+              <h4 className="text-xs font-semibold text-gray-400 mb-3 flex items-center gap-2">
+                <span>⚠️</span> Top 5 Risk Register (RED/YELLOW)
+              </h4>
+              <RiskRegister risks={data.topRisks} />
+            </div>
+          </div>
+        )}
+
         {subTab === 'leadership' && (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -416,11 +490,13 @@ export default function ConstructionDashboard({ inputs, results, setActiveTab })
                 </h3>
                 <div className="space-y-2 text-xs">
                   {[
-                    { label: 'Revenue (Budget)', value: `$${(evm?.BAC / 1e6).toFixed(1)}M`, status: 'green' },
-                    { label: 'Margin (EV - ACWP)', value: `$${(evm?.CV / 1e6).toFixed(1)}M`, status: evm?.CV >= 0 ? 'green' : 'red' },
+                    { label: 'Revenue', value: `$${(data.revenue / 1e6).toFixed(1)}M`, status: 'green' },
+                    { label: 'Planned Margin', value: `${(data.plannedMargin * 100).toFixed(1)}%`, status: 'green' },
+                    { label: 'Forecast Margin', value: `${(data.forecastMargin * 100).toFixed(1)}%`, status: data.forecastMargin >= data.plannedMargin ? 'green' : 'red' },
                     { label: 'CPI', value: evm?.CPI?.toFixed(3), status: evm?.statusCPI },
                     { label: 'SPI', value: evm?.SPI?.toFixed(3), status: evm?.statusSPI },
                     { label: '% Complete', value: `${evm?.percentComplete}%`, status: 'green' },
+                    { label: 'Net Cash Position', value: `$${(data.netCashPosition / 1e6).toFixed(1)}M`, status: data.netCashPosition >= 0 ? 'green' : 'red' },
                     { label: 'Cashflow Position', value: `$${(data.cashPosition / 1e6).toFixed(1)}M`, status: 'green' },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center justify-between bg-gray-800/30 rounded-lg px-3 py-2">
@@ -743,6 +819,47 @@ export default function ConstructionDashboard({ inputs, results, setActiveTab })
         )}
 
         {/* Risk Register */}
+        {subTab === 'trackers' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <KpiCard title="GC Buyout Status" value={`${data.gcBuyoutComplete || 0}%`} status={data.gcBuyoutComplete >= 90 ? 'green' : data.gcBuyoutComplete >= 70 ? 'amber' : 'red'} subtitle="Percent complete" />
+              <KpiCard title="Stored Materials (Offsite)" value={`$${((data.storedMaterialsValue || 0) / 1e6).toFixed(1)}M`} status="amber" subtitle="Value stored offsite" />
+              <KpiCard title="Lien Waiver Compliance" value={data.lienWaiverCompliance || 'N'} status={data.lienWaiverCompliance === 'Y' ? 'green' : 'red'} subtitle={`${data.lienWaiversReceived || 0} received`} />
+              <KpiCard title="Headcount" value={data.headcount || 0} status={data.actualVsPlannedHeadcountPct >= 90 ? 'green' : 'amber'} subtitle={data.actualVsPlannedHeadcountPct ? `${data.actualVsPlannedHeadcountPct}% of planned` : ''} />
+            </div>
+            <div className="bg-gray-900/40 border border-gray-800/40 rounded-xl p-4">
+              <h3 className="text-xs font-semibold text-gray-400 mb-3 flex items-center gap-2">
+                <span>📋</span> Other Construction Trackers
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                {[
+                  { label: 'AHJ Permit Status', value: data.ahjPermitStatus || '—' },
+                  { label: 'AHJ Inspection Pass Rate', value: `${data.inspectionPassRate || 0}%` },
+                  { label: 'Commissioning Prerequisites', value: `${data.cxPrerequisitesPct || 0}%` },
+                  { label: 'Weather Days Lost (Total)', value: `${data.weatherDaysLost || 0}d` },
+                  { label: 'Weather Days Claimed', value: `${data.weatherDaysClaimed || 0}d` },
+                  { label: 'RFIs on Critical Path', value: data.quality?.rfiCriticalPathCount || 0 },
+                  { label: 'Stored Materials Value', value: `$${((data.storedMaterialsValue || 0) / 1e6).toFixed(1)}M` },
+                  { label: 'Lien Waivers Received', value: data.lienWaiversReceived || 0 },
+                  { label: 'Retainage Withheld', value: `$${((data.retainage || 0) / 1e6).toFixed(1)}M` },
+                  { label: 'Net Payable This Month', value: `$${((data.netPayableThisMonth || 0) / 1e6).toFixed(1)}M` },
+                  { label: 'Weather Days Lost', value: `${data.weatherDaysLost || 0} days` },
+                  { label: 'Pending PCO Aging (Avg)', value: `${chg?.avgAgingDays || 0}d` },
+                ].map((item, i) => (
+                  <div key={i} className="bg-gray-800/30 rounded-lg px-3 py-2">
+                    <div className="text-gray-500 mb-0.5">{item.label}</div>
+                    <div className="font-semibold text-gray-200">{item.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <KpiCard title="Owner Contingency" value={`$${((data.ownerContingencyBudget || 0) / 1e6).toFixed(1)}M`} status={(data.ownerContingencyUsed || 0) > (data.ownerContingencyBudget || 0) * 0.8 ? 'red' : 'green'} subtitle={`$${((data.ownerContingencyUsed || 0) / 1e6).toFixed(1)}M used`} />
+              <KpiCard title="GC Contingency" value={`$${((data.gcContingencyBudget || 0) / 1e6).toFixed(1)}M`} status={(data.gcContingencyUsed || 0) > (data.gcContingencyBudget || 0) * 0.8 ? 'red' : 'amber'} subtitle={`$${((data.gcContingencyUsed || 0) / 1e6).toFixed(1)}M used`} />
+            </div>
+          </div>
+        )}
+
         {subTab === 'risks' && (
           <div className="space-y-4">
             <div className="bg-gray-900/40 border border-gray-800/40 rounded-xl p-4">

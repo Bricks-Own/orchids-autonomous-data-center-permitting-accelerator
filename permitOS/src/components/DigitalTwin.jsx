@@ -74,7 +74,8 @@ export default function DigitalTwin({ results, inputs }) {
   const run = () => {
     if (!results) return;
     setRunning(true);
-    setTimeout(() => {
+    // Use requestAnimationFrame to let the UI update before computing
+    requestAnimationFrame(() => {
       const data = simulate24h({
         totalMW: results.totalMW,
         brickSavings: inputs.brickSavings,
@@ -84,7 +85,7 @@ export default function DigitalTwin({ results, inputs }) {
       });
       setSimData(data);
       setRunning(false);
-    }, 800);
+    });
   };
 
   const current = simData?.[hour];

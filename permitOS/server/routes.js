@@ -6,6 +6,7 @@ import { searchRegulations } from './rag.js';
 import { queryLLM, generateRAIResponse, generateDocumentSection } from './llm.js';
 import { searchRegulatoryKnowledge, getKnowledgeCategories, getKnowledgeStats } from './web-knowledge.js';
 import { scorePermitSuccess } from './reward-scorer.js';
+import { generateConstructionData, generateSampleData, calcFullProjectMetrics, calcEVM, validateMetricsData } from './constructionData.js';
 import { analyzeScenario, listScenarios } from './scenarios.js';
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, HeadingLevel, AlignmentType, BorderStyle, WidthType, Header, Footer, PageNumber } from 'docx';
 
@@ -626,6 +627,36 @@ export function createApiRouter(db) {
     } catch (err) {
       next(err);
     }
+  });
+
+
+  // ─── Construction Dashboard ──────────────────────────────────────────────
+  router.post('/construction/:siteId', (req, res, next) => {
+    try {
+      const { siteId } = req.params;
+      const { inputs, results } = req.body || {};
+      const data = generateConstructionData(inputs, results);
+      res.json({ data });
+    } catch (err) { next(err); }
+  });
+
+  router.get('/construction/:siteId', (req, res, next) => {
+    try {
+      const { siteId } = req.params;
+      const data = generateConstructionData({}, {});
+      res.json({ data });
+    } catch (err) { next(err); }
+  });
+
+  router.put('/construction/:siteId', (req, res, next) => {
+    try {
+      const { siteId } = req.params;
+      const updateData = req.body;
+      const errors = validateMetricsData(updateData);
+      if (errors.length > 0) return res.status(400).json({ error: 'Validation failed', details: errors });
+      const data = calcFullProjectMetrics(updateData);
+      res.json({ data, saved: true });
+    } catch (err) { next(err); }
   });
 
   return router;

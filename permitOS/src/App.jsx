@@ -16,6 +16,7 @@ import SitePlanner from './components/SitePlanner';
 import SiteAssistant from './components/SiteAssistant';
 import BuildingPermitAI from './components/BuildingPermitAI';
 import PowerPermitAI from './components/PowerPermitAI';
+import ConstructionDashboard from './components/ConstructionDashboard';
 import { isAuthenticated, getAuthToken, setAuthToken, logout } from './utils/api';
 
 export const defaultInputs = {
@@ -104,6 +105,7 @@ function App() {
       case 'knowledge':   return <KnowledgeHub inputs={inputs} results={results} />;
       case 'building':    return <BuildingPermitAI inputs={inputs} results={results} setActiveTab={setActiveTab} />;
       case 'power':       return <PowerPermitAI inputs={inputs} results={results} setActiveTab={setActiveTab} />;
+      case 'construction': return <ConstructionDashboard inputs={inputs} results={results} setActiveTab={setActiveTab} />;
       default:            return <Overview setActiveTab={setActiveTab} />;
     }
   };
