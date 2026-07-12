@@ -110,7 +110,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
         // Compute power/interconnection pathway from inputs
         power: {
           totalMW: inputs.turbines * inputs.mwPerTurbine,
-          interconnectionVoltage: inputs.interconnectionVoltage || ((inputs.turbines * inputs.mwPerTurbine) > 500 ? 345 : (inputs.turbines * inputs.mwPerTurbine) > 200 ? 138 : 69),
+          interconnectionVoltage: inputs.interconnectionVoltage || ((inputs.turbines * inputs.mwPerTurbine) > 500 ? 345 : (inputs.turbines * inputs.mwPerTurbine) >= 200 ? 138 : 69),
           transformerCapacity: inputs.transformerCapacity || Math.round((inputs.turbines * inputs.mwPerTurbine) * 1.15),
           powerSource: inputs.powerSourceType || 'Hybrid (Grid + On-site Generation)',
           gensetTotalMW: ((inputs.gensetCount || 0) * (inputs.gensetHP || 0) * 0.746) / 1000,

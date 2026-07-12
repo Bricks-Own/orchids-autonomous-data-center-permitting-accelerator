@@ -466,7 +466,7 @@ export function generateConstructionData(inputs, results) {
   const spiVal = pv > 0 ? parseFloat((evCalc / pv).toFixed(3)) : 1.0;
   
   // Physical progress (slightly different from EV % due to productivity)
-  const physicalProgress = Math.round(actualPct * (0.95 + Math.random() * 0.05));
+  const physicalProgress = Math.round(actualPct * 0.975);
   const criticalPathImpact = Math.abs(milestoneVarianceDays) > 15 ? 'Y' : 'N';
   
   const milestones = [
@@ -530,7 +530,7 @@ export function generateConstructionData(inputs, results) {
     const budget = Math.round(bac * cat.pct);
     // Progress per category varies — earlier categories are more complete
     const catProgress = Math.min(100, Math.round(percentComplete * (1 + (10 - i) * 0.03)));
-    const actual = Math.round(budget * (catProgress / 100) * (0.88 + Math.random() * 0.12));
+    const actual = Math.round(budget * (catProgress / 100) * 0.94);
     return { name: cat.name, budget, actual, pctComplete: Math.min(100, catProgress) };
   });
   
@@ -552,9 +552,9 @@ export function generateConstructionData(inputs, results) {
     return {
       id: `PCO-${String(i + 1).padStart(3, '0')}`,
       description: descriptions[i % descriptions.length],
-      value: Math.round((50000 + Math.random() * 650000) * complexityFactor),
+      value: Math.round((50000 + ((i % 13) + 1) * 50000) * complexityFactor),
       status: isPending ? 'Pending' : 'Approved',
-      agingDays: Math.round(5 + Math.random() * 70),
+      agingDays: Math.round(5 + ((i * 7) % 65) + 5),
     };
   });
   
@@ -622,9 +622,9 @@ export function generateConstructionData(inputs, results) {
   const ltir = parseFloat((trir * 0.35).toFixed(2));
   const lostTimeIncidents = Math.round((ltir * totalWorkHours) / 200000);
   const firstAidCases = Math.round(recordableIncidents * 2.5);
-  const safetyDaysSinceLast = Math.round(30 + Math.random() * 120);
+  const safetyDaysSinceLast = Math.max(5, Math.round(200 - recordableIncidents * 40));
   const safetyObservationsTotal = Math.round(totalWorkHours / 2000);
-  const safetyObsResolved = Math.round(safetyObservationsTotal * (0.75 + Math.random() * 0.15));
+  const safetyObsResolved = Math.round(safetyObservationsTotal * 0.82);
   
   // ── Quality Metrics ────────────────────────────────────────────────────
   // RFIs scale with project complexity
@@ -647,7 +647,7 @@ export function generateConstructionData(inputs, results) {
   const gcContingencyUsed = Math.round(gcContingencyBudget * Math.min(1, contingencyBurnRate * 1.1));
   
   // ── Actual Cost / Earned Value ──────────────────────────────────────────
-  const actualCost = Math.round(bac * (percentComplete / 100) * (0.95 + Math.random() * 0.08));
+  const actualCost = Math.round(bac * (percentComplete / 100) * 0.99);
   const earnedValue = Math.round(bac * (percentComplete / 100));
   
   // ── Financials ──────────────────────────────────────────────────────────
@@ -667,8 +667,8 @@ export function generateConstructionData(inputs, results) {
   const lienWaiverCompliance = lienWaiversReceived > 20 ? 'Y' : 'N';
   const ahjPermitStatus = percentComplete > 60 ? 'Permits Issued — Inspections Active' : (percentComplete > 20 ? 'Permits Issued — Pre-Construction' : 'Permit Application Submitted');
   const cxPrerequisitesPct = Math.min(100, Math.round(percentComplete * 0.65));
-  const inspectionPassRate = Math.round(82 + Math.random() * 12);
-  const actualVsPlannedHeadcountPct = Math.min(110, Math.round((85 + Math.random() * 15)));
+  const inspectionPassRate = Math.round(88 + Math.round(reworkPct * 0.5));
+  const actualVsPlannedHeadcountPct = Math.min(110, Math.round(92 + Math.round(complexityFactor * 5)));
   const headcount = Math.round(avgHeadcount * (actualVsPlannedHeadcountPct / 100));
   const weatherDaysLost = Math.round(totalWeeks * 0.15);
   const weatherDaysClaimed = Math.round(weatherDaysLost * 0.7);
@@ -680,10 +680,10 @@ export function generateConstructionData(inputs, results) {
     const d = new Date(baseDate);
     d.setMonth(d.getMonth() - i);
     const periodPct = Math.max(5, Math.round(percentComplete * (0.4 + i * 0.12)));
-    const periodCPI = parseFloat((0.90 + i * 0.025 + Math.random() * 0.03).toFixed(3));
-    const periodSPI = parseFloat((0.85 + i * 0.03 + Math.random() * 0.03).toFixed(3));
-    const periodTRIR = parseFloat(Math.max(1.0, 2.5 - i * 0.2 + Math.random() * 0.2).toFixed(2));
-    const periodContPct = parseFloat((5 + i * 3 + Math.random() * 2).toFixed(1));
+    const periodCPI = parseFloat((0.915 + i * 0.025).toFixed(3));
+    const periodSPI = parseFloat((0.865 + i * 0.03).toFixed(3));
+    const periodTRIR = parseFloat(Math.max(1.0, 2.6 - i * 0.2).toFixed(2));
+    const periodContPct = parseFloat((6 + i * 3).toFixed(1));
     trendData.push({
       period: d.toISOString().substring(0, 7),
       pctComplete: periodPct,

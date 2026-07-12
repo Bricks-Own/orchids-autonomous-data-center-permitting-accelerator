@@ -26,6 +26,7 @@ const PLACEHOLDER_RESOLVERS = {
   '[Name from USGS 7.5-minute topo or state GIS]': (fmt) => `[Name from USGS 7.5-minute topo or state GIS — ${fmt.airAgencyAbbr} jurisdiction]`,
   '[State Agency — Permit Section]': (fmt) => `${fmt.airAgency} — Permit Review Section`,
   '[State Air Agency - Permit Section]': (fmt) => `${fmt.airAgency} — Permit Review Section`,
+  '[State Air Agency — Permit Section]': (fmt) => `${fmt.airAgency} — Permit Review Section`,
   '[state agency]': (fmt) => fmt.airAgency,
   '[State agency]': (fmt) => fmt.airAgency,
   '[name of water quality agency]': (fmt) => fmt.waterAgency,

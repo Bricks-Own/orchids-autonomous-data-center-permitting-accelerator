@@ -232,7 +232,7 @@ export default function ConstructionDashboard({ inputs, results }) {
 
   const fetchData = () => {
     setLoading(true);
-    fetchConstructionData('BIGWATT-SITEA-001', inputs, results).then(res => {
+    fetchConstructionData(inputs?.siteName || 'default', inputs, results).then(res => {
       if (res?.data) setData(res.data);
     }).catch(() => {}).finally(() => setLoading(false));
   };
@@ -261,7 +261,7 @@ export default function ConstructionDashboard({ inputs, results }) {
       billingToDate: formData.billingToDate || data?.billingToDate,
     };
     try {
-      await saveConstructionData('BIGWATT-SITEA-001', payload);
+      await saveConstructionData(inputs?.siteName || 'default', payload);
       fetchData(); // Refresh
     } catch (err) {
       console.error('Save failed:', err);
@@ -435,7 +435,7 @@ export default function ConstructionDashboard({ inputs, results }) {
                   <span className="text-sm text-amber-400">days behind schedule</span>
                 </div>
                 <div className="bg-gray-700/40 rounded-full h-2">
-                  <div className="h-2 rounded-full bg-amber-500" style={{ width: `\${Math.min(100, Math.abs(schedule?.scheduleSlipDays || 0))}%` }}></div>
+                  <div className="h-2 rounded-full bg-amber-500" style={{ width: `${Math.min(100, Math.abs(schedule?.scheduleSlipDays || 0))}%` }}></div>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
                   <span>On track</span>
@@ -448,7 +448,7 @@ export default function ConstructionDashboard({ inputs, results }) {
                   <div>
                     <div className="text-xs text-gray-500">Contingency Used</div>
                     <div className="text-2xl font-bold text-white">{data.contingencyBurnPct || 0}%</div>
-                    <div className="text-xs text-gray-600">of ${(contingency?.budget / 1e6).toFixed(1)}M budget</div>
+                    <div className="text-xs text-gray-600">of ${(cont?.budget / 1e6).toFixed(1)}M budget</div>
                   </div>
                   <div>
                     <div className="text-xs text-gray-500">Physical Progress</div>
