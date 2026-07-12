@@ -380,7 +380,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
                   <div className="text-xs text-gray-400 font-medium mb-1">Risk Factors</div>
                   {permitScore.riskFactors.slice(0, 3).map((r, i) => (
                     <div key={i} className="text-xs text-amber-300 bg-amber-950/20 border border-amber-800/30 rounded-lg px-3 py-1.5 mb-1">
-                      {r}
+                      {r.factor}
                     </div>
                   ))}
                 </div>
@@ -391,7 +391,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
                   <div className="text-xs text-gray-400 font-medium mb-1">Recommendations</div>
                   {permitScore.recommendations.slice(0, 2).map((r, i) => (
                     <div key={i} className="text-xs text-green-300 bg-green-950/20 border border-green-800/30 rounded-lg px-3 py-1.5 mb-1">
-                      {r}
+                      {r.action}
                     </div>
                   ))}
                 </div>

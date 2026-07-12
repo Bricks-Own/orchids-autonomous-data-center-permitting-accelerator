@@ -23,17 +23,17 @@ export default function PowerPermitAI({ inputs, results, setActiveTab }) {
 
   const metrics = [
     { label: 'On-Site Generation', value: `${m.totalMW} MW`, sub: `${m.powerSrc} · ${m.interconnectionKV} kV`, color: 'text-yellow-400' },
-    { label: 'Transformer', value: `${m.transformerMVA} MVA`, sub: `~${Math.round(transformerMVA / Math.max(totalMW, 1) * 100)}% of load`, color: 'text-amber-400' },
-    { label: 'ISO/RTO', value: iso, sub: inputs.state || '—', color: 'text-emerald-400' },
-    { label: 'FERC', value: ferc, sub: totalMW > 20 ? 'LGIA required' : 'SGIP applicable', color: 'text-blue-400' },
-    { label: 'NERC', value: nerc, sub: `BES threshold: 20 MVA`, color: 'text-violet-400' },
+    { label: 'Transformer', value: `${m.transformerMVA} MVA`, sub: `~${Math.round(m.transformerMVA / Math.max(m.totalMW, 1) * 100)}% of load`, color: 'text-amber-400' },
+    { label: 'ISO/RTO', value: m.iso, sub: inputs.state || '—', color: 'text-emerald-400' },
+    { label: 'FERC', value: m.ferc, sub: m.totalMW > 20 ? 'LGIA required' : 'SGIP applicable', color: 'text-blue-400' },
+    { label: 'NERC', value: m.nerc, sub: `BES threshold: 20 MVA`, color: 'text-violet-400' },
   ];
 
   const pathway = [
-    { label: 'Interconnection', status: ferc, detail: `LGIA/SGIP through ${m.iso} — Feasibility (45d) → SIS (90d) → FS (180d)` },
-    { label: 'NERC', status: nerc, detail: `GO/GOP registration via SERC/TRE/WECC; CIP if >20 MVA` },
-    { label: 'PUC', status: cpc, detail: `Self-generation exemption; CPCN filing if >50 MW` },
-    { label: 'Gas Supply', status: totalMW > 0 ? `${Math.round(totalMW * 0.16)} MMBtu/hr peak` : 'N/A', detail: 'Firm transport for hyperscale; interruptible OK for edge' },
+    { label: 'Interconnection', status: m.ferc, detail: `LGIA/SGIP through ${m.iso} — Feasibility (45d) → SIS (90d) → FS (180d)` },
+    { label: 'NERC', status: m.nerc, detail: `GO/GOP registration via SERC/TRE/WECC; CIP if >20 MVA` },
+    { label: 'PUC', status: m.cpc, detail: `Self-generation exemption; CPCN filing if >50 MW` },
+    { label: 'Gas Supply', status: m.totalMW > 0 ? `${Math.round(m.totalMW * 0.16)} MMBtu/hr peak` : 'N/A', detail: 'Firm transport for hyperscale; interruptible OK for edge' },
   ];
 
   return (
@@ -43,7 +43,7 @@ export default function PowerPermitAI({ inputs, results, setActiveTab }) {
           <h2 className="text-base font-semibold text-white mb-1">Power Permitting & Grid Interconnection</h2>
           <p className="text-xs text-gray-500">FERC · NERC · ISO/RTO · PUC · Utility Interconnection</p>
         </div>
-        {totalMW > 0 && (
+        {m.totalMW > 0 && (
           <span className="bg-yellow-900/40 border border-yellow-800/40 text-yellow-300 px-3 py-1.5 rounded-lg text-xs font-medium">
             {m.totalMW} MW · {m.interconnectionKV} kV · {m.iso}
           </span>

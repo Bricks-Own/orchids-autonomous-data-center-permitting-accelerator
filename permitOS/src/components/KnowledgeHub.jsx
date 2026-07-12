@@ -267,7 +267,7 @@ export default function KnowledgeHub({ inputs, results }) {
                       </div>
                       {item.confidence && (
                         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center">
-                          <span className="text-xs font-bold text-indigo-400">{Math.round(item.confidence * 100)}%</span>
+                          <span className="text-xs font-bold text-indigo-400">{item.relevance}%</span>
                         </div>
                       )}
                     </div>

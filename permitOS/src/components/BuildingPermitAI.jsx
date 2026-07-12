@@ -40,9 +40,9 @@ export default function BuildingPermitAI({ inputs, results, setActiveTab }) {
           <p className="text-xs text-gray-500">IBC 2021 · NFPA 110/75/76 · Local Building Codes · Zoning Compliance</p>
         </div>
         <div className="flex items-center gap-3 text-xs">
-          {totalMW > 0 && (
+          {m.totalMW > 0 && (
             <span className="bg-indigo-900/40 border border-indigo-800/40 text-indigo-300 px-3 py-1.5 rounded-lg font-medium">
-              {totalMW} MW Generation · {ibcClass}
+              {m.totalMW} MW Generation · {m.ibcClass}
             </span>
           )}
         </div>
@@ -65,9 +65,9 @@ export default function BuildingPermitAI({ inputs, results, setActiveTab }) {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             { label: 'IBC Occupancy', status: inputs.occupancyType || 'B (Business)', detail: `Turbine enclosure: F-1; Fuel: H-2/H-3 (if >500gal)` },
-            { label: 'Height/Area Limits', status: stories <= 4 ? 'Compliant (IBC Table 504.3)' : 'Variance required (sprinkler increase allowed)', detail: `Type ${totalMW > 400 ? 'IB' : 'IIB'} allow ${stories} stories` },
-            { label: 'Fire Suppression', status: suppression.includes('Clean agent') || suppression.includes('Pre-action') ? 'Compliant (IBC Chapter 9)' : 'Pre-action recommended for IT spaces', detail: `${suppression} for white space; sprinkler for support spaces` },
-            { label: 'Emergency Power (NFPA 110)', status: emergencyConf.includes('N+1') || emergencyConf.includes('2N') ? 'Compliant (Level 1/2)' : 'N+1 recommended for Tier III+', detail: `${inputs.gensetCount || 0} gensets · ${emergencyConf} configured` },
+            { label: 'Height/Area Limits', status: m.stories <= 4 ? 'Compliant (IBC Table 504.3)' : 'Variance required (sprinkler increase allowed)', detail: `Type ${m.totalMW > 400 ? 'IB' : 'IIB'} allow ${m.stories} stories` },
+            { label: 'Fire Suppression', status: m.suppression.includes('Clean agent') || m.suppression.includes('Pre-action') ? 'Compliant (IBC Chapter 9)' : 'Pre-action recommended for IT spaces', detail: `${m.suppression} for white space; sprinkler for support spaces` },
+            { label: 'Emergency Power (NFPA 110)', status: m.emergencyConf.includes('N+1') || m.emergencyConf.includes('2N') ? 'Compliant (Level 1/2)' : 'N+1 recommended for Tier III+', detail: `${inputs.gensetCount || 0} gensets · ${m.emergencyConf} configured` },
           ].map(item => (
             <div key={item.label} className="bg-gray-800/40 rounded-lg p-3">
               <div className="text-xs font-medium text-gray-300 mb-1">{item.label}</div>
