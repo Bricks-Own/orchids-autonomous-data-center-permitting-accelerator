@@ -376,6 +376,7 @@ export default function ConstructionDashboard({ inputs, results }) {
         <div>
           <h1 className="text-lg font-bold text-white">Construction Project Controls</h1>
           <p className="text-xs text-gray-500 mt-0.5">{data.projectName} | As of {data.asOfDate}</p>
+          <p className="text-[10px] text-gray-600 mt-0.5">Click <span className="text-indigo-400 font-mono bg-indigo-900/30 border border-indigo-700/40 rounded px-1 text-[10px]">ƒx</span> on any metric to see its formula</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowEntry(true)} className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">

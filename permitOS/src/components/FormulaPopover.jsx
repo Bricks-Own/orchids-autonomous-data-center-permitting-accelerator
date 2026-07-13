@@ -1,14 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import METRIC_DEFINITIONS from './MetricRegistry';
 
 // ─── Formula Popover ────────────────────────────────────────────────────────
-// Shows a three-row computation breakdown when a user clicks/hovers the fx icon
-// on any KPI card. Driven entirely by METRIC_DEFINITIONS so formulas never
-// drift from the actual computation.
+// Shows a three-row computation breakdown when a user clicks the ƒx badge
+// on any KPI card. The popover panel is rendered via a portal to document.body
+// with fixed positioning so it breaks out of any CSS stacking context created
+// by a parent transform (e.g. hover:scale-[1.02] on KpiCard).
 export default function FormulaPopover({ metricKey, data, children }) {
   const [open, setOpen] = useState(false);
-  const popoverRef = useRef(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
   const btnRef = useRef(null);
+  const panelRef = useRef(null);
   const dataKeyRef = useRef(null);
 
   const def = METRIC_DEFINITIONS[metricKey];
@@ -23,11 +26,35 @@ export default function FormulaPopover({ metricKey, data, children }) {
     dataKeyRef.current = key;
   });
 
+  // Position the portal panel after it's rendered — useLayoutEffect avoids flash
+  useLayoutEffect(() => {
+    if (!open || !btnRef.current || !panelRef.current) return;
+    const btnRect = btnRef.current.getBoundingClientRect();
+    const panelRect = panelRef.current.getBoundingClientRect();
+    const gap = 6;
+
+    let top = btnRect.bottom + gap;
+    let left = btnRect.left;
+
+    // Flip above if no room below
+    if (top + panelRect.height > window.innerHeight - 8) {
+      top = Math.max(8, btnRect.top - gap - panelRect.height);
+    }
+
+    // Clamp horizontally
+    if (left + panelRect.width > window.innerWidth - 8) {
+      left = Math.max(8, window.innerWidth - panelRect.width - 8);
+    }
+    left = Math.max(8, left);
+
+    setPos({ top, left });
+  }, [open]);
+
   // Close on click outside
   useEffect(() => {
     if (!open) return;
     const handler = (e) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target) &&
+      if (panelRef.current && !panelRef.current.contains(e.target) &&
           btnRef.current && !btnRef.current.contains(e.target)) {
         setOpen(false);
       }
@@ -42,6 +69,14 @@ export default function FormulaPopover({ metricKey, data, children }) {
     const escHandler = (e) => { if (e.key === 'Escape') setOpen(false); };
     document.addEventListener('keydown', escHandler);
     return () => document.removeEventListener('keydown', escHandler);
+  }, [open]);
+
+  // Close on scroll (simpler than repositioning)
+  useEffect(() => {
+    if (!open) return;
+    const scrollHandler = () => setOpen(false);
+    window.addEventListener('scroll', scrollHandler, true);
+    return () => window.removeEventListener('scroll', scrollHandler, true);
   }, [open]);
 
   // Compute the actual value and input values
@@ -115,16 +150,16 @@ export default function FormulaPopover({ metricKey, data, children }) {
       <button
         ref={btnRef}
         onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
-        className="ml-1.5 text-[10px] text-gray-600 hover:text-indigo-400 transition-colors px-1 py-0.5 rounded hover:bg-gray-800/50 font-mono"
-        title={`How ${def.label} is computed`}
+        className="ml-1.5 text-[10px] font-mono text-indigo-400 bg-indigo-900/30 border border-indigo-700/40 rounded px-1 py-0.5 hover:bg-indigo-800/40 transition-colors cursor-pointer"
+        title="See how this is computed"
       >
         ƒx
       </button>
-      {open && (
+      {open && createPortal(
         <div
-          ref={popoverRef}
-          className="absolute z-50 mt-1 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-4 min-w-[320px] max-w-[400px]"
-          style={{ top: '100%', left: '0' }}
+          ref={panelRef}
+          className="fixed z-50 bg-gray-950 border border-gray-700 rounded-xl shadow-2xl p-4 min-w-[320px] max-w-[400px]"
+          style={{ top: pos.top, left: pos.left }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -190,7 +225,8 @@ export default function FormulaPopover({ metricKey, data, children }) {
               </div>
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </span>
   );
