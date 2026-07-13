@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, Suspense } from 'react';
+import React, { useState, useMemo, useRef, Suspense, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -258,7 +258,7 @@ function SiteScene({ milestoneDetails, progressPct, onHover, hovered, setSelecte
 }
 
 // ─── Main Component ────────────────────────────────────────────────────────
-export default function SiteView3D({ data }) {
+function SiteView3D({ data }) {
   const [hovered, setHovered] = useState(null);
   const [selectedPhase, setSelectedPhase] = useState(null);
   const [progressPct, setProgressPct] = useState(100);
@@ -310,35 +310,42 @@ export default function SiteView3D({ data }) {
     return displayMilestones.find(m => m.name === milestoneName);
   })();
 
+  // Stable key for Canvas to prevent remounting on parent re-renders
+  const canvasKey = 'siteview3d-canvas';
+
   return (
-    <div className="flex gap-4 h-full">
-      {/* 3D Viewport */}
-      <div className="flex-1 rounded-xl border border-gray-700/40 bg-gray-950/80 overflow-hidden" style={{ minHeight: '480px', height: '560px' }}>
-        <Canvas
-          camera={{ position: [12, 8, 10], fov: 45, near: 0.1, far: 100 }}
-          gl={{ antialias: true, alpha: false }}
-          onCreated={({ gl }) => { gl.setClearColor('#030712'); }}
-        >
-          <ambientLight intensity={0.4} />
-          <directionalLight position={[10, 15, 10]} intensity={0.8} />
-          <directionalLight position={[-5, 5, -5]} intensity={0.3} />
-          <Suspense fallback={null}>
-            <SiteScene
-              milestoneDetails={displayMilestones}
-              progressPct={progressPct}
-              onHover={setHovered}
-              hovered={hovered}
-              setSelectedPhase={setSelectedPhase}
+    <div className="flex gap-4 h-full" style={{ minHeight: '480px' }}>
+      {/* 3D Viewport — explicitly sized container */}
+      <div className="flex-1 rounded-xl border border-gray-700/40 bg-gray-950/80 overflow-hidden" style={{ minHeight: '480px', height: '560px', position: 'relative' }}>
+        <div style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
+          <Canvas
+            key={canvasKey}
+            camera={{ position: [12, 8, 10], fov: 45, near: 0.1, far: 100 }}
+            gl={{ antialias: true, alpha: false }}
+            onCreated={({ gl }) => { gl.setClearColor('#030712'); }}
+            style={{ width: '100%', height: '100%' }}
+          >
+            <ambientLight intensity={0.4} />
+            <directionalLight position={[10, 15, 10]} intensity={0.8} />
+            <directionalLight position={[-5, 5, -5]} intensity={0.3} />
+            <Suspense fallback={null}>
+              <SiteScene
+                milestoneDetails={displayMilestones}
+                progressPct={progressPct}
+                onHover={setHovered}
+                hovered={hovered}
+                setSelectedPhase={setSelectedPhase}
+              />
+            </Suspense>
+            <OrbitControls
+              enableDamping
+              dampingFactor={0.15}
+              minDistance={4}
+              maxDistance={30}
+              maxPolarAngle={Math.PI / 2.1}
             />
-          </Suspense>
-          <OrbitControls
-            enableDamping
-            dampingFactor={0.15}
-            minDistance={4}
-            maxDistance={30}
-            maxPolarAngle={Math.PI / 2.1}
-          />
-        </Canvas>
+          </Canvas>
+        </div>
       </div>
 
       {/* Side Panel */}
@@ -444,3 +451,5 @@ export default function SiteView3D({ data }) {
     </div>
   );
 }
+
+export default React.memo(SiteView3D);

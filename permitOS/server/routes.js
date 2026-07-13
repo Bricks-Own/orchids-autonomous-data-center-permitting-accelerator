@@ -735,6 +735,7 @@ const TRUSTED_DOMAINS = [
   'cdx.epa.gov',
   'www.epa.gov',
   'www.ecfr.gov',
+  'cfpub.epa.gov',
   // State environmental agency domains
   'tceq.texas.gov',
   'deq.virginia.gov',
@@ -793,6 +794,13 @@ const TRUSTED_DOMAINS = [
   'dep.wv.gov',
   'dnr.wi.gov',
   'deq.wyoming.gov',
+  // Consultant / Industry Practice Pages
+  'asg-innovations.com',
+  'www.asg-innovations.com',
+  'erm.com',
+  'www.erm.com',
+  'trinityconsultants.com',
+  'www.trinityconsultants.com',
   // FERC
   'ferc.gov',
   'www.ferc.gov',

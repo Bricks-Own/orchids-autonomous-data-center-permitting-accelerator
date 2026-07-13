@@ -5,6 +5,10 @@ import {
 } from 'recharts';
 import { fetchConstructionData, saveConstructionData } from '../utils/api';
 import SiteView3D from './SiteView3D';
+import FormulaPopover from './FormulaPopover';
+import BaselineProjections from './BaselineProjections';
+import VendorLedger from './VendorLedger';
+import { BudgetWaterfall, SCurveChart, ContingencyDrawdown, MilestoneVarianceChart, CPISPITrend } from './AdvancedCharts';
 
 // ─── Color / Style Constants ──────────────────────────────────────────────
 const TL = {
@@ -24,20 +28,32 @@ function TrafficDot({ status = 'gray', label }) {
   );
 }
 
-function KpiCard({ title, value, status, subtitle, onClick, children }) {
+function KpiCard({ title, value, status, subtitle, onClick, children, metricKey, data }) {
   const s = TL[status] || TL.gray;
-  return (
-    <div
-      className={`rounded-xl border ${s.bg} p-4 cursor-pointer transition-all hover:scale-[1.02] ${onClick ? 'cursor-pointer' : ''}`}
-      onClick={onClick}
-    >
+  const cardContent = (
+    <>
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs text-gray-500 font-medium">{title}</span>
         <TrafficDot status={status} />
       </div>
-      <div className={`text-xl font-bold ${s.text}`}>{value}</div>
+      <div className="text-xl font-bold flex items-center gap-1">
+        <span className={s.text}>{value}</span>
+        {metricKey && data && (
+          <FormulaPopover metricKey={metricKey} data={data}>
+            <span />
+          </FormulaPopover>
+        )}
+      </div>
       {subtitle && <div className="text-xs text-gray-600 mt-0.5">{subtitle}</div>}
       {children}
+    </>
+  );
+  return (
+    <div
+      className={`rounded-xl border ${s.bg} p-4 transition-all hover:scale-[1.02] ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
+      {cardContent}
     </div>
   );
 }
@@ -290,6 +306,9 @@ export default function ConstructionDashboard({ inputs, results }) {
     { id: 'trackers', label: 'Other Trackers', icon: '📋' },
     { id: 'risks', label: 'Risk Register', icon: '⚠️' },
     { id: 'pcos', label: 'PCO Tracker', icon: '📝' },
+    { id: 'baseline', label: 'Baseline & Projections', icon: '📈' },
+    { id: 'vendor', label: 'Vendor Ledger', icon: '📋' },
+    { id: 'charts', label: 'Advanced Charts', icon: '📉' },
     { id: '3dview', label: '3D Site View', icon: '🏗️' },
   ];
 
@@ -373,13 +392,17 @@ export default function ConstructionDashboard({ inputs, results }) {
       {/* ── C-Suite KPI Row ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <KpiCard title="CPI (Cost Perf Index)" value={evm?.CPI?.toFixed(3) || '—'} status={evm?.statusCPI || 'gray'}
-          subtitle={`EAC: $${(evm?.EAC / 1e6).toFixed(1)}M`} onClick={() => setSubTab('financials')} />
+          subtitle={`EAC: $${(evm?.EAC / 1e6).toFixed(1)}M`} onClick={() => setSubTab('financials')}
+          metricKey="cpi" data={data} />
         <KpiCard title="SPI (Schedule Perf Index)" value={evm?.SPI?.toFixed(3) || '—'} status={evm?.statusSPI || 'gray'}
-          subtitle={`VAC: $${(evm?.VAC / 1e6).toFixed(1)}M`} onClick={() => setSubTab('schedule')} />
+          subtitle={`VAC: $${(evm?.VAC / 1e6).toFixed(1)}M`} onClick={() => setSubTab('schedule')}
+          metricKey="spi" data={data} />
         <KpiCard title="Contingency Burn" value={`${cont?.utilizationPct?.toFixed(0) || 0}%`} status={cont?.status || 'gray'}
-          subtitle={`Used: $${(cont?.used / 1e6).toFixed(1)}M / $${(cont?.budget / 1e6).toFixed(1)}M`} onClick={() => setSubTab('financials')} />
+          subtitle={`Used: $${(cont?.used / 1e6).toFixed(1)}M / $${(cont?.budget / 1e6).toFixed(1)}M`} onClick={() => setSubTab('financials')}
+          metricKey="contingencyUtilization" data={data} />
         <KpiCard title="TRIR (Safety)" value={safety?.trir?.toFixed(2) || '—'} status={safety?.statusTRIR || 'gray'}
-          subtitle={`LTIR: ${safety?.ltir?.toFixed(2) || '—'}`} onClick={() => setSubTab('hse')} />
+          subtitle={`LTIR: ${safety?.ltir?.toFixed(2) || '—'}`} onClick={() => setSubTab('hse')}
+          metricKey="trir" data={data} />
       </div>
 
       {/* ── Trend Charts Row ── */}
@@ -419,10 +442,10 @@ export default function ConstructionDashboard({ inputs, results }) {
                 <span>🏛️</span> C-Suite Dashboard — Total Development Cost (TDC)
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-                <KpiCard title="Baseline Budget" value={`$${(evm?.BAC / 1e6).toFixed(1)}M`} status="green" subtitle="Approved TDC" />
-                <KpiCard title="Forecast EAC" value={`$${(evm?.EAC / 1e6).toFixed(1)}M`} status={evm?.EAC > evm?.BAC ? 'red' : 'green'} subtitle={evm?.EAC > evm?.BAC ? `$${((evm?.EAC - evm?.BAC) / 1e6).toFixed(1)}M over budget` : 'Within budget'} />
-                <KpiCard title="Revenue" value={`$${(data.revenue / 1e6).toFixed(1)}M`} status="green" subtitle={`Margin: ${(data.forecastMargin * 100).toFixed(1)}% actual vs ${(data.plannedMargin * 100).toFixed(1)}% planned`} />
-                <KpiCard title="Net Cash Position" value={`$${(data.netCashPosition / 1e6).toFixed(1)}M`} status={data.netCashPosition < 0 ? 'red' : 'green'} subtitle={data.netCashPosition < 0 ? 'Negative — review AR aging' : 'Positive'} />
+                <KpiCard title="Baseline Budget" value={`$${(evm?.BAC / 1e6).toFixed(1)}M`} status="green" subtitle="Approved TDC" metricKey="eac" data={data} />
+                <KpiCard title="Forecast EAC" value={`$${(evm?.EAC / 1e6).toFixed(1)}M`} status={evm?.EAC > evm?.BAC ? 'red' : 'green'} subtitle={evm?.EAC > evm?.BAC ? `$${((evm?.EAC - evm?.BAC) / 1e6).toFixed(1)}M over budget` : 'Within budget'} metricKey="eac" data={data} />
+                <KpiCard title="Revenue" value={`$${(data.revenue / 1e6).toFixed(1)}M`} status="green" subtitle={`Margin: ${(data.forecastMargin * 100).toFixed(1)}% actual vs ${(data.plannedMargin * 100).toFixed(1)}% planned`} metricKey="forecastMargin" data={data} />
+                <KpiCard title="Net Cash Position" value={`$${(data.netCashPosition / 1e6).toFixed(1)}M`} status={data.netCashPosition < 0 ? 'red' : 'green'} subtitle={data.netCashPosition < 0 ? 'Negative — review AR aging' : 'Positive'} metricKey="netCashPosition" data={data} />
               </div>
             </div>
 
@@ -479,6 +502,12 @@ export default function ConstructionDashboard({ inputs, results }) {
                 <span>⚠️</span> Top 5 Risk Register (RED/YELLOW)
               </h4>
               <RiskRegister risks={data.topRisks} />
+            </div>
+
+            {/* Advanced Visuals — PowerBI-beating charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <BudgetWaterfall data={data} />
+              <MilestoneVarianceChart data={data} />
             </div>
           </div>
         )}
@@ -560,8 +589,8 @@ export default function ConstructionDashboard({ inputs, results }) {
         {subTab === 'hse' && (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <KpiCard title="TRIR" value={safety?.trir?.toFixed(2) || '—'} status={safety?.statusTRIR} subtitle="Recordable Incident Rate" />
-              <KpiCard title="LTIR" value={safety?.ltir?.toFixed(2) || '—'} status={safety?.statusLTIR} subtitle="Lost Time Incident Rate" />
+              <KpiCard title="TRIR" value={safety?.trir?.toFixed(2) || '—'} status={safety?.statusTRIR} subtitle="Recordable Incident Rate" metricKey="trir" data={data} />
+              <KpiCard title="LTIR" value={safety?.ltir?.toFixed(2) || '—'} status={safety?.statusLTIR} subtitle="Lost Time Incident Rate" metricKey="ltir" data={data} />
               <KpiCard title="Days Since Last Incident" value={data.safetyDaysSinceLast || 0} status={data.safetyDaysSinceLast > 30 ? 'green' : data.safetyDaysSinceLast > 7 ? 'amber' : 'red'} />
               <KpiCard title="Total Work Hours" value={(safety?.totalWorkHours || 0).toLocaleString()} status="green" />
             </div>
@@ -591,9 +620,9 @@ export default function ConstructionDashboard({ inputs, results }) {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <KpiCard title="Total RFIs" value={quality?.rfiTotal || 0} status="green" />
-              <KpiCard title="Avg RFI Response" value={`${quality?.rfiAvgResponseDays?.toFixed(1) || '—'}d`} status={quality?.statusRFI || 'gray'} />
+              <KpiCard title="Avg RFI Response" value={`${quality?.rfiAvgResponseDays?.toFixed(1) || '—'}d`} status={quality?.statusRFI || 'gray'} metricKey="rfiResponseDays" data={data} />
               <KpiCard title="Punchlist Open" value={quality?.punchlistOpen || 0} status={quality?.punchlistOpen < 20 ? 'green' : quality?.punchlistOpen < 40 ? 'amber' : 'red'} subtitle={`of ${quality?.punchlistItems || 0} total`} />
-              <KpiCard title="Rework Cost" value={`$${((quality?.reworkCost || 0) / 1e6).toFixed(1)}M`} status={quality?.statusRework || 'gray'} subtitle={`${quality?.reworkPct || 0}% of total`} />
+              <KpiCard title="Rework Cost" value={`$${((quality?.reworkCost || 0) / 1e6).toFixed(1)}M`} status={quality?.statusRework || 'gray'} subtitle={`${quality?.reworkPct || 0}% of total`} metricKey="reworkPct" data={data} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-gray-900/40 border border-gray-800/40 rounded-xl p-4">
@@ -655,11 +684,11 @@ export default function ConstructionDashboard({ inputs, results }) {
         {subTab === 'financials' && (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-              <KpiCard title="CPI" value={evm?.CPI?.toFixed(3) || '—'} status={evm?.statusCPI} subtitle={`EV: $${(evm?.EV / 1e6).toFixed(1)}M`} />
-              <KpiCard title="EAC" value={`$${(evm?.EAC / 1e6).toFixed(1)}M`} status={evm?.statusVAC} subtitle={`BAC: $${(evm?.BAC / 1e6).toFixed(1)}M`} />
-              <KpiCard title="VAC" value={`$${(evm?.VAC / 1e6).toFixed(1)}M`} status={evm?.statusVAC} subtitle={`${evm?.VACPct?.toFixed(1) || 0}%`} />
-              <KpiCard title="Contingency" value={`${cont?.utilizationPct?.toFixed(0) || 0}%`} status={cont?.status} subtitle={`Used: $${(cont?.used / 1e6).toFixed(1)}M`} />
-              <KpiCard title="Cash Position" value={`$${(data.cashPosition / 1e6).toFixed(1)}M`} status={data.cashPosition > 0 ? 'green' : 'red'} />
+              <KpiCard title="CPI" value={evm?.CPI?.toFixed(3) || '—'} status={evm?.statusCPI} subtitle={`EV: $${(evm?.EV / 1e6).toFixed(1)}M`} metricKey="cpi" data={data} />
+              <KpiCard title="EAC" value={`$${(evm?.EAC / 1e6).toFixed(1)}M`} status={evm?.statusVAC} subtitle={`BAC: $${(evm?.BAC / 1e6).toFixed(1)}M`} metricKey="eac" data={data} />
+              <KpiCard title="VAC" value={`$${(evm?.VAC / 1e6).toFixed(1)}M`} status={evm?.statusVAC} subtitle={`${evm?.VACPct?.toFixed(1) || 0}%`} metricKey="vac" data={data} />
+              <KpiCard title="Contingency" value={`${cont?.utilizationPct?.toFixed(0) || 0}%`} status={cont?.status} subtitle={`Used: $${(cont?.used / 1e6).toFixed(1)}M`} metricKey="contingencyUtilization" data={data} />
+              <KpiCard title="Cash Position" value={`$${(data.cashPosition / 1e6).toFixed(1)}M`} status={data.cashPosition > 0 ? 'green' : 'red'} metricKey="netCashPosition" data={data} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-gray-900/40 border border-gray-800/40 rounded-xl p-4">
@@ -733,8 +762,8 @@ export default function ConstructionDashboard({ inputs, results }) {
         {subTab === 'schedule' && (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <KpiCard title="SPI" value={evm?.SPI?.toFixed(3) || '—'} status={evm?.statusSPI} subtitle="Schedule Performance" />
-              <KpiCard title="Schedule Slip" value={`${schedule?.scheduleSlipDays || 0}d`} status={schedule?.statusMS || 'gray'} />
+              <KpiCard title="SPI" value={evm?.SPI?.toFixed(3) || '—'} status={evm?.statusSPI} subtitle="Schedule Performance" metricKey="spi" data={data} />
+              <KpiCard title="Schedule Slip" value={`${schedule?.scheduleSlipDays || 0}d`} status={schedule?.statusMS || 'gray'} metricKey="scheduleSlipDays" data={data} />
               <KpiCard title="Critical Path" value={`${schedule?.criticalPathLength || 0}d`} status={schedule?.criticalPathLength > 60 ? 'red' : schedule?.criticalPathLength > 30 ? 'amber' : 'green'} />
               <KpiCard title="Float Consumed" value={`${schedule?.floatConsumed || 0}d`} status={schedule?.floatConsumed > 30 ? 'red' : schedule?.floatConsumed > 15 ? 'amber' : 'green'} />
             </div>
@@ -873,16 +902,9 @@ export default function ConstructionDashboard({ inputs, results }) {
           </div>
         )}
 
-        {/* PCO Tracker */}
+        {/* 3D Site View — wrapped in useMemo with stable key to prevent remount on data refetch */}
         {subTab === '3dview' && (
-          <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
-            <h3 className="text-sm font-semibold text-gray-300 mb-4">3D Site View — Construction Progress Model</h3>
-            <p className="text-xs text-gray-500 mb-4">
-              Interactive 3D model of the site. Structures are color-coded: green = complete, amber = in progress, gray = not started.
-              Use the slider to scrub through the project timeline. Hover or click structures for phase details.
-            </p>
-            <SiteView3D data={data} />
-          </div>
+          <SiteView3DWrapper key="3dview-stable" data={data} />
         )}
         {subTab === 'pcos' && (
           <div className="space-y-4">
@@ -923,9 +945,83 @@ export default function ConstructionDashboard({ inputs, results }) {
             </div>
           </div>
         )}
-      </div>
 
-      {/* ── Data Entry Modal ── */}
+        {/* Baseline & Projections */}
+        {subTab === 'baseline' && (
+          <div className="space-y-4">
+            <div className="rounded-xl border border-indigo-700/30 bg-indigo-950/20 p-4">
+              <h3 className="text-sm font-semibold text-indigo-300 mb-1">Project Baseline & Projections</h3>
+              <p className="text-xs text-gray-500 mb-3">Edit baseline inputs and current actuals below. Projections update instantly — save to persist.</p>
+            </div>
+            <BaselineProjections
+              data={data}
+              onSave={(payload) => {
+                handleSaveData(payload);
+              }}
+              initialBaseline={{
+                originalBudget: evm?.BAC,
+                contingencyBudget: cont?.budget,
+                baselineStartDate: '2024-06-01',
+                baselineFinishDate: data?.schedule?.plannedFinish || '2026-09-15',
+                customerNeedDate: data?.schedule?.customerNeedDate || '2026-08-15',
+                plannedHeadcount: data?.headcount,
+                plannedMargin: data?.plannedMargin,
+                actualCost: evm?.ACWP,
+                percentComplete: evm?.percentComplete,
+                plannedPctComplete: evm?.plannedPctComplete,
+                cashReceived: data?.cashReceivedToDate,
+                billedToDate: data?.billingToDate,
+                contingencyUsed: cont?.used,
+                totalWorkHours: safety?.totalWorkHours,
+                recordableIncidents: safety?.recordableIncidents,
+                lostTimeIncidents: safety?.lostTimeIncidents,
+                rfiTotal: quality?.rfiTotal,
+                rfiAvgResponseDays: quality?.rfiAvgResponseDays,
+                punchlistItems: quality?.punchlistItems,
+                reworkCost: quality?.reworkCost,
+                cashPosition: data?.cashPosition,
+                safetyDaysSinceLast: data?.safetyDaysSinceLast,
+              }}
+            />
+          </div>
+        )}
+
+        {/* Vendor Ledger */}
+        {subTab === 'vendor' && (
+          <div className="space-y-4">
+            <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4">
+              <h3 className="text-sm font-semibold text-gray-300 mb-1">Vendor / Commitment Ledger</h3>
+              <p className="text-xs text-gray-500 mb-3">Editable cost ledger with per-vendor commitment tracking and reconciliation against project EAC.</p>
+            </div>
+            <VendorLedger
+              data={data}
+              onSave={(payload) => {
+                console.log('Vendor ledger saved:', payload);
+              }}
+              savedVendors={null}
+            />
+          </div>
+        )}
+
+        {/* Advanced Charts */}
+        {subTab === 'charts' && (
+          <div className="space-y-4">
+            <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4">
+              <h3 className="text-sm font-semibold text-gray-300 mb-1">Advanced Visualizations</h3>
+              <p className="text-xs text-gray-500 mb-3">PowerBI-beating charts: waterfall bridge, milestone variance, CPI/SPI trend, and cost category breakdown.</p>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <BudgetWaterfall data={data} />
+              <MilestoneVarianceChart data={data} />
+              <CPISPITrend data={data} />
+              <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4">
+                <h3 className="text-xs font-semibold text-gray-400 mb-3">Cost Category Breakdown</h3>
+                <CostCategoryBreakdown categories={data.costCategories} />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
       <DataEntryModal
         open={showEntry}
         onClose={() => setShowEntry(false)}
@@ -985,3 +1081,17 @@ function safeFormat(n) {
   if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
   return String(n);
 }
+
+// ─── Stable 3D View Wrapper — prevents Canvas remount on parent re-render ──
+const SiteView3DWrapper = React.memo(function SiteView3DWrapper({ data }) {
+  return (
+    <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
+      <h3 className="text-sm font-semibold text-gray-300 mb-4">3D Site View — Construction Progress Model</h3>
+      <p className="text-xs text-gray-500 mb-4">
+        Interactive 3D model of the site. Structures are color-coded: green = complete, amber = in progress, gray = not started.
+        Use the slider to scrub through the project timeline. Hover or click structures for phase details.
+      </p>
+      <SiteView3D data={data} />
+    </div>
+  );
+});
