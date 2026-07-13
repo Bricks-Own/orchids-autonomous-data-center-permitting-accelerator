@@ -134,7 +134,7 @@ function CostCategoryBreakdown({ categories }) {
         <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
         <XAxis type="number" tick={{ fill: '#9ca3af', fontSize: 11 }} />
         <YAxis dataKey="name" type="category" tick={{ fill: '#9ca3af', fontSize: 11 }} width={90} />
-        <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} />
+        <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} formatter={(val) => '$' + val.toFixed(1) + 'M'} />
         <Bar dataKey="budget" fill="#6366f1" name="Budget ($M)" radius={[0, 3, 3, 0]} />
         <Bar dataKey="actual" fill="#22c55e" name="Actual ($M)" radius={[0, 3, 3, 0]} />
       </BarChart>
@@ -152,7 +152,7 @@ function TrendChart({ data, lines, yLabel }) {
         <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
         <XAxis dataKey="period" tick={{ fill: '#9ca3af', fontSize: 11 }} />
         <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} domain={[0, 'auto']} />
-        <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} />
+        <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} />
         <Legend wrapperStyle={{ fontSize: '11px', color: '#9ca3af' }} />
         {lines.map((l, i) => (
           <Line key={l.key} type="monotone" dataKey={l.key} stroke={colors[i % colors.length]} strokeWidth={2} dot={{ r: 3 }} name={l.label || l.key} />
@@ -1102,7 +1102,7 @@ function renderEVMBars(evm) {
         <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
         <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 11 }} />
         <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} />
-        <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} />
+        <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} formatter={(val) => '$' + val.toFixed(1) + 'M'} />
         <Bar dataKey="value" radius={[3, 3, 0, 0]}>
           {data.map((entry, index) => (
             <Cell key={index} fill={entry.name === 'EAC' ? '#f59e0b' : entry.name === 'ACWP' ? '#ef4444' : '#6366f1'} />

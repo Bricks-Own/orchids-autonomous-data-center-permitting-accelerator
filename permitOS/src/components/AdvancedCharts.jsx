@@ -58,12 +58,14 @@ export function BudgetWaterfall({ data }) {
         <BarChart data={waterfallData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
           <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 10 }} />
-          <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} />
+          <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} tickFormatter={(v) => '$' + v.toFixed(0) + 'M'} />
           <Tooltip
             contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }}
+            labelStyle={{ color: '#e5e7eb' }}
+            itemStyle={{ color: '#e5e7eb' }}
             formatter={(val) => '$' + val.toFixed(1) + 'M'}
           />
-          <Bar dataKey="value" shape={<CustomBar />}>
+          <Bar dataKey="value" name="Amount" shape={<CustomBar />}>
             {waterfallData.map((entry, idx) => (
               <Cell key={idx} fill={entry.fill} />
             ))}
@@ -88,7 +90,7 @@ export function SCurveChart({ projections }) {
           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
           <XAxis dataKey="period" tick={{ fill: '#9ca3af', fontSize: 10 }} />
           <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} domain={[0, 100]} />
-          <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} />
+          <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} />
           <Legend wrapperStyle={{ fontSize: '10px', color: '#9ca3af' }} />
           <Line type="monotone" dataKey="planned" stroke="#6366f1" strokeWidth={2} dot={false} name="Planned" />
           <Line type="monotone" dataKey="actual" stroke="#22c55e" strokeWidth={2} dot={false} name="Actual" />
@@ -115,7 +117,7 @@ export function ContingencyDrawdown({ projections }) {
           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
           <XAxis dataKey="period" tick={{ fill: '#9ca3af', fontSize: 10 }} />
           <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} domain={[0, 100]} />
-          <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} />
+          <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} />
           <Legend wrapperStyle={{ fontSize: '10px', color: '#9ca3af' }} />
           <Line type="monotone" dataKey="contingency" stroke="#f59e0b" strokeWidth={2} dot={false} name="Contingency %" />
           <Line type="monotone" dataKey="physicalProgress" stroke="#22c55e" strokeWidth={2} dot={false} name="Physical Progress %" />
@@ -150,6 +152,8 @@ export function MilestoneVarianceChart({ data }) {
           <YAxis dataKey="name" type="category" tick={{ fill: '#9ca3af', fontSize: 10 }} width={95} />
           <Tooltip
             contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }}
+            labelStyle={{ color: '#e5e7eb' }}
+            itemStyle={{ color: '#e5e7eb' }}
             formatter={(val) => val + ' days'}
           />
           <Bar dataKey="variance" name="Variance (Days)" radius={[0, 3, 3, 0]}>
@@ -177,7 +181,7 @@ export function CPISPITrend({ data }) {
           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
           <XAxis dataKey="period" tick={{ fill: '#9ca3af', fontSize: 10 }} />
           <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} domain={[0.5, 1.1]} />
-          <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} />
+          <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} />
           <Legend wrapperStyle={{ fontSize: '10px', color: '#9ca3af' }} />
           <Line type="monotone" dataKey="cpi" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} name="CPI" />
           <Line type="monotone" dataKey="spi" stroke="#22c55e" strokeWidth={2} dot={{ r: 3 }} name="SPI" />

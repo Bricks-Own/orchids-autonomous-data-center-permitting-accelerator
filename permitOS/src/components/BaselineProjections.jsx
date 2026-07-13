@@ -395,7 +395,7 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
               <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
               <XAxis dataKey="period" tick={{ fill: '#9ca3af', fontSize: 10 }} />
               <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} domain={[0, 100]} />
-              <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} />
+              <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} />
               <Legend wrapperStyle={{ fontSize: '10px', color: '#9ca3af' }} />
               <Line type="monotone" dataKey="planned" stroke="#6366f1" strokeWidth={2} dot={false} name="Planned" />
               <Line type="monotone" dataKey="actual" stroke="#22c55e" strokeWidth={2} dot={false} name="Actual" />
@@ -413,7 +413,7 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
               <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
               <XAxis dataKey="period" tick={{ fill: '#9ca3af', fontSize: 10 }} />
               <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} domain={[0, 100]} />
-              <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} />
+              <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} />
               <Legend wrapperStyle={{ fontSize: '10px', color: '#9ca3af' }} />
               <Line type="monotone" dataKey="contingency" stroke="#f59e0b" strokeWidth={2} dot={false} name="Contingency %" />
               <Line type="monotone" dataKey="physicalProgress" stroke="#22c55e" strokeWidth={2} dot={false} name="Physical Progress %" />
@@ -429,8 +429,8 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
             <AreaChart data={projections.cashFlowProjection}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
               <XAxis dataKey="period" tick={{ fill: '#9ca3af', fontSize: 10 }} />
-              <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} />
-              <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} />
+              <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} tickFormatter={(v) => '$' + v.toFixed(0) + 'M'} />
+              <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} formatter={(val) => '$' + val.toFixed(1) + 'M'} />
               <Legend wrapperStyle={{ fontSize: '10px', color: '#9ca3af' }} />
               <Area type="monotone" dataKey="projectedCost" stroke="#ef4444" fill="#ef4444" fillOpacity={0.1} strokeWidth={2} name="Projected Cost" />
               <Area type="monotone" dataKey="projectedBilled" stroke="#6366f1" fill="#6366f1" fillOpacity={0.1} strokeWidth={2} name="Projected Billed" />
@@ -448,7 +448,7 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
               <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
               <XAxis type="number" tick={{ fill: '#9ca3af', fontSize: 10 }} />
               <YAxis dataKey="name" type="category" tick={{ fill: '#9ca3af', fontSize: 10 }} width={95} />
-              <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} />
+              <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} formatter={(val) => val + ' days'} />
               <Bar dataKey="variance" name="Variance Days" radius={[0, 3, 3, 0]}>
                 {projections.milestoneVariance.map((entry, idx) => (
                   <rect key={idx} fill={entry.variance > 0 ? '#ef4444' : '#22c55e'} />
