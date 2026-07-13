@@ -509,14 +509,12 @@ export default function KnowledgeHub({ inputs, results }) {
                       </div>
                     )}
                     {/* Click to expand/contract */}
-                    {!expandedIdx === !(expandedIdx === idx) && (
-                      <button
-                        onClick={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
-                        className="text-xs text-gray-600 hover:text-gray-400 mt-1 transition-colors"
-                      >
-                        {expandedIdx === idx ? 'Show less' : 'Show more'}
-                      </button>
-                    )}
+                    <button
+                      onClick={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
+                      className="text-xs text-gray-600 hover:text-gray-400 mt-1 transition-colors"
+                    >
+                      {expandedIdx === idx ? 'Show less' : 'Show more'}
+                    </button>
                   </div>
                   {/* Always show "View source" affordance on the card */}
                   {expandedIdx !== idx && (

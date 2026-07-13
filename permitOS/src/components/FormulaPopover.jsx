@@ -9,9 +9,19 @@ export default function FormulaPopover({ metricKey, data, children }) {
   const [open, setOpen] = useState(false);
   const popoverRef = useRef(null);
   const btnRef = useRef(null);
+  const dataKeyRef = useRef(null);
 
   const def = METRIC_DEFINITIONS[metricKey];
   if (!def) return children || null;
+
+  // Close on data change (handles tab switch without unmounting the top KPI row)
+  useEffect(() => {
+    const key = data?.projectId + '|' + data?.asOfDate + '|' + metricKey;
+    if (dataKeyRef.current !== null && dataKeyRef.current !== key) {
+      setOpen(false);
+    }
+    dataKeyRef.current = key;
+  });
 
   // Close on click outside
   useEffect(() => {
@@ -24,6 +34,14 @@ export default function FormulaPopover({ metricKey, data, children }) {
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!open) return;
+    const escHandler = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', escHandler);
+    return () => document.removeEventListener('keydown', escHandler);
   }, [open]);
 
   // Compute the actual value and input values
@@ -60,16 +78,23 @@ export default function FormulaPopover({ metricKey, data, children }) {
   const statusColor = getStatusColor(computedValue);
   const statusLabel = getStatusLabel(computedValue);
 
-  // Format helpers
-  const fmtVal = (v) => {
+  // Format helpers — separate formatters for result vs input values
+  const fmtResult = (v) => {
     if (typeof v !== 'number') return String(v || '—');
     if (metricKey === 'trir' || metricKey === 'ltir') return v.toFixed(2);
     if (metricKey === 'contingencyUtilization' || metricKey === 'reworkPct' || metricKey === 'vacPct') return v.toFixed(1) + '%';
     if (metricKey === 'cpi' || metricKey === 'spi' || metricKey === 'tcpi') return v.toFixed(3);
     if (metricKey === 'forecastMargin') return (v * 100).toFixed(1) + '%';
+    if (metricKey === 'netCashPosition' || metricKey === 'eac' || metricKey === 'eac2' || metricKey === 'vac') return '$' + (v / 1e6).toFixed(1) + 'M';
     if (Math.abs(v) >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
     if (Math.abs(v) >= 1e3) return '$' + (v / 1e3).toFixed(1) + 'K';
-    if (metricKey === 'netCashPosition' || metricKey === 'eac' || metricKey === 'eac2' || metricKey === 'vac') return '$' + Math.round(v).toLocaleString();
+    return v.toFixed(1);
+  };
+
+  const fmtInput = (v) => {
+    if (typeof v !== 'number') return String(v || '—');
+    if (Math.abs(v) >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+    if (Math.abs(v) >= 1e3) return '$' + (v / 1e3).toFixed(1) + 'K';
     return v.toFixed(1);
   };
 
@@ -81,7 +106,7 @@ export default function FormulaPopover({ metricKey, data, children }) {
       if (val === null || val === undefined) return '—';
       val = val[p];
     }
-    return fmtVal(val);
+    return fmtInput(val);
   };
 
   return (
@@ -132,7 +157,7 @@ export default function FormulaPopover({ metricKey, data, children }) {
                 return match;
               })}
               {' = '}
-              <span className={`font-bold ${statusColor}`}>{fmtVal(computedValue)}</span>
+              <span className={`font-bold ${statusColor}`}>{fmtResult(computedValue)}</span>
             </div>
           </div>
 
@@ -140,7 +165,7 @@ export default function FormulaPopover({ metricKey, data, children }) {
           <div>
             <div className="text-[10px] text-gray-600 uppercase tracking-wider mb-1">Result</div>
             <div className="flex items-center justify-between bg-gray-800/50 rounded-lg px-3 py-2 border border-gray-700/30">
-              <span className="text-xs font-bold text-gray-200">{fmtVal(computedValue)}</span>
+              <span className="text-xs font-bold text-gray-200">{fmtResult(computedValue)}</span>
               <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${statusColor} bg-opacity-20 ${
                 statusLabel === 'GREEN' ? 'bg-green-900/30 text-green-400' :
                 statusLabel === 'AMBER' ? 'bg-amber-900/30 text-amber-400' :
