@@ -631,11 +631,50 @@ export function createApiRouter(db) {
 
 
   // ─── Construction Dashboard ──────────────────────────────────────────────
+  // Merge saved user data over generated defaults (user values always win)
+  function mergeSavedData(generated, saved) {
+    if (!saved) return generated;
+    const merged = { ...generated, ...saved };
+    // Preserve computed sub-objects from generated data unless saved provides them
+    if (saved.evm) merged.evm = saved.evm;
+    if (saved.safety) merged.safety = saved.safety;
+    if (saved.quality) merged.quality = saved.quality;
+    if (saved.schedule) merged.schedule = saved.schedule;
+    if (saved.contingency) merged.contingency = saved.contingency;
+    if (saved.changeOrders) merged.changeOrders = saved.changeOrders;
+    // Recalculate full project metrics from merged raw values
+    const result = calcFullProjectMetrics(merged);
+    // Preserve metadata keys that calcFullProjectMetrics doesn't pass through
+    if (saved.vendors) result.vendors = saved.vendors;
+    if (saved.baseline) result.baseline = saved.baseline;
+    return result;
+  }
+
+  // Load saved data helper
+  function loadSavedConstruction(siteId, tenantId) {
+    const row = db.prepare('SELECT data FROM construction_metrics WHERE site_id = ? AND tenant_id = ?').get(siteId, tenantId);
+    if (!row) return null;
+    return JSON.parse(row.data);
+  }
+
+  // Save/upsert helper
+  function saveConstruction(siteId, tenantId, saveData) {
+    const existing = db.prepare('SELECT data FROM construction_metrics WHERE site_id = ? AND tenant_id = ?').get(siteId, tenantId);
+    const json = JSON.stringify(saveData);
+    if (existing) {
+      db.prepare('UPDATE construction_metrics SET data = ?, updated_at = datetime(\'now\') WHERE site_id = ? AND tenant_id = ?').run(json, siteId, tenantId);
+    } else {
+      db.prepare('INSERT INTO construction_metrics (site_id, tenant_id, data) VALUES (?, ?, ?)').run(siteId, tenantId, json);
+    }
+  }
+
   router.post('/construction/:siteId', (req, res, next) => {
     try {
       const { siteId } = req.params;
       const { inputs, results } = req.body || {};
-      const data = generateConstructionData(inputs, results);
+      const generated = generateConstructionData(inputs, results);
+      const saved = loadSavedConstruction(siteId, req.user.tenantId);
+      const data = saved ? mergeSavedData(generated, saved) : generated;
       res.json({ data });
     } catch (err) { next(err); }
   });
@@ -643,7 +682,9 @@ export function createApiRouter(db) {
   router.get('/construction/:siteId', (req, res, next) => {
     try {
       const { siteId } = req.params;
-      const data = generateConstructionData({}, {});
+      const generated = generateConstructionData({}, {});
+      const saved = loadSavedConstruction(siteId, req.user.tenantId);
+      const data = saved ? mergeSavedData(generated, saved) : generated;
       res.json({ data });
     } catch (err) { next(err); }
   });
@@ -654,6 +695,8 @@ export function createApiRouter(db) {
       const updateData = req.body;
       const errors = validateMetricsData(updateData);
       if (errors.length > 0) return res.status(400).json({ error: 'Validation failed', details: errors });
+      // Persist the raw user data (metrics, plus any vendors/baseline sub-keys)
+      saveConstruction(siteId, req.user.tenantId, updateData);
       const data = calcFullProjectMetrics(updateData);
       res.json({ data, saved: true });
     } catch (err) { next(err); }

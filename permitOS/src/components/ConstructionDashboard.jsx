@@ -259,26 +259,54 @@ export default function ConstructionDashboard({ inputs, results }) {
     const payload = {
       projectName: data?.projectName || 'BigWatt AI Campus — Site A',
       asOfDate: new Date().toISOString().split('T')[0],
-      originalBudget: formData.originalBudget || data?.evm?.BAC,
-      actualCost: formData.actualCost || data?.evm?.ACWP,
-      percentComplete: formData.percentComplete || data?.evm?.percentComplete,
-      plannedPctComplete: formData.plannedPctComplete || data?.evm?.plannedPctComplete,
-      totalWorkHours: formData.totalWorkHours || data?.safety?.totalWorkHours,
-      recordableIncidents: formData.recordableIncidents || data?.safety?.recordableIncidents,
-      lostTimeIncidents: formData.lostTimeIncidents || data?.safety?.lostTimeIncidents,
-      safetyDaysSinceLast: formData.safetyDaysSinceLast || data?.safetyDaysSinceLast,
-      rfiTotal: formData.rfiTotal || data?.quality?.rfiTotal,
-      rfiAvgResponseDays: formData.rfiAvgResponseDays || data?.quality?.rfiAvgResponseDays,
-      punchlistItems: formData.punchlistItems || data?.quality?.punchlistItems,
-      reworkCost: formData.reworkCost || data?.quality?.reworkCost,
-      contingencyBudget: formData.contingencyBudget || data?.contingency?.budget,
-      contingencyUsed: formData.contingencyUsed || data?.contingency?.used,
-      cashPosition: formData.cashPosition || data?.cashPosition,
-      billingToDate: formData.billingToDate || data?.billingToDate,
+      originalBudget: formData.originalBudget ?? data?.evm?.BAC,
+      actualCost: formData.actualCost ?? data?.evm?.ACWP,
+      percentComplete: formData.percentComplete ?? data?.evm?.percentComplete,
+      plannedPctComplete: formData.plannedPctComplete ?? data?.evm?.plannedPctComplete,
+      totalWorkHours: formData.totalWorkHours ?? data?.safety?.totalWorkHours,
+      recordableIncidents: formData.recordableIncidents ?? data?.safety?.recordableIncidents,
+      lostTimeIncidents: formData.lostTimeIncidents ?? data?.safety?.lostTimeIncidents,
+      safetyDaysSinceLast: formData.safetyDaysSinceLast ?? data?.safetyDaysSinceLast,
+      rfiTotal: formData.rfiTotal ?? data?.quality?.rfiTotal,
+      rfiAvgResponseDays: formData.rfiAvgResponseDays ?? data?.quality?.rfiAvgResponseDays,
+      punchlistItems: formData.punchlistItems ?? data?.quality?.punchlistItems,
+      reworkCost: formData.reworkCost ?? data?.quality?.reworkCost,
+      contingencyBudget: formData.contingencyBudget ?? data?.contingency?.budget,
+      contingencyUsed: formData.contingencyUsed ?? data?.contingency?.used,
+      cashPosition: formData.cashPosition ?? data?.cashPosition,
+      billingToDate: formData.billingToDate ?? data?.billingToDate,
+      cashReceivedToDate: formData.cashReceivedToDate ?? data?.cashReceivedToDate,
+      firstAidCases: formData.firstAidCases ?? data?.safety?.firstAidCases,
+      fatalities: formData.fatalities ?? data?.safety?.fatalities,
+      safetyObservationsResolved: formData.safetyObservationsResolved ?? data?.safety?.safetyObservationsResolved,
+      safetyObservationsTotal: formData.safetyObservationsTotal ?? data?.safety?.safetyObservationsTotal,
+      rfiCriticalPathCount: formData.rfiCriticalPathCount ?? data?.quality?.rfiCriticalPathCount,
+      punchlistClosed: formData.punchlistClosed ?? data?.quality?.punchlistClosed,
+      milestoneVarianceDays: formData.milestoneVarianceDays ?? data?.schedule?.milestoneVarianceDays,
+      criticalPathLength: formData.criticalPathLength ?? data?.schedule?.criticalPathLength,
+      floatConsumed: formData.floatConsumed ?? data?.schedule?.floatConsumed,
+      ownerContingencyBudget: formData.ownerContingencyBudget ?? data?.ownerContingencyBudget,
+      gcContingencyBudget: formData.gcContingencyBudget ?? data?.gcContingencyBudget,
+      ownerContingencyUsed: formData.ownerContingencyUsed ?? data?.ownerContingencyUsed,
+      gcContingencyUsed: formData.gcContingencyUsed ?? data?.gcContingencyUsed,
+      headcount: formData.headcount ?? data?.headcount,
+      weatherDaysLost: formData.weatherDaysLost ?? data?.weatherDaysLost,
+      weatherDaysClaimed: formData.weatherDaysClaimed ?? data?.weatherDaysClaimed,
+      gcBuyoutComplete: formData.gcBuyoutComplete ?? data?.gcBuyoutComplete,
+      storedMaterialsValue: formData.storedMaterialsValue ?? data?.storedMaterialsValue,
+      lienWaiversReceived: formData.lienWaiversReceived ?? data?.lienWaiversReceived,
+      inspectionPassRate: formData.inspectionPassRate ?? data?.inspectionPassRate,
+      commissioningPrerequisites: formData.commissioningPrerequisites ?? data?.commissioningPrerequisites,
+      plannedFinish: formData.plannedFinish ?? data?.schedule?.plannedFinish,
+      forecastFinish: formData.forecastFinish ?? data?.schedule?.forecastFinish,
+      customerNeedDate: formData.customerNeedDate ?? data?.schedule?.customerNeedDate,
+      plannedMargin: formData.plannedMargin ?? data?.plannedMargin,
     };
+    // Include vendors if present in formData
+    if (formData.vendors) payload.vendors = formData.vendors;
     try {
-      await saveConstructionData(inputs?.siteName || 'default', payload);
-      fetchData(); // Refresh
+      const res = await saveConstructionData(inputs?.siteName || 'default', payload);
+      if (res?.data) setData(res.data);
     } catch (err) {
       console.error('Save failed:', err);
     }
@@ -996,9 +1024,17 @@ export default function ConstructionDashboard({ inputs, results }) {
             <VendorLedger
               data={data}
               onSave={(payload) => {
-                console.log('Vendor ledger saved:', payload);
+                handleSaveData({ vendors: payload.vendors, ...(data ? {
+                  originalBudget: data.evm?.BAC,
+                  actualCost: data.evm?.ACWP,
+                  percentComplete: data.evm?.percentComplete,
+                  plannedPctComplete: data.evm?.plannedPctComplete,
+                  totalWorkHours: data.safety?.totalWorkHours,
+                  recordableIncidents: data.safety?.recordableIncidents,
+                  lostTimeIncidents: data.safety?.lostTimeIncidents,
+                } : {}) });
               }}
-              savedVendors={null}
+              savedVendors={data?.vendors || null}
             />
           </div>
         )}

@@ -111,6 +111,14 @@ function runMigrations(db) {
       created_at TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS construction_metrics (
+      site_id TEXT NOT NULL,
+      tenant_id TEXT NOT NULL,
+      data TEXT NOT NULL,
+      updated_at TEXT DEFAULT (datetime('now')),
+      PRIMARY KEY (site_id, tenant_id)
+    );
+
     CREATE TABLE IF NOT EXISTS submissions (
       id TEXT PRIMARY KEY,
       site_id TEXT,

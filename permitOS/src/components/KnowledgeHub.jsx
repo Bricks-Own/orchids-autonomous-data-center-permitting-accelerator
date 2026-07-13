@@ -441,7 +441,11 @@ export default function KnowledgeHub({ inputs, results }) {
               {resultsList.map((item, idx) => (
                 <div
                   key={idx}
-                  className="rounded-xl border border-gray-700/40 bg-gray-900/40 overflow-hidden transition-all hover:border-gray-600/40"
+                  className="rounded-xl border border-gray-700/40 bg-gray-900/40 overflow-hidden transition-all cursor-pointer hover:border-indigo-700/50"
+                  onClick={(e) => {
+                    if (window.getSelection()?.toString()) return;
+                    setArticleModal(item);
+                  }}
                 >
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-3 mb-2">
@@ -510,7 +514,7 @@ export default function KnowledgeHub({ inputs, results }) {
                     )}
                     {/* Click to expand/contract */}
                     <button
-                      onClick={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
+                      onClick={(e) => { e.stopPropagation(); setExpandedIdx(expandedIdx === idx ? null : idx); }}
                       className="text-xs text-gray-600 hover:text-gray-400 mt-1 transition-colors"
                     >
                       {expandedIdx === idx ? 'Show less' : 'Show more'}
