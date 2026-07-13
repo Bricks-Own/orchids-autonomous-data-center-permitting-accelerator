@@ -34,6 +34,51 @@ export function clearAuth() {
   window.dispatchEvent(new Event('permitos:session-expired'));
 }
 
+// ─── JWT Decode (client-side, no crypto needed) ─────────────────────────────
+export function decodeTokenPayload(token) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = parts[1];
+    const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(decoded);
+  } catch {
+    return null;
+  }
+}
+
+export function isTokenExpired() {
+  const token = getAuthToken();
+  if (!token) return false;
+  const payload = decodeTokenPayload(token);
+  if (!payload || !payload.exp) return false;
+  return Date.now() >= payload.exp * 1000;
+}
+
+let expiryInterval = null;
+
+export function startTokenExpiryCheck() {
+  stopTokenExpiryCheck();
+  // Check immediately on start
+  if (isTokenExpired()) {
+    clearAuth();
+    return;
+  }
+  // Check every 60 seconds
+  expiryInterval = setInterval(() => {
+    if (isTokenExpired()) {
+      clearAuth();
+    }
+  }, 60000);
+}
+
+export function stopTokenExpiryCheck() {
+  if (expiryInterval) {
+    clearInterval(expiryInterval);
+    expiryInterval = null;
+  }
+}
+
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
   const headers = { 'Content-Type': 'application/json' };
@@ -58,13 +103,6 @@ async function request(endpoint, options = {}) {
 
   const res = await fetch(url, config);
 
-  // On 401, clear expired/invalid token and redirect to login
-  if (res.status === 401 && !isPublicEndpoint) {
-    clearAuth();
-    // If not a public endpoint, throw a specific error the UI can handle
-    throw new Error('Session expired. Please sign in again.');
-  }
-
   if (!res.ok) {
     let errMsg;
     try {
@@ -73,6 +111,13 @@ async function request(endpoint, options = {}) {
     } catch {
       errMsg = res.statusText || `HTTP ${res.status}`;
     }
+
+    // Auth expiry on protected endpoints — clear token and redirect to login
+    if (!isPublicEndpoint && (res.status === 401 || errMsg === 'Invalid or expired token')) {
+      clearAuth();
+      throw new Error('Session expired. Please sign in again.');
+    }
+
     throw new Error(errMsg);
   }
   return res.json();

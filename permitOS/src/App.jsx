@@ -17,7 +17,7 @@ import SiteAssistant from './components/SiteAssistant';
 import BuildingPermitAI from './components/BuildingPermitAI';
 import PowerPermitAI from './components/PowerPermitAI';
 import ConstructionDashboard from './components/ConstructionDashboard';
-import { isAuthenticated, getAuthToken, setAuthToken, logout } from './utils/api';
+import { isAuthenticated, getAuthToken, setAuthToken, logout, startTokenExpiryCheck, stopTokenExpiryCheck } from './utils/api';
 
 export const defaultInputs = {
   siteName: 'BigWatt AI Campus - Site A',
@@ -54,6 +54,7 @@ export const defaultInputs = {
 function App() {
   const [authenticated, setAuthenticated] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [inputs, setInputs] = useState(defaultInputs);
   const [results, setResults] = useState(null);
@@ -67,16 +68,24 @@ function App() {
     }
     setAuthChecked(true);
 
+    // Start proactive token expiry check (every 60s)
+    startTokenExpiryCheck();
+
     // Listen for session expiry events from api.js
     const handleSessionExpired = () => {
       setAuthenticated(false);
+      setSessionExpiredMessage('Your session expired — please sign in again.');
     };
     window.addEventListener('permitos:session-expired', handleSessionExpired);
-    return () => window.removeEventListener('permitos:session-expired', handleSessionExpired);
+    return () => {
+      window.removeEventListener('permitos:session-expired', handleSessionExpired);
+      stopTokenExpiryCheck();
+    };
   }, []);
 
   const handleAuth = () => {
     setAuthenticated(true);
+    setSessionExpiredMessage('');
   };
 
   const handleLogout = () => {
@@ -119,7 +128,7 @@ function App() {
   }
 
   if (!authenticated) {
-    return <AuthModal onAuth={handleAuth} />;
+    return <AuthModal onAuth={handleAuth} sessionExpiredMessage={sessionExpiredMessage} />;
   }
 
   return (

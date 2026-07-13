@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { login, register } from '../utils/api';
 
-export default function AuthModal({ onAuth }) {
+export default function AuthModal({ onAuth, sessionExpiredMessage = '' }) {
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -69,6 +69,13 @@ export default function AuthModal({ onAuth }) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="bg-gray-900/70 border border-gray-800 rounded-2xl p-6 space-y-4 shadow-2xl">
+          {sessionExpiredMessage && (
+            <div className="bg-amber-900/30 border border-amber-700/40 rounded-xl px-4 py-4 text-center">
+              <div className="text-amber-400 font-semibold text-sm mb-1">Session Expired</div>
+              <p className="text-amber-300/70 text-xs">{sessionExpiredMessage}</p>
+            </div>
+          )}
+
           {registered && (
             <div className="bg-green-900/30 border border-green-800/40 rounded-xl px-4 py-4 text-center">
               <div className="text-green-400 font-semibold text-sm mb-1">Account created successfully!</div>
