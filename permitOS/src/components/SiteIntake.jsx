@@ -181,7 +181,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               >
                 {isSelected && (
                   <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
-                    <Check weight="bold" size={12} className="text-background" />
+                    <Check weight="bold" size={14} className="text-background" />
                   </span>
                 )}
                 <Icon weight="duotone" size={24} className="text-muted-foreground" />
@@ -214,7 +214,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               >
                 {isSelected && (
                   <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
-                    <Check weight="bold" size={12} className="text-background" />
+                    <Check weight="bold" size={14} className="text-background" />
                   </span>
                 )}
                 <Icon weight="duotone" size={24} className="text-muted-foreground" />
@@ -545,7 +545,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
         <Card>
           <div className="flex items-center flex-wrap gap-3">
             <div className="flex items-center gap-2 min-w-0">
-              <MapPin weight="duotone" size={18} className="text-muted-foreground flex-shrink-0" />
+              <MapPin weight="duotone" size={20} className="text-muted-foreground flex-shrink-0" />
               <span className="text-base font-bold text-foreground truncate">{inputs.siteName || 'BigWatt AI Campus'}</span>
             </div>
             <span className="text-sm text-muted-foreground">/</span>
@@ -558,7 +558,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               const Icon = def.icon;
               return (
                 <Badge variant="secondary" key={key}>
-                  <Icon weight="duotone" size={12} className="text-muted-foreground" />
+                  <Icon weight="duotone" size={14} className="text-muted-foreground" />
                   {def.label}
                 </Badge>
               );
@@ -573,8 +573,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-card p-6 border border-border">
                 <div className="text-xs font-medium text-muted-foreground mb-2">Traditional Pathway</div>
-                <div className="text-[32px] font-bold text-muted-foreground tracking-[-0.02em]">
-                  ~{comparison.traditional.totalMonths} <span className="text-[16px] font-medium">months</span>
+                <div className="text-3xl font-bold text-muted-foreground tracking-[-0.02em]">
+                  ~{comparison.traditional.totalMonths} <span className="text-base font-medium">months</span>
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">
                   {comparison.traditional.pathwayLabel} — baseline emissions
@@ -588,8 +588,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
 
               <div className="bg-card  p-6 border border-border relative overflow-hidden">
                 <div className="text-xs font-medium text-muted-foreground mb-2">Brick-Accelerated</div>
-                <div className="text-[32px] font-bold text-primary tracking-[-0.02em]">
-                  ~{comparison.brickAccel.totalMonths} <span className="text-[16px] font-medium text-muted-foreground">months</span>
+                <div className="text-3xl font-bold text-primary tracking-[-0.02em]">
+                  ~{comparison.brickAccel.totalMonths} <span className="text-base font-medium text-muted-foreground">months</span>
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">
                   {comparison.brickAccel.pathwayLabel} — Brick-optimized
@@ -617,7 +617,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           {permitTypes.includes('air') && (
             <Card>
               <div className="flex items-center gap-2.5 mb-4">
-                <Wind weight="duotone" size={18} className="text-muted-foreground" />
+                <Wind weight="duotone" size={20} className="text-muted-foreground" />
                 <h3 className="text-base font-bold text-foreground">Air Permit</h3>
               </div>
               {results ? (
@@ -644,12 +644,12 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                     <span className="text-xs text-muted-foreground">Pathway:</span>
                     {pathway.requiresPSD ? (
                       pathway.syntheticMinorViable ? (
-                        <Badge variant="secondary" className="text-primary"><Check weight="duotone" size={12} /> Synthetic Minor</Badge>
+                        <Badge variant="secondary" className="text-primary"><Check weight="duotone" size={14} /> Synthetic Minor</Badge>
                       ) : (
                         <Badge variant="secondary" className="text-[#e0a95c]">PSD Major Source</Badge>
                       )
                     ) : (
-                      <Badge variant="secondary" className="text-primary"><Check weight="duotone" size={12} /> True Minor Source</Badge>
+                      <Badge variant="secondary" className="text-primary"><Check weight="duotone" size={14} /> True Minor Source</Badge>
                     )}
                     {pathway.requiresTitleV && <Badge variant="secondary" className="text-[#e0a95c]">Title V</Badge>}
                   </div>
@@ -663,7 +663,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           {permitTypes.includes('water') && (
             <Card>
               <div className="flex items-center gap-2.5 mb-4">
-                <Drop weight="duotone" size={18} className="text-muted-foreground" />
+                <Drop weight="duotone" size={20} className="text-muted-foreground" />
                 <h3 className="text-base font-bold text-foreground">Water Permit</h3>
               </div>
               {results ? (
@@ -696,8 +696,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           {permitTypes.includes('building') && (
             <Card>
               <div className="flex items-center gap-2.5 mb-4">
-                <Buildings weight="duotone" size={18} className="text-muted-foreground" />
-                <h3 className="text-[15px] font-bold text-foreground">Building Permit</h3>
+                <Buildings weight="duotone" size={20} className="text-muted-foreground" />
+                <h3 className="text-base font-bold text-foreground">Building Permit</h3>
               </div>
               {results ? (
                 <div className="space-y-3">
@@ -729,8 +729,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           {permitTypes.includes('power') && (
             <Card>
               <div className="flex items-center gap-2.5 mb-4">
-                <Lightning weight="duotone" size={18} className="text-muted-foreground" />
-                <h3 className="text-[15px] font-bold text-foreground">Power / Interconnection</h3>
+                <Lightning weight="duotone" size={20} className="text-muted-foreground" />
+                <h3 className="text-base font-bold text-foreground">Power / Interconnection</h3>
               </div>
               {results ? (
                 <div className="space-y-3">
@@ -770,15 +770,15 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
         <Card>
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2.5">
-              <Timer weight="duotone" size={18} className="text-muted-foreground" />
-              <h3 className="text-[15px] font-bold text-foreground">Permitting Phases Overview</h3>
+              <Timer weight="duotone" size={20} className="text-muted-foreground" />
+              <h3 className="text-base font-bold text-foreground">Permitting Phases Overview</h3>
             </div>
             <button
               onClick={() => setActiveTab('milestones')}
-              className="inline-flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               View full timeline
-              <CaretRight weight="duotone" size={12} />
+              <CaretRight weight="duotone" size={14} />
             </button>
           </div>
           <div className="space-y-0 relative">
@@ -791,7 +791,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="text-[13px] font-semibold text-foreground">{phase.label}</span>
+                    <span className="text-sm font-semibold text-foreground">{phase.label}</span>
                     <span className="text-xs text-muted-foreground font-['IBM_Plex_Mono']">{phase.weeks}</span>
                   </div>
                   <div className="w-full h-1.5 rounded-full bg-card mt-1.5 overflow-hidden">
@@ -814,18 +814,18 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
         <div className="pt-2">
           <Button onClick={runScreening} disabled={running} className="w-full">
             {running ? (
-              <><CircleNotch weight="duotone" size={18} className="animate-spin" /> Generating Permits...</>
+              <><CircleNotch weight="duotone" size={20} className="animate-spin" /> Generating Permits...</>
             ) : (
-              <><Lightning weight="duotone" size={18} /> Generate My Permits</>
+              <><Lightning weight="duotone" size={20} /> Generate My Permits</>
             )}
           </Button>
           {done && (
             <div className="mt-4 bg-card border border-border p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Check weight="duotone" size={16} className="text-primary" />
-                <span className="text-[13px] font-semibold text-primary">Screening Complete</span>
+                <Check weight="duotone" size={18} className="text-primary" />
+                <span className="text-sm font-semibold text-primary">Screening Complete</span>
               </div>
-              <p className="text-[12px] text-muted-foreground mb-3">Permit pathways, PTE, and document packages generated. Navigate to the relevant tabs to view results.</p>
+              <p className="text-xs text-muted-foreground mb-3">Permit pathways, PTE, and document packages generated. Navigate to the relevant tabs to view results.</p>
               <div className="flex flex-wrap gap-2">
                 {permitTypes.includes('air') && <ResultNavButton label="Air Permit AI" tab="air" setActiveTab={setActiveTab} />}
                 {permitTypes.includes('water') && <ResultNavButton label="Water Permit AI" tab="water" setActiveTab={setActiveTab} />}
@@ -853,7 +853,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
   };
 
   return (
-    <div className="px-[40px] py-[36px_40px_48px] max-w-[1180px] mx-auto space-y-6">
+    <div className="px-10 py-8 max-w-[1180px] mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground tracking-[-0.02em]">Site Intake & Data Collection</h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -869,18 +869,18 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
       {step === 2 && renderStep2()}
       {step === 3 && renderStep3()}
 
-      <div className="flex items-center justify-between pt-2">
+      <div className="flex items-center justify-between pt-6">
         <div>
           {step > 1 && (
             <Button variant="ghost" onClick={() => setStep(s => s - 1)}>
-              <ArrowLeft weight="duotone" size={18} /> Back
+              <ArrowLeft weight="duotone" size={20} /> Back
             </Button>
           )}
         </div>
         <div>
           {step < 3 && (
             <Button variant="secondary" onClick={() => setStep(s => s + 1)} disabled={!stepValid()}>
-              Continue <ArrowRight weight="duotone" size={18} />
+              Continue <ArrowRight weight="duotone" size={20} />
             </Button>
           )}
         </div>
@@ -894,9 +894,9 @@ function ResultNavButton({ label, tab, setActiveTab }) {
   return (
     <button
       onClick={() => setActiveTab(tab)}
-      className="inline-flex items-center gap-1.5 bg-card hover:bg-[#27272a] text-muted-foreground text-[12px] py-2 px-3 border border-border transition-colors"
+      className="inline-flex items-center gap-1.5 bg-card hover:bg-[#27272a] text-muted-foreground text-xs py-2 px-3 border border-border transition-colors"
     >
-      <ArrowRight weight="duotone" size={12} className="text-muted-foreground" />
+      <ArrowRight weight="duotone" size={14} className="text-muted-foreground" />
       {label}
     </button>
   );
