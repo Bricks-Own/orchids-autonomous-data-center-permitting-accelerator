@@ -42,7 +42,7 @@ function SectionHeading({ icon: Icon, label, count }) {
         <h3 className="text-[15px] font-bold text-foreground">{label}</h3>
       </div>
       {count !== undefined && (
-        <span className="text-xs text-muted-foreground bg-card rounded-full px-[10px] py-[4px]">{count} fields</span>
+        <span className="text-xs text-muted-foreground bg-card px-[10px] py-[4px]">{count} fields</span>
       )}
     </div>
   );
@@ -173,7 +173,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               <button
                 key={p.key}
                 onClick={() => togglePermitType(p.key)}
-                className={`relative flex flex-col items-start gap-2 rounded-lg border p-4 text-left transition-all
+                className={`relative flex flex-col items-start gap-2 border p-4 text-left transition-all
                   ${isSelected
                     ? 'border-border bg-card'
                     : 'border-border bg-transparent hover:bg-card'
@@ -206,7 +206,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               <button
                 key={key}
                 onClick={() => update('projectScenario', key)}
-                className={`relative flex flex-col items-start gap-2 rounded-lg border p-4 text-left transition-all
+                className={`relative flex flex-col items-start gap-2 border p-4 text-left transition-all
                   ${isSelected
                     ? 'border-border bg-card'
                     : 'border-border bg-transparent hover:bg-card'
@@ -275,7 +275,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           <Field label="Longitude"><Input className="font-mono-num" value={inputs.lon} onChange={v => { update('lon', v); markAddressTouched(); }} /></Field>
           <Field label="Site Acreage"><Input value={inputs.siteAcres} onChange={v => update('siteAcres', v)} type="number" /></Field>
 
-          <div className="bg-card rounded-lg p-4 flex items-start gap-3">
+          <div className="bg-card p-4 flex items-start gap-3">
             <div className="flex-1 min-w-0">
               <div className="text-xs font-medium text-muted-foreground mb-1">Air Quality Area Status</div>
               <div className={`text-[13px] font-semibold ${
@@ -339,7 +339,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                   const pue = inputs.pueTarget || 1.35;
                   update('datacenterMW', Math.round(totalMW / (pue + 0.15)));
                 }}
-                className="bg-card border border-border text-xs text-muted-foreground px-2.5 py-1.5 rounded-md hover:bg-[#27272a] transition-colors whitespace-nowrap"
+                className="bg-card border border-border text-xs text-muted-foreground px-2.5 py-1.5 hover:bg-[#27272a] transition-colors whitespace-nowrap"
                 title="Derive from generation capacity"
               >
                 Auto
@@ -571,7 +571,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           <SectionHeading icon={ChartBar} label="Permitting Timeline Comparison" />
           {results ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-card rounded-lg p-6 border border-border">
+              <div className="bg-card p-6 border border-border">
                 <div className="text-[11.5px] font-medium text-muted-foreground mb-2">Traditional Pathway</div>
                 <div className="text-[32px] font-bold text-muted-foreground tracking-[-0.02em]">
                   ~{comparison.traditional.totalMonths} <span className="text-[16px] font-medium">months</span>
@@ -580,7 +580,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                   {comparison.traditional.pathwayLabel} — baseline emissions
                 </div>
                 {comparison.traditional.totalMonths > comparison.brickAccel.totalMonths && (
-                  <div className="mt-3 text-xs text-muted-foreground bg-background rounded-md px-3 py-2 border border-border">
+                  <div className="mt-3 text-xs text-muted-foreground bg-background px-3 py-2 border border-border">
                     Without Brick optimization, this project faces full PSD review duration
                   </div>
                 )}
@@ -595,7 +595,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                   {comparison.brickAccel.pathwayLabel} — Brick-optimized
                 </div>
                 {comparison.monthsSaved > 0 && (
-                  <div className="mt-3 inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5 rounded-full border border-primary/20">
+                  <div className="mt-3 inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5 border border-primary/20">
                     <Timer weight="duotone" size={14} />
                     {comparison.monthsSaved} months saved ({comparison.pctFaster}% faster)
                   </div>
@@ -623,19 +623,19 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               {results ? (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-card rounded-md p-3">
+                    <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Baseline NOx</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.baseline?.nox?.toFixed(1) || '—'} tpy</div>
                     </div>
-                    <div className="bg-card rounded-md p-3">
+                    <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Controlled NOx</div>
                       <div className="text-[13px] font-semibold text-primary font-['IBM_Plex_Mono']">{results.controlled?.nox?.toFixed(1) || '—'} tpy</div>
                     </div>
-                    <div className="bg-card rounded-md p-3">
+                    <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Baseline CO</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.baseline?.co?.toFixed(1) || '—'} tpy</div>
                     </div>
-                    <div className="bg-card rounded-md p-3">
+                    <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Controlled CO</div>
                       <div className="text-[13px] font-semibold text-primary font-['IBM_Plex_Mono']">{results.controlled?.co?.toFixed(1) || '—'} tpy</div>
                     </div>
@@ -669,11 +669,11 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               {results ? (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-card rounded-md p-3">
+                    <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Annual Water Use</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.water?.annualWaterMG?.toFixed(0) || '—'} MG/yr</div>
                     </div>
-                    <div className="bg-card rounded-md p-3">
+                    <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Brick-Optimized</div>
                       <div className="text-[13px] font-semibold text-primary font-['IBM_Plex_Mono']">{results.water?.optimizedWater?.toFixed(0) || '—'} MG/yr</div>
                     </div>
@@ -702,19 +702,19 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               {results ? (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-card rounded-md p-3">
+                    <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">IBC Class</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.building?.ibcClass || '—'}</div>
                     </div>
-                    <div className="bg-card rounded-md p-3">
+                    <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Occupancy</div>
                       <div className="text-[13px] font-semibold text-foreground">{results.building?.occupancy || '—'}</div>
                     </div>
-                    <div className="bg-card rounded-md p-3">
+                    <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Stories</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.building?.stories || '—'}</div>
                     </div>
-                    <div className="bg-card rounded-md p-3">
+                    <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Fire Suppression</div>
                       <div className="text-[13px] font-semibold text-foreground">{results.building?.fireSuppression || '—'}</div>
                     </div>
@@ -735,19 +735,19 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               {results ? (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-card rounded-md p-3">
+                    <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Total Capacity</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.totalMW?.toFixed(0) || totalMW} MW</div>
                     </div>
-                    <div className="bg-card rounded-md p-3">
+                    <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Interconnection</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.interconnectionVoltage || '—'} kV</div>
                     </div>
-                    <div className="bg-card rounded-md p-3">
+                    <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Power Source</div>
                       <div className="text-[13px] font-semibold text-foreground">{results.power?.powerSource || '—'}</div>
                     </div>
-                    <div className="bg-card rounded-md p-3">
+                    <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Genset Total</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.gensetTotalMW?.toFixed(1) || '—'} MW</div>
                     </div>
@@ -820,7 +820,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
             )}
           </Button>
           {done && (
-            <div className="mt-4 bg-card border border-border rounded-lg p-4">
+            <div className="mt-4 bg-card border border-border p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Check weight="duotone" size={16} className="text-primary" />
                 <span className="text-[13px] font-semibold text-primary">Screening Complete</span>
@@ -894,7 +894,7 @@ function ResultNavButton({ label, tab, setActiveTab }) {
   return (
     <button
       onClick={() => setActiveTab(tab)}
-      className="inline-flex items-center gap-1.5 bg-card hover:bg-[#27272a] text-muted-foreground text-[12px] rounded-md py-2 px-3 border border-border transition-colors"
+      className="inline-flex items-center gap-1.5 bg-card hover:bg-[#27272a] text-muted-foreground text-[12px] py-2 px-3 border border-border transition-colors"
     >
       <ArrowRight weight="duotone" size={12} className="text-muted-foreground" />
       {label}

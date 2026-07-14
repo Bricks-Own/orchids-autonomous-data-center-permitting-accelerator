@@ -18,6 +18,26 @@ import BuildingPermitAI from './components/BuildingPermitAI';
 import PowerPermitAI from './components/PowerPermitAI';
 import ConstructionDashboard from './components/ConstructionDashboard';
 import { isAuthenticated, getAuthToken, setAuthToken, logout, startTokenExpiryCheck, stopTokenExpiryCheck } from './utils/api';
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarSeparator,
+  SidebarInset,
+} from './components/ui/sidebar';
+import {
+  Compass, ChartBar, MapPin, Clipboard, Wind, Drop, Building, Lightning,
+  CalendarCheck, FileText, Cube, ShieldCheck, Robot, Books, Wrench,
+  SignOut, ShieldCheck as ShieldLogo
+} from '@phosphor-icons/react';
 
 export const defaultInputs = {
   siteName: 'BigWatt AI Campus - Site A',
@@ -53,6 +73,24 @@ export const defaultInputs = {
   projectScenario: 'greenfield',
 };
 
+const tabIcons = {
+  overview: Compass,
+  executive: ChartBar,
+  siteplanner: MapPin,
+  intake: Clipboard,
+  air: Wind,
+  water: Drop,
+  building: Building,
+  power: Lightning,
+  milestones: CalendarCheck,
+  docs: FileText,
+  simulation: Cube,
+  compliance: ShieldCheck,
+  copilot: Robot,
+  knowledge: Books,
+  construction: Wrench,
+};
+
 function App() {
   const [authenticated, setAuthenticated] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
@@ -63,17 +101,14 @@ function App() {
   const [selectedDocKey, setSelectedDocKey] = useState(null);
 
   useEffect(() => {
-    // Check for existing token on mount
     const token = getAuthToken();
     if (token) {
       setAuthenticated(true);
     }
     setAuthChecked(true);
 
-    // Start proactive token expiry check (every 60s)
     startTokenExpiryCheck();
 
-    // Listen for session expiry events from api.js
     const handleSessionExpired = () => {
       setAuthenticated(false);
       setSessionExpiredMessage('Your session expired — please sign in again.');
@@ -121,6 +156,19 @@ function App() {
     }
   };
 
+  const renderSidebarNavItem = (tabId, label, onPress) => {
+    const Icon = tabIcons[tabId];
+    const isActive = activeTab === tabId;
+    return (
+      <SidebarMenuItem key={tabId}>
+        <SidebarMenuButton isActive={isActive} onClick={() => { setActiveTab(tabId); onPress?.(); }}>
+          {Icon && <Icon weight={isActive ? "fill" : "duotone"} />}
+          <span>{label}</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  };
+
   if (!authChecked) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -133,14 +181,102 @@ function App() {
     return <AuthModal onAuth={handleAuth} sessionExpiredMessage={sessionExpiredMessage} />;
   }
 
+  const permitTypes = inputs?.permitTypesNeeded || ['air', 'water', 'building', 'power'];
+
+  const allTabs = [
+    { id: 'overview',    label: 'Platform Overview',   group: 'start' },
+    { id: 'executive',   label: 'Executive Summary',   group: 'start' },
+    { id: 'siteplanner', label: 'Site Planner',         group: 'start' },
+    { id: 'intake',      label: 'Site Intake',          group: 'work', permitKey: true },
+    { id: 'air',         label: 'Air Permit AI',        group: 'work', permitKey: 'air' },
+    { id: 'water',       label: 'Water Permit AI',      group: 'work', permitKey: 'water' },
+    { id: 'building',    label: 'Building Permitting',    group: 'work', permitKey: 'building' },
+    { id: 'power',       label: 'Power Permitting',       group: 'work', permitKey: 'power' },
+    { id: 'milestones',  label: 'Milestone Timeline',   group: 'work', permitKey: true },
+    { id: 'docs',        label: 'Document Factory',     group: 'work', permitKey: true },
+    { id: 'simulation',  label: 'Digital Twin',         group: 'advanced' },
+    { id: 'compliance',  label: 'Compliance OS',        group: 'advanced' },
+    { id: 'copilot',     label: 'Regulator Copilot',    group: 'advanced' },
+    { id: 'knowledge',   label: 'Knowledge Hub',        group: 'advanced' },
+    { id: 'construction', label: 'Construction Platform', group: 'advanced' },
+  ];
+
+  const filteredTabs = allTabs.filter(t => {
+    if (t.permitKey === true) return true;
+    if (!t.permitKey) return true;
+    return permitTypes.includes(t.permitKey);
+  });
+
+  const groupedTabs = {
+    start: filteredTabs.filter(t => t.group === 'start'),
+    work: filteredTabs.filter(t => t.group === 'work'),
+    advanced: filteredTabs.filter(t => t.group === 'advanced'),
+  };
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Header activeTab={activeTab} setActiveTab={setActiveTab} results={results} inputs={inputs} onLogout={handleLogout} />
-      <main className="max-w-[1400px] mx-auto">
-        {renderTab()}
-      </main>
-      <SiteAssistant inputs={inputs} results={results} setActiveTab={setActiveTab} />
-    </div>
+    <SidebarProvider defaultOpen={false}>
+      <div className="flex min-h-svh w-full">
+        <Sidebar collapsible="icon" variant="sidebar">
+          <SidebarHeader>
+            <div className="flex items-center gap-3 px-2 py-1">
+              <div className="w-8 h-8 bg-primary flex items-center justify-center shrink-0">
+                <ShieldLogo className="w-4 h-4 text-primary-foreground" weight="duotone" />
+              </div>
+              <div className="group-data-[collapsible=icon]:hidden">
+                <span className="text-foreground font-semibold text-sm font-heading">Brick PermitOS</span>
+              </div>
+            </div>
+          </SidebarHeader>
+          <SidebarSeparator />
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel>Overview</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {groupedTabs.start.map(t => renderSidebarNavItem(t.id, t.label))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            <SidebarSeparator />
+            <SidebarGroup>
+              <SidebarGroupLabel>Permitting</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {groupedTabs.work.map(t => renderSidebarNavItem(t.id, t.label))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            <SidebarSeparator />
+            <SidebarGroup>
+              <SidebarGroupLabel>Advanced</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {groupedTabs.advanced.map(t => renderSidebarNavItem(t.id, t.label))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+          <SidebarSeparator />
+          <SidebarFooter>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogout} variant="outline">
+                  <SignOut weight="duotone" />
+                  <span>Sign Out</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+        </Sidebar>
+        <SidebarInset>
+          <Header activeTab={activeTab} results={results} onLogout={handleLogout} />
+          <main className="max-w-[1400px] mx-auto w-full">
+            {renderTab()}
+          </main>
+          <SiteAssistant inputs={inputs} results={results} setActiveTab={setActiveTab} />
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 }
 

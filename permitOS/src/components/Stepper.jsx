@@ -5,8 +5,8 @@ const STEP_LABELS = ['Project Setup', 'Site Details', 'Review & Generate'];
 
 export default function Stepper({ currentStep }) {
   return (
-    <div className="bg-[#111113] border border-[#27272a] rounded-[14px] px-[26px] py-[18px]">
-      <div className="flex items-center justify-center">
+    <div className="bg-card border border-border">
+      <div className="flex items-center justify-center px-6 py-4">
         {STEP_LABELS.map((label, i) => {
           const stepNum = i + 1;
           const isActive = stepNum === currentStep;
@@ -19,12 +19,12 @@ export default function Stepper({ currentStep }) {
               <div className="flex items-center gap-3">
                 {/* Circle */}
                 <div
-                  className={`w-[30px] h-[30px] rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                  className={`w-[30px] h-[30px] flex items-center justify-center flex-shrink-0 transition-all ${
                     isActive
-                      ? 'bg-[#fafafa] text-[#09090b]'
+                      ? 'bg-foreground text-background'
                       : isCompleted
-                        ? 'bg-[#27272a] text-[#e4e4e7] border border-[#3f3f46]'
-                        : 'bg-[#18181b] text-[#71717a] border border-[#27272a]'
+                        ? 'bg-muted text-foreground border border-border'
+                        : 'bg-background text-muted-foreground border border-border'
                   }`}
                 >
                   {isCompleted ? (
@@ -37,10 +37,10 @@ export default function Stepper({ currentStep }) {
                 <span
                   className={`text-[12.5px] leading-tight ${
                     isActive
-                      ? 'text-[#fafafa] font-bold'
+                      ? 'text-foreground font-bold'
                       : isCompleted
-                        ? 'text-[#d4d4d8] font-medium'
-                        : 'text-[#71717a] font-medium'
+                        ? 'text-foreground font-medium'
+                        : 'text-muted-foreground font-medium'
                   }`}
                 >
                   {label}
@@ -49,8 +49,8 @@ export default function Stepper({ currentStep }) {
               {/* Connector */}
               {i < STEP_LABELS.length - 1 && (
                 <div
-                  className={`h-[1px] flex-1 min-w-[48px] mx-4 ${
-                    isCompleted ? 'bg-[#3f3f46]' : 'bg-[#27272a]'
+                  className={`h-px flex-1 min-w-[48px] mx-4 ${
+                    isCompleted ? 'bg-border' : 'bg-muted'
                   }`}
                 />
               )}
