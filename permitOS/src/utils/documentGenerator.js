@@ -151,53 +151,87 @@ Stack parameters to be verified against final equipment submittals and engineeri
 
 // ─── AIR DOCUMENT 3 ─────────────────────────────────────────────────────────
 export function genAir3_FuelTankInventory(inputs, results) {
-  const { gensetCount, gensetHP, siteName, state } = inputs;
-  const gallonsPerGenset = gensetHP * 0.12 * 8; // ~0.12 gal/hp-hr, 8-hr tank
+  const { gensetCount, gensetHP, siteName, state, gensetFuelType } = inputs;
+  const isDiesel = !gensetFuelType || gensetFuelType === 'Diesel';
+  const gallonsPerGenset = gensetHP * 0.12 * 8;
   const totalDiesel = gensetCount * gallonsPerGenset;
   const totalAboveGround = totalDiesel;
-  return {
-    title: 'Fuel System & Tank Inventory',
-    docNum: 'AIR-003',
-    sections: [
-      {
-        heading: '1. PURPOSE',
-        body: `This document inventories all fuel storage and handling systems at ${siteName} for purposes of air permit applicability (volatile organic compound fugitive emissions), 40 CFR Part 68 Risk Management Program (RMP) applicability screening, and 40 CFR Part 112 SPCC Plan integration.`
-      },
-      {
-        heading: '2. NATURAL GAS SUPPLY',
-        body: `Natural gas is delivered by pipeline; no on-site storage of natural gas. Gas supply enters the site at the utility meter/regulator station and is distributed directly to each CTG fuel train via dedicated piping. Natural gas is not subject to SPCC or RMP at pipeline pressures at this facility.
 
-Pipeline supply pressure: ~250 psig (utility delivery) → regulated to CTG inlet specifications
+  const baseSections = [
+    {
+      heading: '1. PURPOSE',
+      body: `This document inventories all fuel storage and handling systems at ${siteName} for purposes of air permit applicability (volatile organic compound fugitive emissions), 40 CFR Part 68 Risk Management Program (RMP) applicability screening, and 40 CFR Part 112 SPCC Plan integration.`
+    },
+    {
+      heading: '2. NATURAL GAS SUPPLY',
+      body: `Natural gas is delivered by pipeline; no on-site storage of natural gas. Gas supply enters the site at the utility meter/regulator station and is distributed directly to each CTG fuel train and genset fuel train via dedicated piping. Natural gas is not subject to SPCC or RMP at pipeline pressures at this facility.
+
+Pipeline supply pressure: ~250 psig (utility delivery) -> regulated to CTG and genset inlet specifications
 Piping material: Schedule 40 carbon steel, welded joints, cathodically protected where buried
 Fuel quality: Pipeline natural gas per ASTM D1945; HHV ~1,020 BTU/scf; sulfur <0.5 grains/100 scf`
-      },
-      {
-        heading: '3. DIESEL FUEL INVENTORY — EMERGENCY GENERATORS',
-        body: `Tank ID      | EU Served    | Tank Type     | Capacity (gal) | AST/UST | Location         | Secondary Containment
+    }
+  ];
+
+  const dieselSections = [
+    {
+      heading: '3. DIESEL FUEL INVENTORY - EMERGENCY GENERATORS',
+      body: `Tank ID      | EU Served    | Tank Type     | Capacity (gal) | AST/UST | Location         | Secondary Containment
 ${Array.from({length: gensetCount}, (_, i) => `TK-EG-${String(i+1).padStart(2,'0')} | EU-EG-${String(i+1).padStart(2,'0')} | Day Tank UL-142 | ${Math.round(gallonsPerGenset)} gal     | AST     | Generator room   | Integral double-wall`).join('\n')}
 
 AGGREGATE STORAGE: ${Math.round(totalAboveGround).toLocaleString()} gallons diesel, above-ground (AST)
 Regulatory thresholds:
-• SPCC (40 CFR Part 112): Triggered if AST > 1,320 gal or UST > 42,000 gal → ${totalAboveGround > 1320 ? 'APPLICABLE' : 'BELOW THRESHOLD'}
-• PE-Certified SPCC Plan required: ${totalAboveGround > 10000 ? 'YES (>10,000 gal)' : 'Tier I Qualified Facility (self-certified if ≤10,000 gal)'}
-• 40 CFR Part 68 RMP: Diesel at ambient conditions does not constitute a Program 1/2/3 regulated substance → NOT APPLICABLE`
-      },
-      {
-        heading: '4. FUEL OIL VAPOR EMISSION ESTIMATE',
-        body: `Diesel fuel VOC emissions from tank filling (working losses) and tank breathing (standing losses) are calculated per EPA AP-42 Chapter 7.1.
+- SPCC (40 CFR Part 112): Triggered if AST > 1,320 gal or UST > 42,000 gal -> ${totalAboveGround > 1320 ? 'APPLICABLE' : 'BELOW THRESHOLD'}
+- PE-Certified SPCC Plan required: ${totalAboveGround > 10000 ? 'YES (>10,000 gal)' : 'Tier I Qualified Facility (self-certified if <=10,000 gal)'}
+- 40 CFR Part 68 RMP: Diesel at ambient conditions does not constitute a Program 1/2/3 regulated substance -> NOT APPLICABLE`
+    },
+    {
+      heading: '4. FUEL OIL VAPOR EMISSION ESTIMATE',
+      body: `Diesel fuel VOC emissions from tank filling (working losses) and tank breathing (standing losses) are calculated per EPA AP-42 Chapter 7.1.
 
-Annual diesel throughput: ~${Math.round(gensetCount * gensetHP * 0.055 * inputs.gensetHours).toLocaleString()} gal/yr (${inputs.gensetHours} hr/yr × ${gensetCount} gensets)
+Annual diesel throughput: ~${Math.round(gensetCount * gensetHP * 0.055 * inputs.gensetHours).toLocaleString()} gal/yr (${inputs.gensetHours} hr/yr x ${gensetCount} gensets)
 AP-42 working loss factor: 0.00025 lb/gal (submerged fill assumed)
 AP-42 standing loss: 0.0008 lb/gal storage
 Estimated annual VOC from diesel storage: ${fmt((gensetCount * gensetHP * 0.055 * inputs.gensetHours * 0.00025 / 2000) + 0.001)} tpy
 
 Conclusion: Diesel storage VOC emissions are well below de minimis thresholds. No vapor recovery required.`
-      },
-      {
-        heading: '5. EMERGENCY FUEL DELIVERY PROCEDURES',
-        body: `Diesel deliveries by licensed fuel hauler. Submerged or bottom-fill required to minimize splash filling losses. Delivery procedures documented in the SPCC Plan (Exhibit W-007). Overfill protection: float vent valve + high-level alarm on each day tank. Spill containment: each generator room floor drain connected to oil/water separator before sanitary sewer.`
-      }
-    ]
+    },
+    {
+      heading: '5. EMERGENCY FUEL DELIVERY PROCEDURES',
+      body: `Diesel deliveries by licensed fuel hauler. Submerged or bottom-fill required to minimize splash filling losses. Delivery procedures documented in the SPCC Plan (Exhibit W-007). Overfill protection: float vent valve + high-level alarm on each day tank. Spill containment: each generator room floor drain connected to oil/water separator before sanitary sewer.`
+    }
+  ];
+
+  const gasSections = [
+    {
+      heading: '3. GENSET FUEL SYSTEM - NATURAL GAS',
+      body: `The emergency generator fleet at ${siteName} uses natural gas as its primary fuel source. No on-site diesel storage is required for genset operation.
+
+Fuel delivery: Natural gas is supplied directly from the site's pipeline gas distribution system at regulated pressure. No above-ground storage tanks, day tanks, or fuel delivery logistics are required.
+
+SPCC applicability: Natural gas gensets do not require SPCC planning as there is no oil storage associated with genset operation.
+RMP applicability: Natural gas at pipeline pressures does not trigger 40 CFR Part 68 Program-level RMP requirements.
+
+Note: If a separate diesel day tank is installed for pilot fuel or backup operation, it should be inventoried separately in an addendum to this document.`
+    },
+    {
+      heading: '4. GENSET FUEL VAPOR EMISSION NOTE',
+      body: `Natural gas-fired gensets do not produce fugitive VOC emissions from liquid fuel storage. Fugitive methane emissions from gas piping connections are negligible and within de minimis thresholds.
+
+Natural gas consumption: ~${Math.round((gensetCount * gensetHP * 80 * inputs.gensetHours) / 1000).toLocaleString()} scfh aggregate at full load
+Estimated annual methane fugitive: <0.01 tpy (per EPA GHG emission factors for pipeline gas distribution)
+
+Conclusion: No vapor recovery required. Standard gas piping integrity management per pipeline safety regulations applies.`
+    },
+    {
+      heading: '5. FUEL DELIVERY AND OPERATIONS',
+      body: `Natural gas is delivered continuously via pipeline interconnection. No truck deliveries required. Gas supply pressure and quality are monitored at the meter/regulation station. Emergency shutdown valves at each genset fuel train. Gas detection sensors in generator rooms with automatic fuel shutoff on gas alarm.`
+    }
+  ];
+
+  return {
+    title: 'Fuel System & Tank Inventory',
+    docNum: 'AIR-003',
+    sections: [...baseSections, ...(isDiesel ? dieselSections : gasSections)]
   };
 }
 
@@ -1171,8 +1205,9 @@ No direct surface water discharge of cooling water is proposed without NPDES aut
 
 // ─── WATER DOCUMENT 2 ────────────────────────────────────────────────────────
 export function genWater2_NPDESApplicability(inputs, results) {
-  const { siteName, state, county, coolingMGD, blowdownPct } = inputs;
+  const { siteName, state, county, coolingMGD, blowdownPct, dischargePathway } = inputs;
   const blowdownMGD = coolingMGD * (blowdownPct / 100);
+  const pathwayDisplay = dischargePathway || '[Surface water / {agency} POTW — confirm discharge pathway]';
   return {
     title: 'NPDES Applicability Determination',
     docNum: 'WAT-002',
@@ -1181,7 +1216,7 @@ export function genWater2_NPDESApplicability(inputs, results) {
         body: `Section 402 of the Clean Water Act (CWA) prohibits discharge of pollutants from a point source to waters of the United States (WOTUS) without an NPDES permit. 40 CFR Part 122 establishes NPDES permit application requirements. This determination evaluates whether ${siteName} requires an NPDES permit and identifies the appropriate permit pathway.` },
       { heading: '2. POINT SOURCE DISCHARGE IDENTIFICATION',
         body: `Discharge Point | Description                          | Receiving Water     | Pollutants of Concern
-DP-001          | Cooling tower blowdown (${fmt(blowdownMGD,3)} MGD)  | [Surface water/POTW] | TDS, TH, conductivity, pH, biocides, metals
+DP-001          | Cooling tower blowdown (${fmt(blowdownMGD,3)} MGD)  | ${pathwayDisplay} | TDS, TH, conductivity, pH, biocides, metals
 DP-002          | Stormwater runoff (industrial areas) | Storm drain → [water] | TSS, pH, metals, petroleum
 DP-003          | Construction site runoff             | Receiving water      | TSS, turbidity, pH
 

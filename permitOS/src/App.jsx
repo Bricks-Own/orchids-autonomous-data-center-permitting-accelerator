@@ -49,6 +49,7 @@ export const defaultInputs = {
   stackHeight: 65,
   nearestReceptorFt: 1200,
   nonAttainment: false,
+  permitTypesNeeded: ['air', 'water', 'building', 'power'],
 };
 
 function App() {
@@ -133,7 +134,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
-      <Header activeTab={activeTab} setActiveTab={setActiveTab} results={results} onLogout={handleLogout} />
+      <Header activeTab={activeTab} setActiveTab={setActiveTab} results={results} inputs={inputs} onLogout={handleLogout} />
       <main className="max-w-[1400px] mx-auto">
         {renderTab()}
       </main>

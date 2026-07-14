@@ -4,7 +4,8 @@ export function calcPTE(inputs) {
     turbines, mwPerTurbine, hours, heatRate,
     noxFactor, coFactor, brickSavings,
     gensetCount, gensetHP, gensetHours,
-    coolingMGD, blowdownPct, waterMGD
+    coolingMGD, blowdownPct, waterMGD,
+    gensetFuelType
   } = inputs;
 
   const totalMW = turbines * mwPerTurbine;
@@ -24,15 +25,27 @@ export function calcPTE(inputs) {
     hap: annualMMBtu * 0.00014 / 2000,
   };
 
-  // Genset contributions (IIII/JJJJ/ZZZZ) — AP-42 Table 3.4-1, CI 4-stroke diesel
+  // Genset contributions (IIII/JJJJ/ZZZZ) — factors keyed by genset fuel type
   const gensetMMBtu = gensetCount * gensetHP * 0.00354 * gensetHours; // ~0.00354 MMBtu/hp-hr
-  const gensetEfs = {
-    nox: 0.031,   // AP-42 Table 3.4-1, uncontrolled CI 4-stroke (was 0.024 — corrected +29%)
-    co:  0.0091,  // AP-42 Table 3.4-1, uncontrolled (was 0.006 — corrected +52%)
-    pm:  0.030,   // AP-42 Table 3.4-1 (was 0.025 — corrected +20%)
+  const isDiesel = !gensetFuelType || gensetFuelType === 'Diesel';
+  const gensetEfs = isDiesel ? {
+    // AP-42 Table 3.4-1, CI 4-stroke diesel — NOx/CO from NOX_EMISSION_FACTORS / CO_EMISSION_FACTORS
+    nox: 0.0240,
+    co:  0.0060,
+    pm:  0.030,   // AP-42 Table 3.4-1
     so2: 0.00205, // AP-42 Table 3.4-1, 0.05% S diesel sulfur
     voc: 0.0028,  // AP-42 Table 3.4-1, uncontrolled
     co2e: 121,    // 40 CFR Part 98 Subpart C diesel CO₂ + CH₄ + N₂O at GWP-100
+    hap: 0.00025, // diesel HAP (formaldehyde + acrolein)
+  } : {
+    // AP-42 Table 3.2-2, SI 4-stroke natural gas — NOx/CO from NOX_EMISSION_FACTORS / CO_EMISSION_FACTORS
+    nox: 0.0110,
+    co:  0.0200,
+    pm:  0.003,   // AP-42 Table 3.2-2, lean-burn natural gas
+    so2: 0.0001,  // trace sulfur from odorant in pipeline natural gas
+    voc: 0.0014,  // AP-42 Table 3.2-2, uncontrolled SI gas
+    co2e: 97,     // 40 CFR Part 98 Subpart C — natural gas CO₂ + CH₄ + N₂O at GWP-100
+    hap: 0.00008, // natural gas HAP (lower formaldehyde than diesel)
   };
   const gensetNox = gensetMMBtu * gensetEfs.nox / 2000;
   const gensetCO = gensetMMBtu * gensetEfs.co / 2000;
@@ -40,7 +53,7 @@ export function calcPTE(inputs) {
   const gensetSo2 = gensetMMBtu * gensetEfs.so2 / 2000;
   const gensetVoc = gensetMMBtu * gensetEfs.voc / 2000;
   const gensetCo2e = gensetMMBtu * gensetEfs.co2e / 2000;
-  const gensetHap = gensetMMBtu * 0.00025 / 2000; // diesel HAP (formaldehyde + acrolein)
+  const gensetHap = gensetMMBtu * gensetEfs.hap / 2000;
 
   // Add genset emissions to facility totals (previous code was missing SO₂, VOC, CO₂e, HAP from gensets)
   const totalBaseline = {

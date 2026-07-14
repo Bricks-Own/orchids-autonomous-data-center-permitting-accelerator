@@ -1,27 +1,32 @@
 import React, { useState } from 'react';
 
-export default function Header({ activeTab, setActiveTab, results, onLogout }) {
+export default function Header({ activeTab, setActiveTab, results, inputs, onLogout }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const hasResults = !!results;
+  const permitTypes = inputs?.permitTypesNeeded || ['air', 'water', 'building', 'power'];
 
-  const tabs = [
-    { id: 'overview',    label: 'Platform Overview',   icon: '🏛',  group: 'start' },
-    { id: 'executive',   label: 'Executive Summary',   icon: '📊',  group: 'start' },
-    { id: 'siteplanner', label: 'Site Planner',         icon: '🗺',  group: 'start' },
-    { id: 'intake',      label: 'Site Intake',          icon: '📋',  group: 'work' },
-    { id: 'air',         label: 'Air Permit AI',        icon: '💨',  group: 'work' },
-    { id: 'water',       label: 'Water Permit AI',      icon: '💧',  group: 'work' },
-    { id: 'building',    label: 'Building Permitting',    icon: '🏗️', group: 'work' },
-    { id: 'power',       label: 'Power Permitting',       icon: '⚡', group: 'work' },
-    { id: 'milestones',  label: 'Milestone Timeline',   icon: '📅',  group: 'work' },
-    { id: 'docs',        label: 'Document Factory',     icon: '📄',  group: 'work' },
-    { id: 'simulation',  label: 'Digital Twin',         icon: '⚡',  group: 'advanced' },
-    { id: 'compliance',  label: 'Compliance OS',        icon: '🛡',  group: 'advanced' },
-    { id: 'copilot',     label: 'Regulator Copilot',    icon: '🤖',  group: 'advanced' },
-    { id: 'knowledge',   label: 'Knowledge Hub',        icon: '📚',  group: 'advanced' },
-    { id: 'construction', label: 'Construction Platform', icon: '🏗️', group: 'advanced' },
-
+  const allTabs = [
+    { id: 'overview',    label: 'Platform Overview',   icon: '\u{1F3DB}',  group: 'start' },
+    { id: 'executive',   label: 'Executive Summary',   icon: '\u{1F4CA}',  group: 'start' },
+    { id: 'siteplanner', label: 'Site Planner',         icon: '\u{1F5FA}',  group: 'start' },
+    { id: 'intake',      label: 'Site Intake',          icon: '\u{1F4CB}',  group: 'work' },
+    { id: 'air',         label: 'Air Permit AI',        icon: '\u{1F4A8}',  group: 'work', permitKey: 'air' },
+    { id: 'water',       label: 'Water Permit AI',      icon: '\u{1F4A7}',  group: 'work', permitKey: 'water' },
+    { id: 'building',    label: 'Building Permitting',    icon: '\u{1F3D7}\uFE0F', group: 'work', permitKey: 'building' },
+    { id: 'power',       label: 'Power Permitting',       icon: '\u26A1', group: 'work', permitKey: 'power' },
+    { id: 'milestones',  label: 'Milestone Timeline',   icon: '\u{1F4C5}',  group: 'work' },
+    { id: 'docs',        label: 'Document Factory',     icon: '\u{1F4C4}',  group: 'work' },
+    { id: 'simulation',  label: 'Digital Twin',         icon: '\u26A1',  group: 'advanced' },
+    { id: 'compliance',  label: 'Compliance OS',        icon: '\u{1F6E1}',  group: 'advanced' },
+    { id: 'copilot',     label: 'Regulator Copilot',    icon: '\u{1F916}',  group: 'advanced' },
+    { id: 'knowledge',   label: 'Knowledge Hub',        icon: '\u{1F4DA}',  group: 'advanced' },
+    { id: 'construction', label: 'Construction Platform', icon: '\u{1F3D7}\uFE0F', group: 'advanced' },
   ];
+
+  const tabs = allTabs.filter(t => {
+    if (!t.permitKey) return true;
+    return permitTypes.includes(t.permitKey);
+  });
 
   return (
     <div className="bg-gray-950 border-b border-gray-800 sticky top-0 z-50">
@@ -95,7 +100,7 @@ export default function Header({ activeTab, setActiveTab, results, onLogout }) {
             <span>{tabs.find(t => t.id === activeTab)?.icon}</span>
             {tabs.find(t => t.id === activeTab)?.label}
           </span>
-          <span>{mobileOpen ? '▲' : '▼'}</span>
+          <span>{mobileOpen ? '\u25B2' : '\u25BC'}</span>
         </button>
         {mobileOpen && (
           <div className="bg-gray-900 border-t border-gray-800 grid grid-cols-2 gap-1 p-2">

@@ -4,9 +4,7 @@ import { STATE_ADDRESS_DEFAULTS } from '../utils/locationUtils';
 import { calcPTE } from '../utils/calculations';
 import { calculatePTE as apiPTE, analyzeScenario, listScenarios } from '../utils/api';
 
-const turbineTypes = Object.keys(NOX_EMISSION_FACTORS);
-
-
+const turbineTypes = ['Gas Turbine (DLN, modern)', 'Gas Turbine (standard combustion)', 'Gas Turbine (older frame, uncontrolled)'];
 
 function Field({ label, children, hint }) {
   return (
@@ -44,6 +42,13 @@ function Select({ value, onChange, options }) {
   );
 }
 
+const PERMIT_OPTIONS = [
+  { key: 'air', label: 'Air Permit', icon: '\u{1F4A8}', border: 'border-violet-500/50', bgChecked: 'bg-violet-900/30 border-violet-400' },
+  { key: 'water', label: 'Water Permit', icon: '\u{1F4A7}', border: 'border-blue-500/50', bgChecked: 'bg-blue-900/30 border-blue-400' },
+  { key: 'building', label: 'Building Permit', icon: '\u{1F3D7}\uFE0F', border: 'border-indigo-500/50', bgChecked: 'bg-indigo-900/30 border-indigo-400' },
+  { key: 'power', label: 'Power / Interconnection', icon: '\u26A1', border: 'border-yellow-500/50', bgChecked: 'bg-yellow-900/30 border-yellow-400' },
+];
+
 export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab, results }) {
   const [running, setRunning] = useState(false);
   const done = results !== null;
@@ -55,6 +60,17 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
   const markAddressTouched = () => { if (!addressFieldsTouched.current) addressFieldsTouched.current = true; };
 
   const update = (key, val) => setInputs(prev => ({ ...prev, [key]: val }));
+
+  const permitTypes = inputs.permitTypesNeeded || ['air', 'water', 'building', 'power'];
+
+  const togglePermitType = (key) => {
+    const current = inputs.permitTypesNeeded || ['air', 'water', 'building', 'power'];
+    if (current.includes(key) && current.length <= 1) return; // prevent deselecting all
+    const updated = current.includes(key)
+      ? current.filter(k => k !== key)
+      : [...current, key];
+    update('permitTypesNeeded', updated);
+  };
 
   const handleTurbineType = (type) => {
     update('turbineType', type);
@@ -130,6 +146,14 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
 
   const attainmentStatus = STATES_ATTAINMENT[inputs.state] || 'Unknown';
 
+  const resultsNavItems = [];
+  if (permitTypes.includes('air')) resultsNavItems.push({ label: 'Air Permit AI', tab: 'air' });
+  if (permitTypes.includes('water')) resultsNavItems.push({ label: 'Water Permit AI', tab: 'water' });
+  if (permitTypes.includes('building')) resultsNavItems.push({ label: 'Building Permitting', tab: 'building' });
+  if (permitTypes.includes('power')) resultsNavItems.push({ label: 'Power Permitting', tab: 'power' });
+  resultsNavItems.push({ label: 'Milestone Timeline', tab: 'milestones' });
+  resultsNavItems.push({ label: 'Document Factory', tab: 'docs' });
+
   return (
     <div className="p-6 space-y-6">
       {/* Intro */}
@@ -141,14 +165,39 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           </div>
           <div className="text-xs text-gray-600 bg-gray-800 rounded-lg px-3 py-2 text-right">
             <div className="text-gray-400 font-medium">Automated acceleration</div>
-            <div className="text-green-400 font-bold text-sm">Phase 1 → instant</div>
-            <div>(vs. 2–3 weeks manual)</div>
+            <div className="text-green-400 font-bold text-sm">Phase 1 \u2192 instant</div>
+            <div>(vs. 2\u20133 weeks manual)</div>
           </div>
         </div>
       </div>
 
+      {/* STEP 1 — Permit Type Selection */}
+      <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
+        <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-3">Which permits are you pursuing?</h3>
+        <p className="text-xs text-gray-500 mb-3">Select all that apply. Only relevant fields will be shown below. You can change this at any time.</p>
+        <div className="flex flex-wrap gap-3">
+          {PERMIT_OPTIONS.map(p => {
+            const selected = permitTypes.includes(p.key);
+            return (
+              <button
+                key={p.key}
+                onClick={() => togglePermitType(p.key)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all
+                  ${selected
+                    ? `${p.bgChecked} text-white shadow-sm`
+                    : 'bg-gray-900/60 border-gray-700/40 text-gray-400 hover:border-gray-500'}`}
+              >
+                <span>{p.icon}</span>
+                {p.label}
+                {selected && <span className="text-xs ml-1">\u2713</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Site Info */}
+        {/* Site Information — always visible */}
         <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5 space-y-4">
           <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Site Information</h3>
           <Field label="Site Name"><Input value={inputs.siteName} onChange={v => update('siteName', v)} /></Field>
@@ -191,8 +240,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               {attainmentStatus}
             </div>
             <div className="text-xs text-gray-600 mt-1">Determines PSD vs. NSR pathway</div>
-            {/* Per-pollutant nonattainment overrides */}
-            {attainmentStatus.includes('Nonattainment') && (
+            {/* Per-pollutant nonattainment overrides — air-specific */}
+            {permitTypes.includes('air') && attainmentStatus.includes('Nonattainment') && (
               <div className="mt-3 pt-3 border-t border-gray-700/40 space-y-1.5">
                 <div className="text-xs text-gray-500 mb-1 font-medium">Per-Pollutant Nonattainment (override for county-specific SIP)</div>
                 {[
@@ -216,83 +265,26 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           </div>
         </div>
 
-        {/* Turbine / Generation */}
+        {/* Universal Generation Fields — always visible */}
         <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5 space-y-4">
-          <h3 className="text-xs font-semibold text-violet-400 uppercase tracking-wider">Generation Equipment</h3>
-          <Field label="Turbine / Engine Type">
-            <Select value={inputs.turbineType} onChange={handleTurbineType} options={turbineTypes} />
-          </Field>
+          <h3 className="text-xs font-semibold text-violet-400 uppercase tracking-wider">Generation Overview</h3>
           <Field label="Number of Gas Turbines"><Input value={inputs.turbines} onChange={v => update('turbines', v)} type="number" /></Field>
           <Field label="MW per Turbine"><Input value={inputs.mwPerTurbine} onChange={v => update('mwPerTurbine', v)} type="number" /></Field>
           <Field label="Operating Hours / Year" hint="Max 8,760 for continuous; <500 for limited-use threshold"><Input value={inputs.hours} onChange={v => update('hours', v)} type="number" /></Field>
-          <Field label="Heat Rate (MMBtu/MWh)"><Input value={inputs.heatRate} onChange={v => update('heatRate', v)} type="number" step="0.1" /></Field>
-          <Field label="NOx Emission Factor (lb/MMBtu)"><Input value={inputs.noxFactor} onChange={v => update('noxFactor', v)} type="number" step="0.001" /></Field>
-          <Field label="CO Emission Factor (lb/MMBtu)"><Input value={inputs.coFactor} onChange={v => update('coFactor', v)} type="number" step="0.001" /></Field>
-          <div className="border-t border-gray-700/40 pt-3">
-            <p className="text-xs text-gray-500 mb-3 font-medium">Backup / Emergency Generators</p>
-            <div className="grid grid-cols-3 gap-2">
-              <Field label="# Gensets"><Input value={inputs.gensetCount} onChange={v => update('gensetCount', v)} type="number" /></Field>
-              <Field label="HP Each"><Input value={inputs.gensetHP} onChange={v => update('gensetHP', v)} type="number" /></Field>
-              <Field label="Hrs/yr" hint="≤100 = emergency"><Input value={inputs.gensetHours} onChange={v => update('gensetHours', v)} type="number" /></Field>
-            </div>
-          </div>
-          <Field label="Stack Height (ft)"><Input value={inputs.stackHeight} onChange={v => update('stackHeight', v)} type="number" /></Field>
-          <Field label="Nearest Receptor (ft)" hint="For AERMOD modeling scope"><Input value={inputs.nearestReceptorFt} onChange={v => update('nearestReceptorFt', v)} type="number" /></Field>
+          <Field label="Brick Load Reduction (%)" hint="Efficiency gains from Brick controls vs. baseline">
+            <input
+              type="range" min={0} max={30} step={1}
+              value={inputs.brickSavings}
+              onChange={e => update('brickSavings', parseFloat(e.target.value))}
+              className="w-full accent-indigo-500"
+            />
+            <div className="text-right text-indigo-400 font-semibold text-sm">{inputs.brickSavings}%</div>
+          </Field>
         </div>
 
-        {/* Building Permitting Parameters */}
-        <div className="rounded-xl border border-indigo-700/30 bg-indigo-950/10 p-5 space-y-4">
-          <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Building Permitting Parameters</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <Field label="Building Footprint (sqft)"><Input value={inputs.buildingSqFt} onChange={v => update('buildingSqFt', v)} type="number" /></Field>
-            <Field label="Stories"><Input value={inputs.stories} onChange={v => update('stories', v)} type="number" min="1" max="12" /></Field>
-            <Field label="Occupancy Type">
-              <select value={inputs.occupancyType} onChange={e => update('occupancyType', e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200">
-                {['Business (B)','Industrial (F-1)','Storage (S-1)','Mixed (B/S-1)'].map(o =>
-                  <option key={o} value={o}>{o}</option>
-                )}
-              </select>
-            </Field>
-            <Field label="Fire Suppression">
-              <select value={inputs.fireSuppression} onChange={e => update('fireSuppression', e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200">
-                {['Pre-action sprinkler','Wet pipe sprinkler','Dry pipe sprinkler','Clean agent (FM-200/Novec)','Hybrid (pre-action + clean agent)'].map(o =>
-                  <option key={o} value={o}>{o}</option>
-                )}
-              </select>
-            </Field>
-            <Field label="Emergency Power Config">
-              <select value={inputs.emergencyPowerConfig} onChange={e => update('emergencyPowerConfig', e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200">
-                {['N','N+1','2N','2N+1'].map(o =>
-                  <option key={o} value={o}>{o}</option>
-                )}
-              </select>
-            </Field>
-          </div>
-        </div>
-
-        {/* Power Permitting Parameters */}
-        <div className="rounded-xl border border-yellow-700/30 bg-yellow-950/10 p-5 space-y-4">
-          <h3 className="text-xs font-semibold text-yellow-400 uppercase tracking-wider">Power Permitting Parameters</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <Field label="Power Source Type">
-              <select value={inputs.powerSourceType} onChange={e => update('powerSourceType', e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200">
-                {['Grid-only','On-site Generation','Hybrid (Grid + On-site)','Microgrid'].map(o =>
-                  <option key={o} value={o}>{o}</option>
-                )}
-              </select>
-            </Field>
-            <Field label="Interconnection Voltage (kV)"><Input value={inputs.interconnectionVoltage} onChange={v => update('interconnectionVoltage', v)} type="number" /></Field>
-            <Field label="Transformer Capacity (MVA)"><Input value={inputs.transformerCapacity} onChange={v => update('transformerCapacity', v)} type="number" /></Field>
-          </div>
-        </div>
-
-        {/* Data Center + Water */}
+        {/* Data Center Systems — always visible */}
         <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5 space-y-4">
-          <h3 className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Data Center & Water Systems</h3>
+          <h3 className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Data Center Systems</h3>
           <div className="flex items-end gap-2">
             <div className="flex-1">
               <Field label="Data Center IT Load (MW)"><Input value={inputs.datacenterMW} onChange={v => update('datacenterMW', v)} type="number" /></Field>
@@ -307,68 +299,153 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               className="text-[10px] bg-indigo-700 hover:bg-indigo-600 text-indigo-200 px-2 py-1.5 rounded-lg mb-1 transition-colors whitespace-nowrap"
               title="Derive IT load from installed capacity and PUE: datacenterMW = totalMW / (PUE + 0.15)"
             >
-              Auto-derive ⚡
+              Auto-derive \u26A1
             </button>
           </div>
           <Field label="Target PUE"><Input value={inputs.pueTarget} onChange={v => update('pueTarget', v)} type="number" step="0.01" /></Field>
           <Field label="Number of Build Phases"><Input value={inputs.phases} onChange={v => update('phases', v)} type="number" /></Field>
-          <Field label="Brick Load Reduction (%)" hint="Efficiency gains from Brick controls vs. baseline">
-            <input
-              type="range" min={0} max={30} step={1}
-              value={inputs.brickSavings}
-              onChange={e => update('brickSavings', parseFloat(e.target.value))}
-              className="w-full accent-indigo-500"
-            />
-            <div className="text-right text-indigo-400 font-semibold text-sm">{inputs.brickSavings}%</div>
-          </Field>
-          <div className="border-t border-gray-700/40 pt-3">
-            <p className="text-xs text-gray-500 mb-3 font-medium">Water Systems</p>
-            <div className="space-y-3">
-              <Field label="Cooling Water Use (MGD)" hint="Evaporation rate only (blowdown added separately below)"><Input value={inputs.coolingMGD} onChange={v => update('coolingMGD', v)} type="number" step="0.1" /></Field>
-              <Field label="Blowdown Fraction (%)" hint="% of circulating water discharged"><Input value={inputs.blowdownPct} onChange={v => update('blowdownPct', v)} type="number" /></Field>
-              <Field label="Process Water Use (MGD)"><Input value={inputs.waterMGD} onChange={v => update('waterMGD', v)} type="number" step="0.1" /></Field>
+        </div>
+
+        {/* Air-Specific Parameters — only when 'air' selected */}
+        {permitTypes.includes('air') && (
+          <div className="rounded-xl border border-violet-700/30 bg-violet-950/10 p-5 space-y-4">
+            <h3 className="text-xs font-semibold text-violet-400 uppercase tracking-wider">Air Permit Parameters</h3>
+            <Field label="Turbine / Engine Type">
+              <Select value={inputs.turbineType} onChange={handleTurbineType} options={turbineTypes} />
+            </Field>
+            <Field label="Heat Rate (MMBtu/MWh)"><Input value={inputs.heatRate} onChange={v => update('heatRate', v)} type="number" step="0.1" /></Field>
+            <Field label="NOx Emission Factor (lb/MMBtu)"><Input value={inputs.noxFactor} onChange={v => update('noxFactor', v)} type="number" step="0.001" /></Field>
+            <Field label="CO Emission Factor (lb/MMBtu)"><Input value={inputs.coFactor} onChange={v => update('coFactor', v)} type="number" step="0.001" /></Field>
+            <Field label="Stack Height (ft)"><Input value={inputs.stackHeight} onChange={v => update('stackHeight', v)} type="number" /></Field>
+            <Field label="Nearest Receptor (ft)" hint="For AERMOD modeling scope"><Input value={inputs.nearestReceptorFt} onChange={v => update('nearestReceptorFt', v)} type="number" /></Field>
+          </div>
+        )}
+
+        {/* Water-Specific Parameters — only when 'water' selected */}
+        {permitTypes.includes('water') && (
+          <div className="rounded-xl border border-blue-700/30 bg-blue-950/10 p-5 space-y-4">
+            <h3 className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Water Permit Parameters</h3>
+            <Field label="Cooling Water Use (MGD)" hint="Evaporation rate only (blowdown added separately below)"><Input value={inputs.coolingMGD} onChange={v => update('coolingMGD', v)} type="number" step="0.1" /></Field>
+            <Field label="Blowdown Fraction (%)" hint="% of circulating water discharged"><Input value={inputs.blowdownPct} onChange={v => update('blowdownPct', v)} type="number" /></Field>
+            <Field label="Process Water Use (MGD)"><Input value={inputs.waterMGD} onChange={v => update('waterMGD', v)} type="number" step="0.1" /></Field>
+            <Field label="Discharge Pathway">
+              <Select
+                value={inputs.dischargePathway || ''}
+                onChange={v => update('dischargePathway', v)}
+                options={[
+                  { value: '', label: 'Select discharge pathway...' },
+                  { value: 'Surface Water Discharge', label: 'Surface Water Discharge' },
+                  { value: 'POTW-Sanitary Sewer Connection', label: 'POTW-Sanitary Sewer Connection' },
+                ]}
+              />
+            </Field>
+          </div>
+        )}
+
+        {/* Building-Specific Parameters — only when 'building' selected */}
+        {permitTypes.includes('building') && (
+          <div className="rounded-xl border border-indigo-700/30 bg-indigo-950/10 p-5 space-y-4">
+            <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Building Permitting Parameters</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <Field label="Building Footprint (sqft)"><Input value={inputs.buildingSqFt} onChange={v => update('buildingSqFt', v)} type="number" /></Field>
+              <Field label="Stories"><Input value={inputs.stories} onChange={v => update('stories', v)} type="number" min="1" max="12" /></Field>
+              <Field label="Occupancy Type">
+                <select value={inputs.occupancyType} onChange={e => update('occupancyType', e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200">
+                  {['Business (B)','Industrial (F-1)','Storage (S-1)','Mixed (B/S-1)'].map(o =>
+                    <option key={o} value={o}>{o}</option>
+                  )}
+                </select>
+              </Field>
+              <Field label="Fire Suppression">
+                <select value={inputs.fireSuppression} onChange={e => update('fireSuppression', e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200">
+                  {['Pre-action sprinkler','Wet pipe sprinkler','Dry pipe sprinkler','Clean agent (FM-200/Novec)','Hybrid (pre-action + clean agent)'].map(o =>
+                    <option key={o} value={o}>{o}</option>
+                  )}
+                </select>
+              </Field>
+              <Field label="Emergency Power Config">
+                <select value={inputs.emergencyPowerConfig} onChange={e => update('emergencyPowerConfig', e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200">
+                  {['N','N+1','2N','2N+1'].map(o =>
+                    <option key={o} value={o}>{o}</option>
+                  )}
+                </select>
+              </Field>
             </div>
           </div>
+        )}
 
-          {/* Run button */}
-          <button
-            onClick={runScreening}
-            disabled={running}
-            className={`w-full py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2
-              ${running ? 'bg-indigo-800/50 text-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/40'}`}
-          >
-            {running ? (
-              <>
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                </svg>
-                Running Permit Screening…
-              </>
-            ) : '⚡ Run Full Permit Screening'}
-          </button>
-
-          {done && (
-            <div className="bg-green-900/20 border border-green-700/40 rounded-xl p-4 space-y-2">
-              <p className="text-green-400 font-semibold text-sm">✓ Screening Complete</p>
-              <p className="text-xs text-gray-400">Permit pathways, PTE, and document packages generated. Navigate to Air Permit AI, Water Permit AI, and Milestone Timeline tabs to view results.</p>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                {[
-                  { label: 'Air Permit AI', tab: 'air' },
-                  { label: 'Water Permit AI', tab: 'water' },
-                  { label: 'Milestone Timeline', tab: 'milestones' },
-                  { label: 'Document Factory', tab: 'docs' },
-                ].map(b => (
-                  <button key={b.tab} onClick={() => setActiveTab(b.tab)}
-                    className="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg py-2 px-3 transition-colors">
-                    → {b.label}
-                  </button>
-                ))}
+        {/* Power/Interconnection Parameters — only when 'power' selected */}
+        {permitTypes.includes('power') && (
+          <div className="rounded-xl border border-yellow-700/30 bg-yellow-950/10 p-5 space-y-4">
+            <h3 className="text-xs font-semibold text-yellow-400 uppercase tracking-wider">Power / Interconnection Parameters</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <Field label="Power Source Type">
+                <select value={inputs.powerSourceType} onChange={e => update('powerSourceType', e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200">
+                  {['Grid-only','On-site Generation','Hybrid (Grid + On-site)','Microgrid'].map(o =>
+                    <option key={o} value={o}>{o}</option>
+                  )}
+                </select>
+              </Field>
+              <Field label="Interconnection Voltage (kV)"><Input value={inputs.interconnectionVoltage} onChange={v => update('interconnectionVoltage', v)} type="number" /></Field>
+              <Field label="Transformer Capacity (MVA)"><Input value={inputs.transformerCapacity} onChange={v => update('transformerCapacity', v)} type="number" /></Field>
+            </div>
+            <div className="border-t border-yellow-700/20 pt-3">
+              <p className="text-xs text-gray-500 mb-3 font-medium">Backup / Emergency Generators</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Genset Fuel Type">
+                  <Select
+                    value={inputs.gensetFuelType || 'Diesel'}
+                    onChange={v => update('gensetFuelType', v)}
+                    options={['Diesel', 'Natural Gas']}
+                  />
+                </Field>
+              </div>
+              <div className="grid grid-cols-3 gap-2 mt-3">
+                <Field label="# Gensets"><Input value={inputs.gensetCount} onChange={v => update('gensetCount', v)} type="number" /></Field>
+                <Field label="HP Each"><Input value={inputs.gensetHP} onChange={v => update('gensetHP', v)} type="number" /></Field>
+                <Field label="Hrs/yr" hint="≤100 = emergency"><Input value={inputs.gensetHours} onChange={v => update('gensetHours', v)} type="number" /></Field>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
+
+      {/* Generate My Permits button */}
+      <button
+        onClick={runScreening}
+        disabled={running}
+        className={`w-full py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2
+          ${running ? 'bg-indigo-800/50 text-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/40'}`}
+      >
+        {running ? (
+          <>
+            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            Generating Permits…
+          </>
+        ) : '\u26A1 Generate My Permits'}
+      </button>
+
+      {done && (
+        <div className="bg-green-900/20 border border-green-700/40 rounded-xl p-4 space-y-2">
+          <p className="text-green-400 font-semibold text-sm">\u2713 Screening Complete</p>
+          <p className="text-xs text-gray-400">Permit pathways, PTE, and document packages generated. Navigate to the relevant tabs to view results.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+            {resultsNavItems.map(b => (
+              <button key={b.tab} onClick={() => setActiveTab(b.tab)}
+                className="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg py-2 px-3 transition-colors">
+                \u2192 {b.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Scenario Analyzer */}
       <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
