@@ -16,6 +16,8 @@ import { Card, CardContent } from './ui/card';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Badge } from './ui/badge';
+import { Slider } from './ui/slider';
+import { Checkbox } from './ui/checkbox';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem
 } from './ui/select';
@@ -161,7 +163,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
   const renderStep1 = () => (
     <div className="space-y-6">
       <Card>
-        <SectionHeading icon={SealCheck} label="Permit Types Needed" />
+        <CardContent>
+          <SectionHeading icon={SealCheck} label="Permit Types Needed" />
         <p className="text-sm text-muted-foreground mb-5">
           Select the permits you're pursuing — the intake form will only show relevant fields.
         </p>
@@ -191,10 +194,12 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
             );
           })}
         </div>
+      </CardContent>
       </Card>
 
       <Card>
-        <SectionHeading icon={MapPin} label="Project Type" />
+        <CardContent>
+          <SectionHeading icon={MapPin} label="Project Type" />
         <p className="text-sm text-muted-foreground mb-5">
           What type of development is this? This affects permit pathway complexity and timeline.
         </p>
@@ -224,6 +229,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
             );
           })}
         </div>
+        </CardContent>
       </Card>
     </div>
   );
@@ -233,7 +239,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
     <div className="grid grid-cols-2 gap-5">
       {/* Site Information */}
       <Card className="col-span-2">
-        <SectionHeading icon={MapPin} label="Site Information" count={9} />
+        <CardContent>
+          <SectionHeading icon={MapPin} label="Site Information" count={9} />
         <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
           <Field label="Site Name"><Input value={inputs.siteName} onChange={v => update('siteName', v)} /></Field>
           <Field label="Client / Owner"><Input value={inputs.client} onChange={v => update('client', v)} /></Field>
@@ -299,12 +306,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                 { key: 'nonAttainPM25', label: 'PM2.5 (Direct)' },
               ].map(p => (
                 <label key={p.key} className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground/80">
-                  <input
-                    type="checkbox"
-                    checked={inputs[p.key]}
-                    onChange={e => update(p.key, e.target.checked)}
-                    className="accent-[#fafafa] rounded"
-                  />
+                  <Checkbox checked={inputs[p.key]} onCheckedChange={v => update(p.key, v)} />
                   {p.label}
                 </label>
               ))}
@@ -312,21 +314,25 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
             <p className="text-xs text-muted-foreground mt-2 italic">Checking these applies Severe nonattainment thresholds (25 tpy NOx/VOC, 30 tpy PM2.5)</p>
           </div>
         )}
+      </CardContent>
       </Card>
 
       {/* Generation Overview */}
       <Card>
-        <SectionHeading icon={Gear} label="Generation Overview" count={3} />
+        <CardContent>
+          <SectionHeading icon={Gear} label="Generation Overview" count={3} />
         <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
           <Field label="Gas Turbines (count)"><Input value={inputs.turbines} onChange={v => update('turbines', v)} type="number" /></Field>
           <Field label="MW per Turbine"><Input value={inputs.mwPerTurbine} onChange={v => update('mwPerTurbine', v)} type="number" /></Field>
           <Field label="Operating Hours / Year" hint="Max 8,760 for continuous; <500 for limited-use"><Input value={inputs.hours} onChange={v => update('hours', v)} type="number" /></Field>
         </div>
+      </CardContent>
       </Card>
 
       {/* Data Center Systems */}
       <Card>
-        <SectionHeading icon={HardDrives} label="Data Center Systems" count={3} />
+        <CardContent>
+          <SectionHeading icon={HardDrives} label="Data Center Systems" count={3} />
         <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
           <Field label="IT Load (MW)">
             <div className="flex gap-2">
@@ -349,40 +355,39 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           <Field label="Target PUE"><Input value={inputs.pueTarget} onChange={v => update('pueTarget', v)} type="number" step="0.01" /></Field>
           <Field label="Build Phases"><Input value={inputs.phases} onChange={v => update('phases', v)} type="number" /></Field>
         </div>
+      </CardContent>
       </Card>
 
       {/* Brick Load Reduction */}
       <Card className="col-span-2">
-        <SectionHeading icon={Timer} label="Brick Dispatch Optimization" />
+        <CardContent>
+          <SectionHeading icon={Timer} label="Brick Dispatch Optimization" />
         <div className="max-w-md">
           <Field label="Brick Load Reduction (%)" hint="Dispatch efficiency gains from Brick controls vs. baseline">
-            <div className="relative pt-1">
-              <div className="relative h-[5px] rounded-full bg-[#27272a]">
-                <div
-                  className="h-full rounded-full bg-foreground"
-                  style={{ width: `${inputs.brickSavings || 0}%` }}
-                />
-              </div>
-              <input
-                type="range" min={0} max={30} step={1}
-                value={inputs.brickSavings}
-                onChange={e => update('brickSavings', parseFloat(e.target.value))}
-                className="brick-slider w-full mt-[-5px]"
+            <div className="space-y-2 pt-2">
+              <Slider
+                value={[inputs.brickSavings || 0]}
+                onValueChange={([v]) => update('brickSavings', v)}
+                min={0}
+                max={30}
+                step={1}
               />
-              <div className="flex justify-between mt-1">
+              <div className="flex justify-between items-center">
                 <span className="text-xs text-muted-foreground">0%</span>
+                <span className="text-sm font-semibold text-foreground">{inputs.brickSavings || 0}% reduction</span>
                 <span className="text-xs text-muted-foreground">30%</span>
               </div>
-              <div className="text-right text-sm font-semibold text-foreground mt-1">{inputs.brickSavings || 0}% reduction</div>
             </div>
           </Field>
         </div>
+      </CardContent>
       </Card>
 
       {/* Air-Specific Parameters */}
       {permitTypes.includes('air') && (
         <Card>
-          <SectionHeading icon={Wind} label="Air Permit Parameters" count={6} />
+          <CardContent>
+            <SectionHeading icon={Wind} label="Air Permit Parameters" count={6} />
           <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
             <Field label="Turbine / Engine Type" hint="Sets emission factors automatically">
               <Select value={inputs.turbineType} onValueChange={handleTurbineType}>
@@ -402,13 +407,15 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
             <Field label="Stack Height (ft)"><Input className="font-mono-num" value={inputs.stackHeight} onChange={v => update('stackHeight', v)} type="number" /></Field>
             <Field label="Nearest Receptor (ft)" hint="For AERMOD modeling scope"><Input className="font-mono-num" value={inputs.nearestReceptorFt} onChange={v => update('nearestReceptorFt', v)} type="number" /></Field>
           </div>
+        </CardContent>
         </Card>
       )}
 
       {/* Water-Specific Parameters */}
       {permitTypes.includes('water') && (
         <Card>
-          <SectionHeading icon={Drop} label="Water Permit Parameters" count={4} />
+          <CardContent>
+            <SectionHeading icon={Drop} label="Water Permit Parameters" count={4} />
           <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
             <Field label="Cooling Water (MGD)" hint="Evaporation rate only"><Input className="font-mono-num" value={inputs.coolingMGD} onChange={v => update('coolingMGD', v)} type="number" step="0.1" /></Field>
             <Field label="Blowdown (%)" hint="% of circulating water discharged"><Input className="font-mono-num" value={inputs.blowdownPct} onChange={v => update('blowdownPct', v)} type="number" /></Field>
@@ -428,13 +435,15 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               </Select>
             </Field>
           </div>
+        </CardContent>
         </Card>
       )}
 
       {/* Building-Specific Parameters */}
       {permitTypes.includes('building') && (
         <Card>
-          <SectionHeading icon={Buildings} label="Building Permitting Parameters" count={5} />
+          <CardContent>
+            <SectionHeading icon={Buildings} label="Building Permitting Parameters" count={5} />
           <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
             <Field label="Building Footprint (sqft)"><Input value={inputs.buildingSqFt} onChange={v => update('buildingSqFt', v)} type="number" /></Field>
             <Field label="Stories"><Input value={inputs.stories} onChange={v => update('stories', v)} type="number" /></Field>
@@ -475,13 +484,15 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                     </Select>
             </Field>
           </div>
+        </CardContent>
         </Card>
       )}
 
       {/* Power/Interconnection Parameters */}
       {permitTypes.includes('power') && (
         <Card>
-          <SectionHeading icon={Lightning} label="Power / Interconnection Parameters" count={6} />
+          <CardContent>
+            <SectionHeading icon={Lightning} label="Power / Interconnection Parameters" count={6} />
           <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
             <Field label="Power Source Type">
               <Select value={inputs.powerSourceType} onValueChange={v => update('powerSourceType', v)}>
@@ -520,6 +531,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               <Field label="Operating Hours / Year" hint="<=100 = emergency"><Input className="font-mono-num" value={inputs.gensetHours} onChange={v => update('gensetHours', v)} type="number" /></Field>
             </div>
           </div>
+        </CardContent>
         </Card>
       )}
     </div>

@@ -221,13 +221,10 @@ function App() {
           <SidebarHeader>
             <div className="flex items-center gap-3 px-2 py-1">
               <div className="w-8 h-8 bg-primary flex items-center justify-center shrink-0">
-                <ShieldLogo className="w-4 h-4 text-primary-foreground" weight="duotone" />
+                <ShieldLogo className="w-5 h-5 text-primary-foreground" weight="duotone" />
               </div>
               <div className="group-data-[collapsible=icon]:hidden flex-1">
                 <span className="text-foreground font-semibold text-sm font-heading">Brick PermitOS</span>
-              </div>
-              <div className="group-data-[collapsible=icon]:hidden">
-                <SidebarTrigger />
               </div>
             </div>
           </SidebarHeader>
@@ -274,7 +271,7 @@ function App() {
         </Sidebar>
         <SidebarInset>
           <Header activeTab={activeTab} results={results} onLogout={handleLogout} />
-          <main className="max-w-[1400px] mx-auto w-full">
+          <main className="max-w-[1400px] mx-auto w-full px-4 md:px-6">
             {renderTab()}
           </main>
           <SiteAssistant inputs={inputs} results={results} setActiveTab={setActiveTab} />

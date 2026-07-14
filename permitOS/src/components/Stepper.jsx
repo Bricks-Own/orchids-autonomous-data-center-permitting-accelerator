@@ -30,12 +30,12 @@ export default function Stepper({ currentStep }) {
                   {isCompleted ? (
                     <Check weight="bold" size={16} />
                   ) : (
-                    <span className="text-[13px] font-semibold">{stepNum}</span>
+                    <span className="text-sm font-semibold">{stepNum}</span>
                   )}
                 </div>
                 {/* Label */}
                 <span
-                  className={`text-[12.5px] leading-tight ${
+                  className={`text-xs leading-tight ${
                     isActive
                       ? 'text-foreground font-bold'
                       : isCompleted

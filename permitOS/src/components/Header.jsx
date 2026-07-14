@@ -15,13 +15,11 @@ export default function Header({ activeTab, results, onLogout }) {
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-border/60">
         <div className="flex items-center gap-3">
-          {isMobile && (
-            <SidebarTrigger className="md:hidden">
-              <List className="w-4 h-4" weight="duotone" />
-            </SidebarTrigger>
-          )}
-          <div className="w-8 h-8 bg-primary flex items-center justify-center">
-            <ShieldLogo className="w-4 h-4 text-primary-foreground" weight="duotone" />
+          <SidebarTrigger className="shrink-0">
+            <List className="w-5 h-5" weight="duotone" />
+          </SidebarTrigger>
+          <div className="w-9 h-9 bg-primary flex items-center justify-center">
+            <ShieldLogo className="w-5 h-5 text-primary-foreground" weight="duotone" />
           </div>
           <div>
             <span className="text-foreground font-semibold text-sm font-heading">Brick PermitOS</span>
@@ -31,12 +29,12 @@ export default function Header({ activeTab, results, onLogout }) {
         <div className="flex items-center gap-2 flex-wrap">
           {hasResults && (
             <Badge variant="secondary" className="gap-1.5">
-              <span className="w-1.5 h-1.5 bg-primary animate-pulse" />
+              <span className="w-2 h-2 bg-primary animate-pulse rounded-full" />
               Site Loaded
             </Badge>
           )}
           <Badge variant="secondary" className="gap-1.5">
-            <span className="w-1.5 h-1.5 bg-primary animate-pulse" />
+            <span className="w-2 h-2 bg-primary animate-pulse rounded-full" />
             Live Demo
           </Badge>
           <Badge variant="secondary" className="hidden sm:flex">
@@ -45,14 +43,14 @@ export default function Header({ activeTab, results, onLogout }) {
           {onLogout && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="group/button inline-flex shrink-0 items-center justify-center h-7 gap-1 px-3 text-xs font-semibold tracking-widest uppercase transition-all hover:bg-muted hover:text-foreground rounded-none">
-                  <SignOut className="w-3 h-3" weight="duotone" />
+                <button className="group/button inline-flex shrink-0 items-center justify-center h-8 gap-1.5 px-3 text-xs font-semibold tracking-widest uppercase transition-all hover:bg-muted hover:text-foreground rounded-none">
+                  <SignOut className="w-4 h-4" weight="duotone" />
                   Logout
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={onLogout} variant="destructive">
-                  <SignOut className="w-3.5 h-3.5" weight="duotone" />
+                  <SignOut className="w-4 h-4" weight="duotone" />
                   Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>

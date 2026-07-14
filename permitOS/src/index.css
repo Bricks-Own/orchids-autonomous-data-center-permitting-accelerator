@@ -45,50 +45,6 @@ body {
   animation: fade-in 0.25s ease-out;
 }
 
-/* Custom range slider */
-input[type="range"].brick-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 5px;
-  border-radius: 3px;
-  background: #27272a;
-  outline: none;
-}
-input[type="range"].brick-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #fafafa;
-  box-shadow: 0 0 0 3px #111113;
-  cursor: pointer;
-}
-input[type="range"].brick-slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #fafafa;
-  box-shadow: 0 0 0 3px #111113;
-  cursor: pointer;
-  border: none;
-}
-input[type="range"].brick-slider::-webkit-slider-runnable-track {
-  height: 5px;
-  border-radius: 3px;
-  background: linear-gradient(to right, #fafafa var(--fill, 0%), #27272a var(--fill, 0%));
-}
-input[type="range"].brick-slider::-moz-range-track {
-  height: 5px;
-  border-radius: 3px;
-  background: #27272a;
-}
-input[type="range"].brick-slider::-moz-range-fill-lower {
-  border-radius: 3px;
-  background: #fafafa;
-}
-
 /* Print / export friendly */
 @media print {
   .no-print { display: none !important; }
