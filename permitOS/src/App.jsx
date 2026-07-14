@@ -49,7 +49,7 @@ export const defaultInputs = {
   stackHeight: 65,
   nearestReceptorFt: 1200,
   nonAttainment: false,
-  permitTypesNeeded: ['air', 'water', 'building', 'power'],
+  permitTypesNeeded: null,
 };
 
 function App() {
