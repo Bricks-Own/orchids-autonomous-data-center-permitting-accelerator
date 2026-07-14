@@ -19,7 +19,7 @@ export default function Stepper({ currentStep }) {
               <div className="flex items-center gap-3">
                 {/* Circle */}
                 <div
-                  className={`w-[30px] h-[30px]  flex items-center justify-center flex-shrink-0 transition-all ${
+                  className={`w-[30px] h-[30px] rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
                     isActive
                       ? 'bg-[#fafafa] text-[#09090b]'
                       : isCompleted

@@ -51,7 +51,7 @@ export default function AuthModal({ onAuth, sessionExpiredMessage = '' }) {
         {/* Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-primary flex items-center justify-center">
+            <div className="w-10 h-10 bg-primary flex items-center justify-center rounded-lg">
               <ShieldCheck className="w-5 h-5 text-primary-foreground" weight="duotone" />
             </div>
             <div>
@@ -75,14 +75,14 @@ export default function AuthModal({ onAuth, sessionExpiredMessage = '' }) {
           <CardContent className="p-6 space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
               {sessionExpiredMessage && (
-                <div className="bg-destructive/10 border border-destructive/30 px-4 py-4 text-center">
+                <div className="bg-destructive/10 border border-destructive/30 rounded-md px-4 py-4 text-center">
                   <div className="text-destructive font-semibold text-xs uppercase tracking-wider mb-1">Session Expired</div>
                   <p className="text-destructive/70 text-xs">{sessionExpiredMessage}</p>
                 </div>
               )}
 
               {registered && (
-                <div className="bg-primary/10 border border-primary/30 px-4 py-4 text-center">
+                <div className="bg-primary/10 border border-primary/30 rounded-md px-4 py-4 text-center">
                   <div className="text-primary font-semibold text-xs uppercase tracking-wider mb-1 flex items-center justify-center gap-2">
                     <CheckCircle className="w-3.5 h-3.5" weight="duotone" />
                     Account created successfully
@@ -92,7 +92,7 @@ export default function AuthModal({ onAuth, sessionExpiredMessage = '' }) {
               )}
 
               {error && (
-                <div className="bg-destructive/10 border border-destructive/30 px-4 py-3 text-xs text-destructive flex items-center gap-2">
+                <div className="bg-destructive/10 border border-destructive/30 rounded-md px-4 py-3 text-xs text-destructive flex items-center gap-2">
                   <WarningCircle className="w-3.5 h-3.5 shrink-0" weight="duotone" />
                   {error}
                 </div>

@@ -11,125 +11,26 @@ import { calcPTE } from '../utils/calculations';
 import { calculatePTE as apiPTE, analyzeScenario, listScenarios } from '../utils/api';
 import Stepper from './Stepper';
 import { computeTimelineComparison } from '../utils/timelineCalc';
+import { Button } from './ui/button';
+import { Card, CardContent } from './ui/card';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Badge } from './ui/badge';
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem
+} from './ui/select';
 
 const turbineTypes = ['Gas Turbine (DLN, modern)', 'Gas Turbine (standard combustion)', 'Gas Turbine (older frame, uncontrolled)'];
 
-// ─── Design System Components ────────────────────────────────────────────────
-
-function Card({ children, className = '' }) {
-  return (
-    <div className={`bg-background border border-border  p-7 ${className}`}>
-      {children}
-    </div>
-  );
-}
+// ─── Local layout helpers ────────────────────────────────────────────────────
 
 function Field({ label, children, hint }) {
   return (
     <div>
-      <label className="block text-[11.5px] font-medium text-muted-foreground mb-[7px]">{label}</label>
+      <Label className="mb-[7px] block text-[11.5px] font-medium text-muted-foreground normal-case tracking-normal">{label}</Label>
       {children}
       {hint && <p className="text-xs text-muted-foreground mt-1.5">{hint}</p>}
     </div>
-  );
-}
-
-function Input({ value, onChange, type = 'text', step, className = '' }) {
-  return (
-    <input
-      type={type}
-      step={step}
-      value={value}
-      onChange={e => onChange(type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value)}
-      className={`w-full bg-background border border-border  px-3 py-3 text-xs text-foreground placeholder-[#71717a]
-        focus:outline-none focus:border-[#52525b] focus:shadow-[0_0_0_3px_#ffffff14] transition-colors ${className}`}
-    />
-  );
-}
-
-function InputMono({ value, onChange, type = 'text', step, className = '' }) {
-  return (
-    <input
-      type={type}
-      step={step}
-      value={value}
-      onChange={e => onChange(type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value)}
-      className={`w-full bg-background border border-border  px-3 py-3 text-xs text-foreground placeholder-[#71717a]
-        font-['IBM_Plex_Mono'] focus:outline-none focus:border-[#52525b] focus:shadow-[0_0_0_3px_#ffffff14] transition-colors ${className}`}
-    />
-  );
-}
-
-function Select({ value, onChange, options }) {
-  return (
-    <select
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      className="w-full bg-background border border-border  px-3 py-3 text-xs text-foreground
-        focus:outline-none focus:border-[#52525b] focus:shadow-[0_0_0_3px_#ffffff14] transition-colors appearance-none"
-      style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 256 256'%3E%3Cpath fill='%2371717a' d='M213.66 101.66a8 8 0 0 1-11.32 0L128 27.31l-74.34 74.35a8 8 0 0 1-11.32-11.32l80-80a8 8 0 0 1 11.32 0l80 80a8 8 0 0 1 0 11.32Z'/%3E%3C/svg%3E")`,
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'right 12px center',
-        backgroundSize: '12px',
-        paddingRight: '32px',
-      }}
-    >
-      {options.map(o => (
-        <option key={o.value ?? o} value={o.value ?? o}>{o.label ?? o}</option>
-      ))}
-    </select>
-  );
-}
-
-function PrimaryButton({ onClick, disabled, children, icon: Icon, fullWidth = false }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`${fullWidth ? 'w-full' : ''} inline-flex items-center justify-center gap-2 bg-foreground text-background  px-6 py-3 text-sm font-semibold
-        transition-all hover:brightness-[1.15] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100`}
-    >
-      {Icon && <Icon weight="duotone" size={18} />}
-      {children}
-    </button>
-  );
-}
-
-function SecondaryButton({ onClick, disabled, children, icon: Icon }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="inline-flex items-center justify-center gap-2 bg-card border border-border text-foreground  px-6 py-3 text-xs font-semibold
-        transition-all hover:bg-[#27272a] disabled:opacity-40 disabled:cursor-not-allowed"
-    >
-      {Icon && <Icon weight="duotone" size={18} />}
-      {children}
-    </button>
-  );
-}
-
-function GhostButton({ onClick, disabled, children, icon: Icon }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="inline-flex items-center justify-center gap-2 bg-transparent border border-border  px-5 py-3 text-xs font-semibold
-        transition-all text-foreground/80 hover:bg-card disabled:text-[#3a4558] disabled:cursor-not-allowed"
-    >
-      {Icon && <Icon weight="duotone" size={18} />}
-      {children}
-    </button>
-  );
-}
-
-function Badge({ children, color = 'text-muted-foreground', dotColor = null }) {
-  return (
-    <span className={`inline-flex items-center gap-1.5 bg-card text-xs font-semibold px-3.5 py-1.5  ${color}`}>
-      {dotColor && <span className={`w-1.5 h-1.5  ${dotColor}`} />}
-      {children}
-    </span>
   );
 }
 
@@ -141,7 +42,7 @@ function SectionHeading({ icon: Icon, label, count }) {
         <h3 className="text-[15px] font-bold text-foreground">{label}</h3>
       </div>
       {count !== undefined && (
-        <span className="text-xs text-muted-foreground bg-card px-[10px] py-[4px] ">{count} fields</span>
+        <span className="text-xs text-muted-foreground bg-card rounded-full px-[10px] py-[4px]">{count} fields</span>
       )}
     </div>
   );
@@ -272,14 +173,14 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               <button
                 key={p.key}
                 onClick={() => togglePermitType(p.key)}
-                className={`relative flex flex-col items-start gap-2  border p-4 text-left transition-all
+                className={`relative flex flex-col items-start gap-2 rounded-lg border p-4 text-left transition-all
                   ${isSelected
                     ? 'border-border bg-card'
                     : 'border-border bg-transparent hover:bg-card'
                   }`}
               >
                 {isSelected && (
-                  <span className="absolute top-3 right-3 w-5 h-5  bg-foreground flex items-center justify-center">
+                  <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
                     <Check weight="bold" size={12} className="text-background" />
                   </span>
                 )}
@@ -305,14 +206,14 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               <button
                 key={key}
                 onClick={() => update('projectScenario', key)}
-                className={`relative flex flex-col items-start gap-2  border p-4 text-left transition-all
+                className={`relative flex flex-col items-start gap-2 rounded-lg border p-4 text-left transition-all
                   ${isSelected
                     ? 'border-border bg-card'
                     : 'border-border bg-transparent hover:bg-card'
                   }`}
               >
                 {isSelected && (
-                  <span className="absolute top-3 right-3 w-5 h-5  bg-foreground flex items-center justify-center">
+                  <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
                     <Check weight="bold" size={12} className="text-background" />
                   </span>
                 )}
@@ -337,7 +238,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           <Field label="Site Name"><Input value={inputs.siteName} onChange={v => update('siteName', v)} /></Field>
           <Field label="Client / Owner"><Input value={inputs.client} onChange={v => update('client', v)} /></Field>
           <Field label="State">
-            <Select value={inputs.state} onChange={v => {
+            <Select value={inputs.state} onValueChange={v => {
               update('state', v);
               const status = STATES_ATTAINMENT[v] || '';
               const isNon = status.includes('Nonattainment');
@@ -356,16 +257,25 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                   update('lon', defaults.lon);
                 }
               }
-            }} options={US_STATES} />
+            }}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select state..." />
+              </SelectTrigger>
+              <SelectContent>
+                {US_STATES.map(s => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
           <Field label="County / Jurisdiction"><Input value={inputs.county} onChange={v => { update('county', v); markAddressTouched(); }} /></Field>
           <Field label="Site Address"><Input value={inputs.address} onChange={v => { update('address', v); markAddressTouched(); }} /></Field>
           <Field label="Target COD"><Input value={inputs.codTarget} onChange={v => update('codTarget', v)} /></Field>
-          <Field label="Latitude"><InputMono value={inputs.lat} onChange={v => { update('lat', v); markAddressTouched(); }} /></Field>
-          <Field label="Longitude"><InputMono value={inputs.lon} onChange={v => { update('lon', v); markAddressTouched(); }} /></Field>
+          <Field label="Latitude"><Input className="font-mono-num" value={inputs.lat} onChange={v => { update('lat', v); markAddressTouched(); }} /></Field>
+          <Field label="Longitude"><Input className="font-mono-num" value={inputs.lon} onChange={v => { update('lon', v); markAddressTouched(); }} /></Field>
           <Field label="Site Acreage"><Input value={inputs.siteAcres} onChange={v => update('siteAcres', v)} type="number" /></Field>
 
-          <div className="bg-card  p-4 flex items-start gap-3">
+          <div className="bg-card rounded-lg p-4 flex items-start gap-3">
             <div className="flex-1 min-w-0">
               <div className="text-xs font-medium text-muted-foreground mb-1">Air Quality Area Status</div>
               <div className={`text-[13px] font-semibold ${
@@ -429,7 +339,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                   const pue = inputs.pueTarget || 1.35;
                   update('datacenterMW', Math.round(totalMW / (pue + 0.15)));
                 }}
-                className="bg-card border border-border text-xs text-muted-foreground px-2.5 py-1.5  hover:bg-[#27272a] transition-colors whitespace-nowrap"
+                className="bg-card border border-border text-xs text-muted-foreground px-2.5 py-1.5 rounded-md hover:bg-[#27272a] transition-colors whitespace-nowrap"
                 title="Derive from generation capacity"
               >
                 Auto
@@ -447,9 +357,9 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
         <div className="max-w-md">
           <Field label="Brick Load Reduction (%)" hint="Dispatch efficiency gains from Brick controls vs. baseline">
             <div className="relative pt-1">
-              <div className="relative h-[5px]  bg-[#27272a]">
+              <div className="relative h-[5px] rounded-full bg-[#27272a]">
                 <div
-                  className="h-full  bg-foreground"
+                  className="h-full rounded-full bg-foreground"
                   style={{ width: `${inputs.brickSavings || 0}%` }}
                 />
               </div>
@@ -475,13 +385,22 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           <SectionHeading icon={Wind} label="Air Permit Parameters" count={6} />
           <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
             <Field label="Turbine / Engine Type" hint="Sets emission factors automatically">
-              <Select value={inputs.turbineType} onChange={handleTurbineType} options={turbineTypes} />
+              <Select value={inputs.turbineType} onValueChange={handleTurbineType}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select turbine type..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {turbineTypes.map(t => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
-            <Field label="Heat Rate (MMBtu/MWh)"><InputMono value={inputs.heatRate} onChange={v => update('heatRate', v)} type="number" step="0.1" /></Field>
-            <Field label="NOx Factor (lb/MMBtu)"><InputMono value={inputs.noxFactor} onChange={v => update('noxFactor', v)} type="number" step="0.001" /></Field>
-            <Field label="CO Factor (lb/MMBtu)"><InputMono value={inputs.coFactor} onChange={v => update('coFactor', v)} type="number" step="0.001" /></Field>
-            <Field label="Stack Height (ft)"><InputMono value={inputs.stackHeight} onChange={v => update('stackHeight', v)} type="number" /></Field>
-            <Field label="Nearest Receptor (ft)" hint="For AERMOD modeling scope"><InputMono value={inputs.nearestReceptorFt} onChange={v => update('nearestReceptorFt', v)} type="number" /></Field>
+            <Field label="Heat Rate (MMBtu/MWh)"><Input className="font-mono-num" value={inputs.heatRate} onChange={v => update('heatRate', v)} type="number" step="0.1" /></Field>
+            <Field label="NOx Factor (lb/MMBtu)"><Input className="font-mono-num" value={inputs.noxFactor} onChange={v => update('noxFactor', v)} type="number" step="0.001" /></Field>
+            <Field label="CO Factor (lb/MMBtu)"><Input className="font-mono-num" value={inputs.coFactor} onChange={v => update('coFactor', v)} type="number" step="0.001" /></Field>
+            <Field label="Stack Height (ft)"><Input className="font-mono-num" value={inputs.stackHeight} onChange={v => update('stackHeight', v)} type="number" /></Field>
+            <Field label="Nearest Receptor (ft)" hint="For AERMOD modeling scope"><Input className="font-mono-num" value={inputs.nearestReceptorFt} onChange={v => update('nearestReceptorFt', v)} type="number" /></Field>
           </div>
         </Card>
       )}
@@ -491,19 +410,22 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
         <Card>
           <SectionHeading icon={Drop} label="Water Permit Parameters" count={4} />
           <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
-            <Field label="Cooling Water (MGD)" hint="Evaporation rate only"><InputMono value={inputs.coolingMGD} onChange={v => update('coolingMGD', v)} type="number" step="0.1" /></Field>
-            <Field label="Blowdown (%)" hint="% of circulating water discharged"><InputMono value={inputs.blowdownPct} onChange={v => update('blowdownPct', v)} type="number" /></Field>
-            <Field label="Process Water (MGD)"><InputMono value={inputs.waterMGD} onChange={v => update('waterMGD', v)} type="number" step="0.1" /></Field>
+            <Field label="Cooling Water (MGD)" hint="Evaporation rate only"><Input className="font-mono-num" value={inputs.coolingMGD} onChange={v => update('coolingMGD', v)} type="number" step="0.1" /></Field>
+            <Field label="Blowdown (%)" hint="% of circulating water discharged"><Input className="font-mono-num" value={inputs.blowdownPct} onChange={v => update('blowdownPct', v)} type="number" /></Field>
+            <Field label="Process Water (MGD)"><Input className="font-mono-num" value={inputs.waterMGD} onChange={v => update('waterMGD', v)} type="number" step="0.1" /></Field>
             <Field label="Discharge Pathway">
               <Select
                 value={inputs.dischargePathway || ''}
-                onChange={v => update('dischargePathway', v)}
-                options={[
-                  { value: '', label: 'Select discharge pathway...' },
-                  { value: 'Surface Water Discharge', label: 'Surface Water Discharge' },
-                  { value: 'POTW-Sanitary Sewer Connection', label: 'POTW-Sanitary Sewer Connection' },
-                ]}
-              />
+                onValueChange={v => update('dischargePathway', v)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select discharge pathway..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Select discharge pathway...</SelectItem>
+                  <SelectItem value="Surface Water Discharge">Surface Water Discharge</SelectItem>
+                  <SelectItem value="POTW-Sanitary Sewer Connection">POTW-Sanitary Sewer Connection</SelectItem>
+                </SelectContent>
+              </Select>
             </Field>
           </div>
         </Card>
@@ -517,16 +439,40 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
             <Field label="Building Footprint (sqft)"><Input value={inputs.buildingSqFt} onChange={v => update('buildingSqFt', v)} type="number" /></Field>
             <Field label="Stories"><Input value={inputs.stories} onChange={v => update('stories', v)} type="number" /></Field>
             <Field label="Occupancy Type">
-              <Select value={inputs.occupancyType} onChange={v => update('occupancyType', v)}
-                options={['Business (B)', 'Industrial (F-1)', 'Storage (S-1)', 'Mixed (B/S-1)']} />
+              <Select value={inputs.occupancyType} onValueChange={v => update('occupancyType', v)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select occupancy..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['Business (B)', 'Industrial (F-1)', 'Storage (S-1)', 'Mixed (B/S-1)'].map(o => (
+                          <SelectItem key={o} value={o}>{o}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
             </Field>
             <Field label="Fire Suppression">
-              <Select value={inputs.fireSuppression} onChange={v => update('fireSuppression', v)}
-                options={['Pre-action sprinkler', 'Wet pipe sprinkler', 'Dry pipe sprinkler', 'Clean agent (FM-200/Novec)', 'Hybrid (pre-action + clean agent)']} />
+              <Select value={inputs.fireSuppression} onValueChange={v => update('fireSuppression', v)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select suppression..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['Pre-action sprinkler', 'Wet pipe sprinkler', 'Dry pipe sprinkler', 'Clean agent (FM-200/Novec)', 'Hybrid (pre-action + clean agent)'].map(o => (
+                          <SelectItem key={o} value={o}>{o}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
             </Field>
             <Field label="Emergency Power Config">
-              <Select value={inputs.emergencyPowerConfig} onChange={v => update('emergencyPowerConfig', v)}
-                options={['N', 'N+1', '2N', '2N+1']} />
+              <Select value={inputs.emergencyPowerConfig} onValueChange={v => update('emergencyPowerConfig', v)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select config..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['N', 'N+1', '2N', '2N+1'].map(o => (
+                          <SelectItem key={o} value={o}>{o}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
             </Field>
           </div>
         </Card>
@@ -538,24 +484,40 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           <SectionHeading icon={Lightning} label="Power / Interconnection Parameters" count={6} />
           <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
             <Field label="Power Source Type">
-              <Select value={inputs.powerSourceType} onChange={v => update('powerSourceType', v)}
-                options={['Grid-only', 'On-site Generation', 'Hybrid (Grid + On-site)', 'Microgrid']} />
+              <Select value={inputs.powerSourceType} onValueChange={v => update('powerSourceType', v)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select source..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['Grid-only', 'On-site Generation', 'Hybrid (Grid + On-site)', 'Microgrid'].map(o => (
+                        <SelectItem key={o} value={o}>{o}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
             </Field>
-            <Field label="Interconnection Voltage (kV)"><InputMono value={inputs.interconnectionVoltage} onChange={v => update('interconnectionVoltage', v)} type="number" /></Field>
-            <Field label="Transformer Capacity (MVA)"><InputMono value={inputs.transformerCapacity} onChange={v => update('transformerCapacity', v)} type="number" /></Field>
+            <Field label="Interconnection Voltage (kV)"><Input className="font-mono-num" value={inputs.interconnectionVoltage} onChange={v => update('interconnectionVoltage', v)} type="number" /></Field>
+            <Field label="Transformer Capacity (MVA)"><Input className="font-mono-num" value={inputs.transformerCapacity} onChange={v => update('transformerCapacity', v)} type="number" /></Field>
           </div>
 
           <div className="mt-5 pt-5 border-t border-border">
             <div className="text-[11.5px] font-medium text-muted-foreground mb-4">Backup / Emergency Generators</div>
             <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
               <Field label="Genset Fuel Type">
-                <Select value={inputs.gensetFuelType || 'Diesel'} onChange={v => update('gensetFuelType', v)}
-                  options={['Diesel', 'Natural Gas']} />
+                <Select value={inputs.gensetFuelType || 'Diesel'} onValueChange={v => update('gensetFuelType', v)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select fuel..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['Diesel', 'Natural Gas'].map(o => (
+                        <SelectItem key={o} value={o}>{o}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
               </Field>
               <div />
-              <Field label="Number of Gensets"><InputMono value={inputs.gensetCount} onChange={v => update('gensetCount', v)} type="number" /></Field>
-              <Field label="HP Each"><InputMono value={inputs.gensetHP} onChange={v => update('gensetHP', v)} type="number" /></Field>
-              <Field label="Operating Hours / Year" hint="<=100 = emergency"><InputMono value={inputs.gensetHours} onChange={v => update('gensetHours', v)} type="number" /></Field>
+              <Field label="Number of Gensets"><Input className="font-mono-num" value={inputs.gensetCount} onChange={v => update('gensetCount', v)} type="number" /></Field>
+              <Field label="HP Each"><Input className="font-mono-num" value={inputs.gensetHP} onChange={v => update('gensetHP', v)} type="number" /></Field>
+              <Field label="Operating Hours / Year" hint="<=100 = emergency"><Input className="font-mono-num" value={inputs.gensetHours} onChange={v => update('gensetHours', v)} type="number" /></Field>
             </div>
           </div>
         </Card>
@@ -589,13 +551,13 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
             <span className="text-[13px] text-muted-foreground">/</span>
             <span className="text-[13px] text-muted-foreground">{inputs.county || inputs.state}, {inputs.state}</span>
             <span className="text-[13px] text-muted-foreground">/</span>
-            <Badge>{PROJECT_TYPE_CONFIG[projectScenario]?.label || 'Greenfield Development'}</Badge>
+            <Badge variant="secondary">{PROJECT_TYPE_CONFIG[projectScenario]?.label || 'Greenfield Development'}</Badge>
             {permitTypes.map(key => {
               const def = PERMIT_TYPE_CONFIG.find(p => p.key === key);
               if (!def) return null;
               const Icon = def.icon;
               return (
-                <Badge key={key}>
+                <Badge variant="secondary" key={key}>
                   <Icon weight="duotone" size={12} className="text-muted-foreground" />
                   {def.label}
                 </Badge>
@@ -609,7 +571,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           <SectionHeading icon={ChartBar} label="Permitting Timeline Comparison" />
           {results ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-card  p-6 border border-border">
+              <div className="bg-card rounded-lg p-6 border border-border">
                 <div className="text-[11.5px] font-medium text-muted-foreground mb-2">Traditional Pathway</div>
                 <div className="text-[32px] font-bold text-muted-foreground tracking-[-0.02em]">
                   ~{comparison.traditional.totalMonths} <span className="text-[16px] font-medium">months</span>
@@ -618,7 +580,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                   {comparison.traditional.pathwayLabel} — baseline emissions
                 </div>
                 {comparison.traditional.totalMonths > comparison.brickAccel.totalMonths && (
-                  <div className="mt-3 text-xs text-muted-foreground bg-background  px-3 py-2 border border-border">
+                  <div className="mt-3 text-xs text-muted-foreground bg-background rounded-md px-3 py-2 border border-border">
                     Without Brick optimization, this project faces full PSD review duration
                   </div>
                 )}
@@ -633,7 +595,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                   {comparison.brickAccel.pathwayLabel} — Brick-optimized
                 </div>
                 {comparison.monthsSaved > 0 && (
-                  <div className="mt-3 inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5  border border-primary/20">
+                  <div className="mt-3 inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5 rounded-full border border-primary/20">
                     <Timer weight="duotone" size={14} />
                     {comparison.monthsSaved} months saved ({comparison.pctFaster}% faster)
                   </div>
@@ -661,19 +623,19 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               {results ? (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-card  p-3">
+                    <div className="bg-card rounded-md p-3">
                       <div className="text-xs text-muted-foreground">Baseline NOx</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.baseline?.nox?.toFixed(1) || '—'} tpy</div>
                     </div>
-                    <div className="bg-card  p-3">
+                    <div className="bg-card rounded-md p-3">
                       <div className="text-xs text-muted-foreground">Controlled NOx</div>
                       <div className="text-[13px] font-semibold text-primary font-['IBM_Plex_Mono']">{results.controlled?.nox?.toFixed(1) || '—'} tpy</div>
                     </div>
-                    <div className="bg-card  p-3">
+                    <div className="bg-card rounded-md p-3">
                       <div className="text-xs text-muted-foreground">Baseline CO</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.baseline?.co?.toFixed(1) || '—'} tpy</div>
                     </div>
-                    <div className="bg-card  p-3">
+                    <div className="bg-card rounded-md p-3">
                       <div className="text-xs text-muted-foreground">Controlled CO</div>
                       <div className="text-[13px] font-semibold text-primary font-['IBM_Plex_Mono']">{results.controlled?.co?.toFixed(1) || '—'} tpy</div>
                     </div>
@@ -682,14 +644,14 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                     <span className="text-xs text-muted-foreground">Pathway:</span>
                     {pathway.requiresPSD ? (
                       pathway.syntheticMinorViable ? (
-                        <Badge color="text-primary"><Check weight="duotone" size={12} /> Synthetic Minor</Badge>
+                        <Badge variant="secondary" className="text-primary"><Check weight="duotone" size={12} /> Synthetic Minor</Badge>
                       ) : (
-                        <Badge color="text-[#e0a95c]">PSD Major Source</Badge>
+                        <Badge variant="secondary" className="text-[#e0a95c]">PSD Major Source</Badge>
                       )
                     ) : (
-                      <Badge color="text-primary"><Check weight="duotone" size={12} /> True Minor Source</Badge>
+                      <Badge variant="secondary" className="text-primary"><Check weight="duotone" size={12} /> True Minor Source</Badge>
                     )}
-                    {pathway.requiresTitleV && <Badge color="text-[#e0a95c]">Title V</Badge>}
+                    {pathway.requiresTitleV && <Badge variant="secondary" className="text-[#e0a95c]">Title V</Badge>}
                   </div>
                 </div>
               ) : (
@@ -707,20 +669,20 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               {results ? (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-card  p-3">
+                    <div className="bg-card rounded-md p-3">
                       <div className="text-xs text-muted-foreground">Annual Water Use</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.water?.annualWaterMG?.toFixed(0) || '—'} MG/yr</div>
                     </div>
-                    <div className="bg-card  p-3">
+                    <div className="bg-card rounded-md p-3">
                       <div className="text-xs text-muted-foreground">Brick-Optimized</div>
                       <div className="text-[13px] font-semibold text-primary font-['IBM_Plex_Mono']">{results.water?.optimizedWater?.toFixed(0) || '—'} MG/yr</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs text-muted-foreground">Discharge:</span>
-                    <Badge>{inputs.dischargePathway || 'Not specified'}</Badge>
+                    <Badge variant="secondary">{inputs.dischargePathway || 'Not specified'}</Badge>
                     <span className="text-xs text-muted-foreground">NPDES:</span>
-                    <Badge color={inputs.dischargePathway === 'Surface Water Discharge' ? 'text-[#e0a95c]' : 'text-primary'}>
+                    <Badge variant="secondary" className={inputs.dischargePathway === 'Surface Water Discharge' ? 'text-[#e0a95c]' : 'text-primary'}>
                       {inputs.dischargePathway === 'Surface Water Discharge' ? 'Individual Permit Likely' : 'General Permit / POTW'}
                     </Badge>
                   </div>
@@ -740,19 +702,19 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               {results ? (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-card  p-3">
+                    <div className="bg-card rounded-md p-3">
                       <div className="text-xs text-muted-foreground">IBC Class</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.building?.ibcClass || '—'}</div>
                     </div>
-                    <div className="bg-card  p-3">
+                    <div className="bg-card rounded-md p-3">
                       <div className="text-xs text-muted-foreground">Occupancy</div>
                       <div className="text-[13px] font-semibold text-foreground">{results.building?.occupancy || '—'}</div>
                     </div>
-                    <div className="bg-card  p-3">
+                    <div className="bg-card rounded-md p-3">
                       <div className="text-xs text-muted-foreground">Stories</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.building?.stories || '—'}</div>
                     </div>
-                    <div className="bg-card  p-3">
+                    <div className="bg-card rounded-md p-3">
                       <div className="text-xs text-muted-foreground">Fire Suppression</div>
                       <div className="text-[13px] font-semibold text-foreground">{results.building?.fireSuppression || '—'}</div>
                     </div>
@@ -773,26 +735,26 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               {results ? (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-card  p-3">
+                    <div className="bg-card rounded-md p-3">
                       <div className="text-xs text-muted-foreground">Total Capacity</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.totalMW?.toFixed(0) || totalMW} MW</div>
                     </div>
-                    <div className="bg-card  p-3">
+                    <div className="bg-card rounded-md p-3">
                       <div className="text-xs text-muted-foreground">Interconnection</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.interconnectionVoltage || '—'} kV</div>
                     </div>
-                    <div className="bg-card  p-3">
+                    <div className="bg-card rounded-md p-3">
                       <div className="text-xs text-muted-foreground">Power Source</div>
                       <div className="text-[13px] font-semibold text-foreground">{results.power?.powerSource || '—'}</div>
                     </div>
-                    <div className="bg-card  p-3">
+                    <div className="bg-card rounded-md p-3">
                       <div className="text-xs text-muted-foreground">Genset Total</div>
                       <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.gensetTotalMW?.toFixed(1) || '—'} MW</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs text-muted-foreground">FERC:</span>
-                    <Badge color={totalMW > 20 ? 'text-[#e0a95c]' : 'text-primary'}>
+                    <Badge variant="secondary" className={totalMW > 20 ? 'text-[#e0a95c]' : 'text-primary'}>
                       {totalMW > 20 ? 'LGIA Required' : 'SGIP Eligible'}
                     </Badge>
                   </div>
@@ -824,7 +786,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
             {timelinePhases.map((phase, i) => (
               <div key={i} className="flex items-start gap-4 relative pb-5 last:pb-0">
                 <div
-                  className="w-[12px] h-[12px]  border-2 border-[#111113] mt-0.5 z-10 flex-shrink-0"
+                  className="w-[12px] h-[12px] rounded-full border-2 border-[#111113] mt-0.5 z-10 flex-shrink-0"
                   style={{ backgroundColor: phase.color }}
                 />
                 <div className="flex-1 min-w-0">
@@ -832,9 +794,9 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                     <span className="text-[13px] font-semibold text-foreground">{phase.label}</span>
                     <span className="text-xs text-muted-foreground font-['IBM_Plex_Mono']">{phase.weeks}</span>
                   </div>
-                  <div className="w-full h-1.5  bg-card mt-1.5 overflow-hidden">
+                  <div className="w-full h-1.5 rounded-full bg-card mt-1.5 overflow-hidden">
                     <div
-                      className="h-full  transition-all"
+                      className="h-full rounded-full transition-all"
                       style={{
                         width: phase.status === 'complete' ? '100%' : '30%',
                         backgroundColor: phase.color,
@@ -850,15 +812,15 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
 
         {/* 5. Generate Button */}
         <div className="pt-2">
-          <PrimaryButton onClick={runScreening} disabled={running} icon={running ? CircleNotch : Lightning} fullWidth>
+          <Button onClick={runScreening} disabled={running} className="w-full">
             {running ? (
-              <>Generating Permits...</>
+              <><CircleNotch weight="duotone" size={18} className="animate-spin" /> Generating Permits...</>
             ) : (
-              <>Generate My Permits</>
+              <><Lightning weight="duotone" size={18} /> Generate My Permits</>
             )}
-          </PrimaryButton>
+          </Button>
           {done && (
-            <div className="mt-4 bg-card border border-border  p-4">
+            <div className="mt-4 bg-card border border-border rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Check weight="duotone" size={16} className="text-primary" />
                 <span className="text-[13px] font-semibold text-primary">Screening Complete</span>
@@ -910,16 +872,16 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
       <div className="flex items-center justify-between pt-2">
         <div>
           {step > 1 && (
-            <GhostButton onClick={() => setStep(s => s - 1)} icon={ArrowLeft}>
-              Back
-            </GhostButton>
+            <Button variant="ghost" onClick={() => setStep(s => s - 1)}>
+              <ArrowLeft weight="duotone" size={18} /> Back
+            </Button>
           )}
         </div>
         <div>
           {step < 3 && (
-            <SecondaryButton onClick={() => setStep(s => s + 1)} disabled={!stepValid()} icon={ArrowRight}>
-              Continue
-            </SecondaryButton>
+            <Button variant="secondary" onClick={() => setStep(s => s + 1)} disabled={!stepValid()}>
+              Continue <ArrowRight weight="duotone" size={18} />
+            </Button>
           )}
         </div>
       </div>
@@ -932,7 +894,7 @@ function ResultNavButton({ label, tab, setActiveTab }) {
   return (
     <button
       onClick={() => setActiveTab(tab)}
-      className="inline-flex items-center gap-1.5 bg-card hover:bg-[#27272a] text-muted-foreground text-[12px]  py-2 px-3 border border-border transition-colors"
+      className="inline-flex items-center gap-1.5 bg-card hover:bg-[#27272a] text-muted-foreground text-[12px] rounded-md py-2 px-3 border border-border transition-colors"
     >
       <ArrowRight weight="duotone" size={12} className="text-muted-foreground" />
       {label}

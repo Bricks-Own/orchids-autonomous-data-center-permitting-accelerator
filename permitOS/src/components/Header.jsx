@@ -65,7 +65,7 @@ export default function Header({ activeTab, setActiveTab, results, inputs, onLog
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-border/60">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary flex items-center justify-center">
+          <div className="w-8 h-8 bg-primary flex items-center justify-center rounded-lg">
             <ShieldLogo className="w-4 h-4 text-primary-foreground" weight="duotone" />
           </div>
           <div>
