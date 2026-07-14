@@ -198,7 +198,7 @@ export default function VendorLedger({ data, onSave, savedVendors }) {
     return '$' + v.toLocaleString();
   };
 
-  const inputStyle = "w-full bg-gray-950 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200 focus:outline-none focus:border-indigo-500 text-right";
+  const inputStyle = "w-full bg-background border border-border rounded px-2 py-1 text-xs text-foreground focus:outline-none focus:border-primary text-right";
 
   return (
     <div className="space-y-4">
@@ -208,24 +208,24 @@ export default function VendorLedger({ data, onSave, savedVendors }) {
           <select
             value={newRowCat}
             onChange={e => setNewRowCat(e.target.value)}
-            className="bg-gray-950 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-gray-300"
+            className="bg-background border border-border  px-2 py-1.5 text-xs text-foreground/80"
           >
             {COST_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-          <button onClick={addRow} className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg border border-gray-700 transition-colors">
+          <button onClick={addRow} className="text-xs bg-muted hover:bg-muted-foreground/10 text-foreground/80 px-3 py-1.5  border border-border transition-colors">
             + Add Row
           </button>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleSave}
-            className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors"
+            className="text-xs bg-primary hover:bg-primary text-white px-3 py-1.5  transition-colors"
           >
             Save Ledger
           </button>
           <button
             onClick={() => setShowRec(!showRec)}
-            className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg border border-gray-700 transition-colors"
+            className="text-xs bg-muted hover:bg-muted-foreground/10 text-foreground/80 px-3 py-1.5  border border-border transition-colors"
           >
             {showRec ? 'Hide' : 'Show'} Reconciliation
           </button>
@@ -234,20 +234,20 @@ export default function VendorLedger({ data, onSave, savedVendors }) {
 
       {/* Reconciliation */}
       {showRec && (
-        <div className="rounded-xl border border-indigo-700/30 bg-indigo-950/20 p-3">
-          <h4 className="text-xs font-semibold text-indigo-300 mb-2">Ledger Reconciliation</h4>
+        <div className=" border border-primary/30 bg-primary/10 p-3">
+          <h4 className="text-xs font-semibold text-primary mb-2">Ledger Reconciliation</h4>
           <div className="grid grid-cols-3 gap-3 text-xs">
-            <div className="bg-gray-900/60 rounded-lg p-2">
-              <span className="text-gray-500">Ledger Total EAC</span>
-              <div className="text-sm font-bold text-gray-200">{fmt(totals.eac)}</div>
+            <div className="bg-card/60  p-2">
+              <span className="text-muted-foreground">Ledger Total EAC</span>
+              <div className="text-sm font-bold text-foreground">{fmt(totals.eac)}</div>
             </div>
-            <div className="bg-gray-900/60 rounded-lg p-2">
-              <span className="text-gray-500">Project EAC</span>
-              <div className="text-sm font-bold text-gray-200">{fmt(projectEAC)}</div>
+            <div className="bg-card/60  p-2">
+              <span className="text-muted-foreground">Project EAC</span>
+              <div className="text-sm font-bold text-foreground">{fmt(projectEAC)}</div>
             </div>
-            <div className="bg-gray-900/60 rounded-lg p-2">
-              <span className="text-gray-500">Variance</span>
-              <div className={`text-sm font-bold ${reconciliationVariance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            <div className="bg-card/60  p-2">
+              <span className="text-muted-foreground">Variance</span>
+              <div className={`text-sm font-bold ${reconciliationVariance >= 0 ? 'text-primary' : 'text-destructive'}`}>
                 {fmt(reconciliationVariance)}
               </div>
             </div>
@@ -256,15 +256,15 @@ export default function VendorLedger({ data, onSave, savedVendors }) {
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-gray-700/40 bg-gray-900/40">
+      <div className="overflow-x-auto  border border-border/40 bg-card/40">
         <table className="w-full text-xs whitespace-nowrap">
           <thead>
-            <tr className="text-gray-500 border-b border-gray-800 bg-gray-950/50">
+            <tr className="text-muted-foreground border-b border-border bg-background/50">
               <th className="text-left py-2.5 px-2 font-medium">Category</th>
               <th className="text-left py-2.5 px-2 font-medium min-w-[140px]">Vendor Name</th>
               <th className="text-right py-2.5 px-2 font-medium">Original Commitment</th>
               <th className="text-right py-2.5 px-2 font-medium">Approved COs</th>
-              <th className="text-right py-2.5 px-2 font-medium text-indigo-400">Current Commitment</th>
+              <th className="text-right py-2.5 px-2 font-medium text-primary">Current Commitment</th>
               <th className="text-right py-2.5 px-2 font-medium">Pending COs</th>
               <th className="text-right py-2.5 px-2 font-medium">Invoiced to Date</th>
               <th className="text-right py-2.5 px-2 font-medium">Paid to Date</th>
@@ -289,38 +289,38 @@ export default function VendorLedger({ data, onSave, savedVendors }) {
                       autoFocus
                     />
                   : <span
-                      className="cursor-pointer hover:text-indigo-400 transition-colors"
+                      className="cursor-pointer hover:text-primary transition-colors"
                       onClick={() => startEdit(id, field)}
                     >{fmtFn(value)}</span>
               );
               return (
-                <tr key={v.id} className="border-b border-gray-800/50 hover:bg-gray-800/20">
+                <tr key={v.id} className="border-b border-border/50 hover:bg-muted/20">
                   <td className="py-2 px-2">
                     <select
                       value={v.category}
                       onChange={e => updateCell(v.id, 'category', e.target.value)}
-                      className="bg-transparent text-gray-300 text-xs border-none focus:outline-none"
+                      className="bg-transparent text-foreground/80 text-xs border-none focus:outline-none"
                     >
                       {COST_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </td>
                   <td className="py-2 px-2">
                     <input
-                      className="bg-transparent text-gray-200 text-xs border-none focus:outline-none focus:text-indigo-300 min-w-[120px]"
+                      className="bg-transparent text-foreground text-xs border-none focus:outline-none focus:text-primary min-w-[120px]"
                       value={v.vendor}
                       onChange={e => updateCell(v.id, 'vendor', e.target.value)}
                     />
                   </td>
-                  <td className="py-2 px-2 text-right text-gray-300">{renderCell(v.id, 'originalCommitment', v.originalCommitment)}</td>
-                  <td className="py-2 px-2 text-right text-gray-300">{renderCell(v.id, 'approvedCOs', v.approvedCOs)}</td>
-                  <td className="py-2 px-2 text-right text-indigo-400 font-semibold">{fmt(v.currentCommitment)}</td>
-                  <td className="py-2 px-2 text-right text-gray-300">{renderCell(v.id, 'pendingCOs', v.pendingCOs)}</td>
-                  <td className="py-2 px-2 text-right text-gray-300">{renderCell(v.id, 'invoicedToDate', v.invoicedToDate)}</td>
-                  <td className="py-2 px-2 text-right text-gray-300">{renderCell(v.id, 'paidToDate', v.paidToDate)}</td>
-                  <td className="py-2 px-2 text-right text-gray-300">{renderCell(v.id, 'apAging', v.apAging, (v) => v + 'd')}</td>
-                  <td className="py-2 px-2 text-right text-gray-300">{renderCell(v.id, 'eac', v.eac)}</td>
+                  <td className="py-2 px-2 text-right text-foreground/80">{renderCell(v.id, 'originalCommitment', v.originalCommitment)}</td>
+                  <td className="py-2 px-2 text-right text-foreground/80">{renderCell(v.id, 'approvedCOs', v.approvedCOs)}</td>
+                  <td className="py-2 px-2 text-right text-primary font-semibold">{fmt(v.currentCommitment)}</td>
+                  <td className="py-2 px-2 text-right text-foreground/80">{renderCell(v.id, 'pendingCOs', v.pendingCOs)}</td>
+                  <td className="py-2 px-2 text-right text-foreground/80">{renderCell(v.id, 'invoicedToDate', v.invoicedToDate)}</td>
+                  <td className="py-2 px-2 text-right text-foreground/80">{renderCell(v.id, 'paidToDate', v.paidToDate)}</td>
+                  <td className="py-2 px-2 text-right text-foreground/80">{renderCell(v.id, 'apAging', v.apAging, (v) => v + 'd')}</td>
+                  <td className="py-2 px-2 text-right text-foreground/80">{renderCell(v.id, 'eac', v.eac)}</td>
                   <td className="py-2 px-2">
-                    <button onClick={() => deleteRow(v.id)} className="text-gray-600 hover:text-red-400 transition-colors text-xs">✕</button>
+                    <button onClick={() => deleteRow(v.id)} className="text-muted-foreground/70 hover:text-destructive transition-colors text-xs">✕</button>
                   </td>
                 </tr>
               );
@@ -328,23 +328,23 @@ export default function VendorLedger({ data, onSave, savedVendors }) {
           </tbody>
           {/* Totals Footer */}
           <tfoot>
-            <tr className="bg-gray-950/60 border-t border-gray-700">
-              <td className="py-2.5 px-2 text-gray-400 font-semibold" colSpan={2}>Totals</td>
-              <td className="py-2.5 px-2 text-right text-gray-200 font-semibold">{fmt(totals.originalCommitment)}</td>
-              <td className="py-2.5 px-2 text-right text-gray-200 font-semibold">{fmt(totals.approvedCOs)}</td>
-              <td className="py-2.5 px-2 text-right text-indigo-300 font-semibold">{fmt(totals.currentCommitment)}</td>
-              <td className="py-2.5 px-2 text-right text-gray-200 font-semibold">{fmt(totals.pendingCOs)}</td>
-              <td className="py-2.5 px-2 text-right text-gray-200 font-semibold">{fmt(totals.invoicedToDate)}</td>
-              <td className="py-2.5 px-2 text-right text-gray-200 font-semibold">{fmt(totals.paidToDate)}</td>
-              <td className="py-2.5 px-2 text-right text-gray-600">—</td>
-              <td className="py-2.5 px-2 text-right text-gray-200 font-semibold">{fmt(totals.eac)}</td>
+            <tr className="bg-background/60 border-t border-border">
+              <td className="py-2.5 px-2 text-muted-foreground font-semibold" colSpan={2}>Totals</td>
+              <td className="py-2.5 px-2 text-right text-foreground font-semibold">{fmt(totals.originalCommitment)}</td>
+              <td className="py-2.5 px-2 text-right text-foreground font-semibold">{fmt(totals.approvedCOs)}</td>
+              <td className="py-2.5 px-2 text-right text-primary font-semibold">{fmt(totals.currentCommitment)}</td>
+              <td className="py-2.5 px-2 text-right text-foreground font-semibold">{fmt(totals.pendingCOs)}</td>
+              <td className="py-2.5 px-2 text-right text-foreground font-semibold">{fmt(totals.invoicedToDate)}</td>
+              <td className="py-2.5 px-2 text-right text-foreground font-semibold">{fmt(totals.paidToDate)}</td>
+              <td className="py-2.5 px-2 text-right text-muted-foreground/70">—</td>
+              <td className="py-2.5 px-2 text-right text-foreground font-semibold">{fmt(totals.eac)}</td>
               <td className="py-2.5 px-2"></td>
             </tr>
           </tfoot>
         </table>
       </div>
 
-      <p className="text-[10px] text-gray-600">Current Commitment = Original + Approved COs (computed). Editable cells: click to edit, Enter to confirm, Esc to cancel.</p>
+      <p className="text-[10px] text-muted-foreground/70">Current Commitment = Original + Approved COs (computed). Editable cells: click to edit, Enter to confirm, Esc to cancel.</p>
     </div>
   );
 }

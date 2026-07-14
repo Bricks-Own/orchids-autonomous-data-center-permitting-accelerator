@@ -147,19 +147,19 @@ const UPSIZED_PERMITS = [
 ];
 
 const URGENCY_COLOR = {
-  Critical:    'text-red-400 bg-red-900/20 border-red-700/40',
-  Required:    'text-amber-400 bg-amber-900/20 border-amber-700/40',
+  Critical:    'text-destructive bg-red-900/20 border-red-700/40',
+  Required:    'text-destructive bg-amber-900/20 border-amber-700/40',
   Evaluate:    'text-blue-400 bg-blue-900/20 border-blue-700/40',
-  Conditional: 'text-violet-400 bg-violet-900/20 border-violet-700/40',
+  Conditional: 'text-primary bg-primary/15 border-primary/40',
 };
 
 const CAT_COLOR = {
-  indigo: 'border-indigo-600 text-indigo-400 bg-indigo-900/10',
+  indigo: 'border-primary text-primary bg-primary/8',
   blue:   'border-blue-600 text-blue-400 bg-blue-900/10',
-  violet: 'border-violet-600 text-violet-400 bg-violet-900/10',
+  violet: 'border-primary text-primary bg-primary/8',
   cyan:   'border-cyan-600 text-cyan-400 bg-cyan-900/10',
-  amber:  'border-amber-600 text-amber-400 bg-amber-900/10',
-  red:    'border-red-600 text-red-400 bg-red-900/10',
+  amber:  'border-amber-600 text-destructive bg-amber-900/10',
+  red:    'border-red-600 text-destructive bg-red-900/10',
 };
 
 function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) {
@@ -177,7 +177,7 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
   const [showSource, setShowSource] = useState(false);
   const [showCompliance, setShowCompliance] = useState(false);
 
-  const statusIcon = compObj.status === 'pass' ? 'text-green-400' : compObj.status === 'fail' ? 'text-red-400' : 'text-yellow-400';
+  const statusIcon = compObj.status === 'pass' ? 'text-primary' : compObj.status === 'fail' ? 'text-destructive' : 'text-yellow-400';
   const statusBg = compObj.status === 'pass' ? 'bg-green-900/20 border-green-700/40' : compObj.status === 'fail' ? 'bg-red-900/20 border-red-700/40' : 'bg-yellow-900/20 border-yellow-700/40';
   const statusLabel = compObj.label;
 
@@ -186,31 +186,31 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
     : null;
 
   return (
-    <tr className="border-b border-gray-800/40 hover:bg-gray-800/20 transition-colors">
+    <tr className="border-b border-border/40 hover:bg-muted/20 transition-colors">
       <td className="py-2.5 px-3">
-        <span className="font-mono text-xs text-gray-600">{docType === 'air' ? 'AIR' : 'WAT'}-{String(doc.id).padStart(3,'0')}</span>
+        <span className="font-mono text-xs text-muted-foreground/70">{docType === 'air' ? 'AIR' : 'WAT'}-{String(doc.id).padStart(3,'0')}</span>
       </td>
       <td className="py-2.5 px-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-300 font-medium">{doc.name}</span>
+          <span className="text-xs text-foreground/80 font-medium">{doc.name}</span>
           {docSource.badge !== 'GENERIC' && (
             <div className="relative">
               <button
                 onClick={() => setShowSource(!showSource)}
                 onBlur={() => setTimeout(() => setShowSource(false), 200)}
-                className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold tracking-wider cursor-pointer hover:opacity-80 transition-opacity ${docSource.badgeColor}`}
+                className={`text-[9px] px-1.5 py-0.5  font-semibold tracking-wider cursor-pointer hover:opacity-80 transition-opacity ${docSource.badgeColor}`}
               >
                 {docSource.badge}
               </button>
               {showSource && validationInfo && (
-                <div className="absolute z-50 top-full left-0 mt-1 w-72 bg-gray-800 border border-gray-600 rounded-xl p-3 shadow-2xl">
+                <div className="absolute z-50 top-full left-0 mt-1 w-72 bg-muted border border-border  p-3 ">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${docSource.badgeColor}`}>
+                    <span className={`text-[10px] px-1.5 py-0.5  font-semibold ${docSource.badgeColor}`}>
                       {docSource.badge}
                     </span>
-                    <span className="text-xs text-gray-400 font-medium">Methodology Validated</span>
+                    <span className="text-xs text-muted-foreground font-medium">Methodology Validated</span>
                   </div>
-                  <p className="text-xs text-gray-300 leading-relaxed mb-1.5">
+                  <p className="text-xs text-foreground/80 leading-relaxed mb-1.5">
                     The PermitOS methodology, analysis framework, and report structure
                     for this document have been cross-referenced against
                     actual ASG Consulting deliverables for similar data center permit
@@ -218,63 +218,63 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
                     and regulatory logic.
                   </p>
                   {validationInfo.validatedSections.length > 0 && (
-                    <div className="bg-gray-900/60 rounded-lg px-2 py-1.5 border border-gray-700/40 mb-1.5">
-                      <span className="text-[10px] text-gray-500 uppercase tracking-wider">Sections Validated</span>
-                      <ul className="text-xs text-green-300 mt-0.5 list-disc list-inside">
+                    <div className="bg-card/60  px-2 py-1.5 border border-border/40 mb-1.5">
+                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Sections Validated</span>
+                      <ul className="text-xs text-primary mt-0.5 list-disc list-inside">
                         {validationInfo.validatedSections.map((s, i) => (
                           <li key={i} className="font-mono">{s}</li>
                         ))}
                       </ul>
                     </div>
                   )}
-                  <div className="bg-gray-900/60 rounded-lg px-2 py-1.5 border border-gray-700/40">
-                    <span className="text-[10px] text-gray-500 uppercase tracking-wider">Reference Deliverable</span>
-                    <p className="text-xs text-green-300 mt-0.5 font-mono">{validationInfo.projectName}</p>
+                  <div className="bg-card/60  px-2 py-1.5 border border-border/40">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Reference Deliverable</span>
+                    <p className="text-xs text-primary mt-0.5 font-mono">{validationInfo.projectName}</p>
                   </div>
                 </div>
               )}
             </div>
           )}
         </div>
-        <div className="text-xs text-gray-600 mt-0.5 font-mono truncate max-w-[320px]">
+        <div className="text-xs text-muted-foreground/70 mt-0.5 font-mono truncate max-w-[320px]">
           {regInfo ? regInfo.cfr.join(', ') : doc.cfr}
         </div>
         {regInfo && (
-          <div className="text-xs text-gray-600 mt-0.5">{regInfo.agency}</div>
+          <div className="text-xs text-muted-foreground/70 mt-0.5">{regInfo.agency}</div>
         )}
       </td>
       <td className="py-2.5 px-3 text-center">
-        <span className="text-xs text-gray-500">{doc.pages} pp</span>
+        <span className="text-xs text-muted-foreground">{doc.pages} pp</span>
       </td>
       <td className="py-2.5 px-3 text-center">
         <div className="relative">
           <button
             onClick={() => setShowCompliance(!showCompliance)}
             onBlur={() => setTimeout(() => setShowCompliance(false), 200)}
-            className={`text-xs rounded-full px-2.5 py-0.5 border cursor-pointer hover:opacity-80 transition-opacity ${isGenerated ? statusBg + ' ' + statusIcon : 'text-gray-600 bg-gray-800/40 border-gray-700/40'}`}
+            className={`text-xs  px-2.5 py-0.5 border cursor-pointer hover:opacity-80 transition-opacity ${isGenerated ? statusBg + ' ' + statusIcon : 'text-muted-foreground/70 bg-muted/40 border-border/40'}`}
           >
             {isGenerated ? statusLabel : 'Pending'}
           </button>
           {showCompliance && (
-            <div className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-1 w-80 bg-gray-900 border border-gray-600 rounded-xl p-3.5 shadow-2xl text-left">
+            <div className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-1 w-80 bg-card border border-border  p-3.5  text-left">
               <div className="flex items-center gap-2 mb-2">
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${statusBg} ${statusIcon}`}>
+                <span className={`text-[10px] px-1.5 py-0.5  font-semibold ${statusBg} ${statusIcon}`}>
                   {statusLabel}
                 </span>
               </div>
-              <p className="text-xs text-gray-200 leading-relaxed mb-2">{compObj.reason}</p>
+              <p className="text-xs text-foreground leading-relaxed mb-2">{compObj.reason}</p>
               {compObj.trigger && (
-                <div className="bg-amber-950/30 border border-amber-800/30 rounded-lg px-2.5 py-2 mb-2">
-                  <span className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Trigger</span>
+                <div className="bg-amber-950/30 border border-amber-800/30  px-2.5 py-2 mb-2">
+                  <span className="text-[10px] text-destructive font-semibold uppercase tracking-wider">Trigger</span>
                   <p className="text-xs text-amber-300/80 mt-0.5">{compObj.trigger}</p>
                 </div>
               )}
-              <div className="bg-indigo-950/30 border border-indigo-800/30 rounded-lg px-2.5 py-2 mb-2">
-                <span className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wider">Recommendation</span>
-                <p className="text-xs text-indigo-300/80 mt-0.5">{compObj.recommendation}</p>
+              <div className="bg-primary/10 border border-primary/30  px-2.5 py-2 mb-2">
+                <span className="text-[10px] text-primary font-semibold uppercase tracking-wider">Recommendation</span>
+                <p className="text-xs text-primary/80 mt-0.5">{compObj.recommendation}</p>
               </div>
               {compObj.aiHelp && (
-                <div className="bg-emerald-950/30 border border-emerald-800/30 rounded-lg px-2.5 py-2">
+                <div className="bg-emerald-950/30 border border-emerald-800/30  px-2.5 py-2">
                   <span className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">AI Assistance</span>
                   <p className="text-xs text-emerald-300/80 mt-0.5">{compObj.aiHelp}</p>
                 </div>
@@ -288,14 +288,14 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
           {isGenerated ? (
             <button
               onClick={() => onPreview(doc.key, docType, doc.id - 1)}
-              className="text-xs bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg px-3 py-1.5 transition-colors border border-indigo-600"
+              className="text-xs bg-primary hover:bg-primary text-white  px-3 py-1.5 transition-colors border border-primary"
             >
               Preview
             </button>
           ) : (
             <button
               onClick={() => onGenerate(doc.key)}
-              className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-600"
+              className="text-xs bg-muted hover:bg-muted-foreground/20 text-foreground/80  px-3 py-1.5 transition-colors border border-border"
             >
               Generate
             </button>
@@ -740,20 +740,20 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
   return (
     <div className="p-4 md:p-6 space-y-6">
       {/* Header */}
-      <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
+      <div className=" border border-border/40 bg-card/40 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
           <div>
             <h2 className="text-base font-semibold text-white">Document Factory</h2>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Site-specific draft permit documents — real regulatory content, real citations, real calculated values.
             </p>
             <div className="flex flex-wrap items-center gap-2 mt-2">
-              <p className="text-xs text-amber-400 font-semibold">
+              <p className="text-xs text-destructive font-semibold">
                 ⚠ BigWatt upsizing to {safeInputs.turbines}×{safeInputs.mwPerTurbine} MW triggers {UPSIZED_PERMITS.reduce((s,c) => s+c.permits.length,0)} permit actions across {UPSIZED_PERMITS.length} regulatory domains.
               </p>
               {/* State format badge */}
               {getStateFormat(selectedState).airAgency !== DEFAULT_STATE_FORMAT.airAgency && (
-                <span className="text-[10px] bg-indigo-900/40 border border-indigo-700/40 text-indigo-300 px-2 py-0.5 rounded-full flex-shrink-0">
+                <span className="text-[10px] bg-primary/30 border border-primary/40 text-primary px-2 py-0.5  flex-shrink-0">
                   {getStateFormat(selectedState).airAgencyAbbr}
                 </span>
               )}
@@ -762,13 +762,13 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setActiveView('docs')}
-              className={`text-xs px-4 py-2 rounded-lg border transition-all ${activeView === 'docs' ? 'bg-indigo-700 text-white border-indigo-600' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}
+              className={`text-xs px-4 py-2  border transition-all ${activeView === 'docs' ? 'bg-primary text-white border-primary' : 'bg-muted text-muted-foreground border-border hover:text-foreground'}`}
             >
               Documents (26)
             </button>
             <button
               onClick={() => setActiveView('permits')}
-              className={`text-xs px-4 py-2 rounded-lg border transition-all ${activeView === 'permits' ? 'bg-amber-700 text-white border-amber-600' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}
+              className={`text-xs px-4 py-2  border transition-all ${activeView === 'permits' ? 'bg-destructive text-white border-amber-600' : 'bg-muted text-muted-foreground border-border hover:text-foreground'}`}
             >
               All Permits Required ({totalPermits})
             </button>
@@ -778,13 +778,13 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: 'Total Documents', value: `${totalGenerated} / 26`, color: 'text-indigo-400' },
+            { label: 'Total Documents', value: `${totalGenerated} / 26`, color: 'text-primary' },
             { label: 'Air Permits', value: `${airGenerated} / 16`, color: 'text-orange-400' },
             { label: 'Water Permits', value: `${waterGenerated} / 10`, color: 'text-blue-400' },
-            { label: 'Permit Actions', value: totalPermits, color: 'text-amber-400' },
+            { label: 'Permit Actions', value: totalPermits, color: 'text-destructive' },
           ].map(s => (
-            <div key={s.label} className="bg-gray-950/40 border border-gray-700/40 rounded-xl p-3">
-              <div className="text-xs text-gray-500">{s.label}</div>
+            <div key={s.label} className="bg-background/40 border border-border/40  p-3">
+              <div className="text-xs text-muted-foreground">{s.label}</div>
               <div className={`text-xl font-bold mt-0.5 ${s.color}`}>{s.value}</div>
             </div>
           ))}
@@ -795,33 +795,33 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
       {activeView === 'docs' && (
         <>
           {/* Action bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-gray-900/40 border border-gray-700/40 rounded-xl px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-card/40 border border-border/40  px-4 py-3">
             <div className="flex items-center gap-3">
               {generating ? (
                 <div className="flex items-center gap-3">
-                  <div className="w-36 bg-gray-700 rounded-full h-2">
+                  <div className="w-36 bg-muted  h-2">
                     <div
-                      className="bg-indigo-500 h-2 rounded-full transition-all duration-150"
+                      className="bg-primary h-2  transition-all duration-150"
                       style={{ width: `${generateProgress}%` }}
                     />
                   </div>
-                  <span className="text-xs text-indigo-400">{generateProgress}% — Generating documents…</span>
+                  <span className="text-xs text-primary">{generateProgress}% — Generating documents…</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleGenerateAll}
-                    className="bg-indigo-700 hover:bg-indigo-600 text-white text-xs rounded-xl px-5 py-2.5 font-semibold transition-colors border border-indigo-600 flex items-center gap-2"
+                    className="bg-primary hover:bg-primary text-white text-xs  px-5 py-2.5 font-semibold transition-colors border border-primary flex items-center gap-2"
                   >
                     ⚡ Generate All 26 Documents
                   </button>
                   {/* State selector */}
-                  <div className="flex items-center gap-2 pl-3 border-l border-gray-700/40">
-                    <label className="text-[10px] text-gray-500 uppercase tracking-wider">State</label>
+                  <div className="flex items-center gap-2 pl-3 border-l border-border/40">
+                    <label className="text-[10px] text-muted-foreground uppercase tracking-wider">State</label>
                     <select
                       value={selectedState}
                       onChange={(e) => setSelectedState(e.target.value)}
-                      className="text-xs bg-gray-800 text-gray-300 border border-gray-700 rounded-lg px-2 py-1.5 w-28"
+                      className="text-xs bg-muted text-foreground/80 border border-border  px-2 py-1.5 w-28"
                     >
                       {Object.keys(STATE_FORMATS).concat(['Alaska', 'Hawaii']).sort().map(s => (
                         <option key={s} value={s}>
@@ -838,34 +838,34 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
               {totalGenerated > 0 && (
                 <button
                   onClick={handleDownloadAll}
-                  className="bg-green-700 hover:bg-green-600 text-white text-xs rounded-xl px-4 py-2 transition-colors border border-green-600 flex items-center gap-1.5"
+                  className="bg-primary hover:bg-primary/80 text-white text-xs  px-4 py-2 transition-colors border border-green-600 flex items-center gap-1.5"
                 >
                   ⬇ Download Full Package ({totalGenerated} docs)
                 </button>
               )}
-              <span className="text-xs text-gray-500">{totalGenerated} of 26 generated</span>
+              <span className="text-xs text-muted-foreground">{totalGenerated} of 26 generated</span>
             </div>
           </div>
 
           {/* AIR Documents Table */}
-          <div className="rounded-xl border border-orange-900/30 bg-gray-900/20 overflow-hidden">
+          <div className=" border border-orange-900/30 bg-card/20 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-orange-900/30 bg-orange-950/10">
               <div className="flex items-center gap-2">
                 <span className="text-orange-400 text-sm">💨</span>
                 <span className="text-sm font-semibold text-white">Air Permit Documents</span>
-                <span className="text-xs text-gray-500 ml-1">(16 documents)</span>
+                <span className="text-xs text-muted-foreground ml-1">(16 documents)</span>
               </div>
               <span className="text-xs text-orange-400">{airGenerated}/16 generated</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-800/60">
-                    <th className="py-2 px-3 text-left text-xs text-gray-600 font-medium">Doc No.</th>
-                    <th className="py-2 px-3 text-left text-xs text-gray-600 font-medium">Document</th>
-                    <th className="py-2 px-3 text-center text-xs text-gray-600 font-medium">Pages</th>
-                    <th className="py-2 px-3 text-center text-xs text-gray-600 font-medium">Status</th>
-                    <th className="py-2 px-3 text-right text-xs text-gray-600 font-medium">Actions</th>
+                  <tr className="border-b border-border/60">
+                    <th className="py-2 px-3 text-left text-xs text-muted-foreground/70 font-medium">Doc No.</th>
+                    <th className="py-2 px-3 text-left text-xs text-muted-foreground/70 font-medium">Document</th>
+                    <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium">Pages</th>
+                    <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium">Status</th>
+                    <th className="py-2 px-3 text-right text-xs text-muted-foreground/70 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -886,24 +886,24 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
           </div>
 
           {/* WATER Documents Table */}
-          <div className="rounded-xl border border-blue-900/30 bg-gray-900/20 overflow-hidden">
+          <div className=" border border-blue-900/30 bg-card/20 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-blue-900/30 bg-blue-950/10">
               <div className="flex items-center gap-2">
                 <span className="text-blue-400 text-sm">💧</span>
                 <span className="text-sm font-semibold text-white">Water Permit Documents</span>
-                <span className="text-xs text-gray-500 ml-1">(10 documents)</span>
+                <span className="text-xs text-muted-foreground ml-1">(10 documents)</span>
               </div>
               <span className="text-xs text-blue-400">{waterGenerated}/10 generated</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-800/60">
-                    <th className="py-2 px-3 text-left text-xs text-gray-600 font-medium">Doc No.</th>
-                    <th className="py-2 px-3 text-left text-xs text-gray-600 font-medium">Document</th>
-                    <th className="py-2 px-3 text-center text-xs text-gray-600 font-medium">Pages</th>
-                    <th className="py-2 px-3 text-center text-xs text-gray-600 font-medium">Status</th>
-                    <th className="py-2 px-3 text-right text-xs text-gray-600 font-medium">Actions</th>
+                  <tr className="border-b border-border/60">
+                    <th className="py-2 px-3 text-left text-xs text-muted-foreground/70 font-medium">Doc No.</th>
+                    <th className="py-2 px-3 text-left text-xs text-muted-foreground/70 font-medium">Document</th>
+                    <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium">Pages</th>
+                    <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium">Status</th>
+                    <th className="py-2 px-3 text-right text-xs text-muted-foreground/70 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -924,9 +924,9 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
           </div>
 
           {/* Disclaimer */}
-          <div className="rounded-xl border border-amber-800/40 bg-amber-950/10 p-4">
-            <p className="text-xs text-amber-400 font-semibold mb-1">DRAFT DOCUMENTS — PE REVIEW REQUIRED BEFORE AGENCY SUBMISSION</p>
-            <p className="text-xs text-gray-500 leading-relaxed">
+          <div className=" border border-amber-800/40 bg-amber-950/10 p-4">
+            <p className="text-xs text-destructive font-semibold mb-1">DRAFT DOCUMENTS — PE REVIEW REQUIRED BEFORE AGENCY SUBMISSION</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
               All documents are generated from site-specific inputs and live emission calculations. Regulatory citations, emission factors, and calculated values reflect current EPA and state requirements as of the document date.
               A licensed Professional Engineer (PE) must review and certify each document before submission to any regulatory agency.
               Brick PermitOS accelerates document preparation — it does not replace PE judgment.
@@ -938,9 +938,9 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
       {/* ── ALL PERMITS REQUIRED VIEW ───────────────────────────────────────────── */}
       {activeView === 'permits' && (
         <div className="space-y-5">
-          <div className="rounded-xl border border-amber-700/30 bg-amber-950/10 p-4">
-            <p className="text-xs text-amber-400 font-semibold mb-1">BigWatt Upsized Site — Complete Permit Universe</p>
-            <p className="text-xs text-gray-400 leading-relaxed">
+          <div className=" border border-amber-700/30 bg-amber-950/10 p-4">
+            <p className="text-xs text-destructive font-semibold mb-1">BigWatt Upsized Site — Complete Permit Universe</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
               BigWatt Digital's decision to upsize the campus to <strong className="text-white">{safeInputs.turbines}×{safeInputs.mwPerTurbine} MW = {safeInputs.turbines * safeInputs.mwPerTurbine} MW total generation</strong> triggers a substantially larger permit footprint than a smaller site would require.
               The following <strong className="text-white">{totalPermits} permit actions</strong> across <strong className="text-white">{UPSIZED_PERMITS.length} regulatory domains</strong> are required or warrant evaluation.
               Each row identifies the specific upsizing trigger — the reason this permit is required because of the larger site scope.
@@ -948,37 +948,37 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
           </div>
 
           {UPSIZED_PERMITS.map(cat => (
-            <div key={cat.category} className={`rounded-xl border overflow-hidden ${CAT_COLOR[cat.color]}`}>
+            <div key={cat.category} className={` border overflow-hidden ${CAT_COLOR[cat.color]}`}>
               <div className={`px-4 py-3 border-b flex items-center justify-between ${CAT_COLOR[cat.color]}`}>
                 <span className="text-sm font-semibold">{cat.category}</span>
                 <span className="text-xs opacity-70">{cat.permits.length} items</span>
               </div>
-              <div className="overflow-x-auto bg-gray-900/30">
+              <div className="overflow-x-auto bg-card/30">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-gray-800/40">
-                      <th className="py-2 px-3 text-left text-xs text-gray-600 font-medium">Permit / Requirement</th>
-                      <th className="py-2 px-3 text-left text-xs text-gray-600 font-medium">BigWatt Upsizing Trigger</th>
-                      <th className="py-2 px-3 text-center text-xs text-gray-600 font-medium">Priority</th>
-                      <th className="py-2 px-3 text-right text-xs text-gray-600 font-medium">Timeline</th>
+                    <tr className="border-b border-border/40">
+                      <th className="py-2 px-3 text-left text-xs text-muted-foreground/70 font-medium">Permit / Requirement</th>
+                      <th className="py-2 px-3 text-left text-xs text-muted-foreground/70 font-medium">BigWatt Upsizing Trigger</th>
+                      <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium">Priority</th>
+                      <th className="py-2 px-3 text-right text-xs text-muted-foreground/70 font-medium">Timeline</th>
                     </tr>
                   </thead>
                   <tbody>
                     {cat.permits.map((p, i) => (
-                      <tr key={i} className="border-b border-gray-800/30 hover:bg-gray-800/20 transition-colors">
+                      <tr key={i} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
                         <td className="py-2.5 px-3">
-                          <span className="text-xs text-gray-300 font-medium">{p.name}</span>
+                          <span className="text-xs text-foreground/80 font-medium">{p.name}</span>
                         </td>
                         <td className="py-2.5 px-3">
-                          <span className="text-xs text-gray-500 leading-relaxed">{p.trigger}</span>
+                          <span className="text-xs text-muted-foreground leading-relaxed">{p.trigger}</span>
                         </td>
                         <td className="py-2.5 px-3 text-center">
-                          <span className={`text-xs rounded-full px-2.5 py-0.5 border font-medium ${URGENCY_COLOR[p.urgency]}`}>
+                          <span className={`text-xs  px-2.5 py-0.5 border font-medium ${URGENCY_COLOR[p.urgency]}`}>
                             {p.urgency}
                           </span>
                         </td>
                         <td className="py-2.5 px-3 text-right">
-                          <span className="text-xs text-gray-500 font-mono">{p.timeline}</span>
+                          <span className="text-xs text-muted-foreground font-mono">{p.timeline}</span>
                         </td>
                       </tr>
                     ))}
@@ -988,16 +988,16 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
             </div>
           ))}
 
-          <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className=" border border-border/40 bg-card/40 p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Critical Actions', value: UPSIZED_PERMITS.flatMap(c=>c.permits).filter(p=>p.urgency==='Critical').length, color: 'text-red-400' },
-              { label: 'Required Actions', value: UPSIZED_PERMITS.flatMap(c=>c.permits).filter(p=>p.urgency==='Required').length, color: 'text-amber-400' },
+              { label: 'Critical Actions', value: UPSIZED_PERMITS.flatMap(c=>c.permits).filter(p=>p.urgency==='Critical').length, color: 'text-destructive' },
+              { label: 'Required Actions', value: UPSIZED_PERMITS.flatMap(c=>c.permits).filter(p=>p.urgency==='Required').length, color: 'text-destructive' },
               { label: 'Evaluate / Screen', value: UPSIZED_PERMITS.flatMap(c=>c.permits).filter(p=>p.urgency==='Evaluate').length, color: 'text-blue-400' },
-              { label: 'Total Permit Actions', value: totalPermits, color: 'text-indigo-400' },
+              { label: 'Total Permit Actions', value: totalPermits, color: 'text-primary' },
             ].map(s => (
               <div key={s.label} className="text-center">
                 <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
-                <div className="text-xs text-gray-500 mt-1">{s.label}</div>
+                <div className="text-xs text-muted-foreground mt-1">{s.label}</div>
               </div>
             ))}
           </div>

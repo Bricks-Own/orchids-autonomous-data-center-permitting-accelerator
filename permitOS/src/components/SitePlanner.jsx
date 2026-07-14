@@ -182,12 +182,12 @@ function SiteMap({ lat, lon, onLatLonChange, onBoundaryChange, siteAcres }) {
   };
 
   return (
-    <div className="rounded-xl overflow-hidden border border-gray-700/40 relative">
+    <div className=" overflow-hidden border border-border/40 relative">
       <div ref={mapRef} style={{ height: '420px', width: '100%' }} />
       {!leaflet && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-900 text-gray-500 text-sm z-[1000]">
+        <div className="absolute inset-0 flex items-center justify-center bg-card text-muted-foreground text-sm z-[1000]">
           <div className="flex items-center gap-2">
-            <svg className="animate-spin h-4 w-4 text-indigo-400" viewBox="0 0 24 24" fill="none">
+            <svg className="animate-spin h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
@@ -239,11 +239,11 @@ function ScenarioTest({ inputs, onApply, onNavigateToIntake }) {
   ];
 
   const criticalPollutants = [
-    { key: 'nox', label: 'NOx', threshold: 100, color: 'text-red-400' },
+    { key: 'nox', label: 'NOx', threshold: 100, color: 'text-destructive' },
     { key: 'co', label: 'CO', threshold: 100, color: 'text-orange-400' },
     { key: 'pm25', label: 'PM2.5', threshold: 100, color: 'text-blue-400' },
-    { key: 'voc', label: 'VOC', threshold: 100, color: 'text-violet-400' },
-    { key: 'co2e', label: 'CO2e', threshold: 25000, color: 'text-green-400' },
+    { key: 'voc', label: 'VOC', threshold: 100, color: 'text-primary' },
+    { key: 'co2e', label: 'CO2e', threshold: 25000, color: 'text-primary' },
   ];
 
   return (
@@ -252,8 +252,8 @@ function ScenarioTest({ inputs, onApply, onNavigateToIntake }) {
         {sliders.map(s => (
           <div key={s.key}>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-xs text-gray-400">{s.label}</label>
-              <span className="text-xs font-semibold text-indigo-400 font-mono">{params[s.key]}{s.unit && <span className="text-gray-500"> {s.unit}</span>}</span>
+              <label className="text-xs text-muted-foreground">{s.label}</label>
+              <span className="text-xs font-semibold text-primary font-mono">{params[s.key]}{s.unit && <span className="text-muted-foreground"> {s.unit}</span>}</span>
             </div>
             <input
               type="range"
@@ -262,28 +262,28 @@ function ScenarioTest({ inputs, onApply, onNavigateToIntake }) {
               step={s.step}
               value={params[s.key]}
               onChange={e => updateParam(s.key, parseFloat(e.target.value))}
-              className="w-full accent-indigo-500 h-1.5 rounded-full appearance-none bg-gray-700 cursor-pointer"
+              className="w-full accent-primary h-1.5  appearance-none bg-muted cursor-pointer"
             />
           </div>
         ))}
       </div>
 
       {results && (
-        <div className="bg-gray-900/60 border border-gray-700/40 rounded-xl p-4">
-          <h4 className="text-xs font-semibold text-gray-400 mb-3">Instant PTE Results (tpy)</h4>
+        <div className="bg-card/60 border border-border/40  p-4">
+          <h4 className="text-xs font-semibold text-muted-foreground mb-3">Instant PTE Results (tpy)</h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
             {criticalPollutants.map(p => {
               const val = results.controlled?.[p.key] || 0;
               const pct = (val / p.threshold) * 100;
               return (
-                <div key={p.key} className="bg-gray-800/40 rounded-lg p-2 text-center">
+                <div key={p.key} className="bg-muted/40  p-2 text-center">
                   <div className={`text-xs font-semibold ${p.color}`}>{p.label}</div>
                   <div className="text-lg font-bold text-white font-mono">{val.toFixed(1)}</div>
-                  <div className="mt-1 bg-gray-700 rounded-full h-1">
-                    <div className={`h-1 rounded-full ${pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-green-500'}`}
+                  <div className="mt-1 bg-muted  h-1">
+                    <div className={`h-1  ${pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-green-500'}`}
                       style={{ width: `${Math.min(100, pct)}%` }} />
                   </div>
-                  <div className={`text-xs mt-0.5 ${pct >= 100 ? 'text-red-400' : 'text-green-400'}`}>
+                  <div className={`text-xs mt-0.5 ${pct >= 100 ? 'text-destructive' : 'text-primary'}`}>
                     {pct.toFixed(0)}% of {p.threshold}
                   </div>
                 </div>
@@ -293,15 +293,15 @@ function ScenarioTest({ inputs, onApply, onNavigateToIntake }) {
 
           <div className="mt-3 flex flex-wrap gap-2">
             {results.pathway?.requiresPSD && (
-              <span className="text-xs px-2 py-0.5 rounded bg-red-900/30 text-red-400 border border-red-800/40">PSD Major Source</span>
+              <span className="text-xs px-2 py-0.5 rounded bg-destructive/10 text-destructive border border-destructive/40">PSD Major Source</span>
             )}
             {results.pathway?.syntheticMinorViable && (
-              <span className="text-xs px-2 py-0.5 rounded bg-green-900/30 text-green-400 border border-green-800/40">Synthetic Minor Viable</span>
+              <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/40">Synthetic Minor Viable</span>
             )}
             {results.pathway?.requiresTitleV && (
-              <span className="text-xs px-2 py-0.5 rounded bg-amber-900/30 text-amber-400 border border-amber-800/40">Title V Required</span>
+              <span className="text-xs px-2 py-0.5 rounded bg-amber-900/30 text-destructive border border-amber-800/40">Title V Required</span>
             )}
-            <span className="text-xs px-2 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">
+            <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">
               {results.totalMW} MW · {(results.baseline?.nox || 0).toFixed(1)} tpy NOx baseline
             </span>
           </div>
@@ -310,7 +310,7 @@ function ScenarioTest({ inputs, onApply, onNavigateToIntake }) {
 
       <button
         onClick={() => { onApply(params); onNavigateToIntake && onNavigateToIntake(); }}
-        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2"
+        className="w-full bg-primary hover:bg-primary text-white py-2.5  font-semibold text-sm transition-all flex items-center justify-center gap-2"
       >
         Apply Parameters to Site Intake
       </button>
@@ -370,15 +370,15 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="rounded-xl border border-indigo-700/30 bg-indigo-950/20 p-5">
+      <div className=" border border-primary/30 bg-primary/10 p-5">
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <h2 className="text-base font-semibold text-white mb-1">Site Planner — BigWatt Digital Test Bed</h2>
-            <p className="text-xs text-gray-500">Explore site configurations on an interactive map with street/satellite views, scale controls, and draggable markers. Toggle between OpenStreetMap road map and high-res ESRI satellite imagery.</p>
+            <p className="text-xs text-muted-foreground">Explore site configurations on an interactive map with street/satellite views, scale controls, and draggable markers. Toggle between OpenStreetMap road map and high-res ESRI satellite imagery.</p>
           </div>
           <button
             onClick={() => setActiveTab('intake')}
-            className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg border border-gray-700/60 transition-colors"
+            className="text-xs bg-muted hover:bg-muted-foreground/10 text-foreground/80 px-3 py-1.5  border border-border/60 transition-colors"
           >
             &rarr; Open Full Site Intake
           </button>
@@ -389,8 +389,8 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
         {/* Left Column: Map */}
         <div className="lg:col-span-3 space-y-4">
           {/* Location Presets */}
-          <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4">
-            <h3 className="text-xs font-semibold text-gray-400 mb-3">Quick Location Presets</h3>
+          <div className=" border border-border/40 bg-card/40 p-4">
+            <h3 className="text-xs font-semibold text-muted-foreground mb-3">Quick Location Presets</h3>
             <div className="flex flex-wrap gap-1.5">
               {locationPresets.map(p => (
                 <button
@@ -409,10 +409,10 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                       presetLabel: p.label,
                     });
                   }}
-                  className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${
+                  className={`text-xs px-2.5 py-1  border transition-all ${
                     selectedState === p.state && lat === p.lat
-                      ? 'bg-indigo-900/40 border-indigo-700/40 text-indigo-300'
-                      : 'bg-gray-800/60 border-gray-700/40 text-gray-400 hover:bg-gray-800 hover:text-gray-300'
+                      ? 'bg-primary/30 border-primary/40 text-primary'
+                      : 'bg-muted/60 border-border/40 text-muted-foreground hover:bg-muted hover:text-foreground/80'
                   }`}
                 >
                   {p.label}
@@ -424,27 +424,27 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
           {/* Interactive Map */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold text-gray-400">Site Boundary Map</h3>
+              <h3 className="text-xs font-semibold text-muted-foreground">Site Boundary Map</h3>
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 text-xs bg-gray-800/60 rounded-lg px-2 py-1">
-                  <span className="text-indigo-400 font-medium">Street/Satellite</span>
-                  <span className="text-gray-600">|</span>
-                  <span className="text-gray-500">Layer toggle (top-right)</span>
+                <div className="flex items-center gap-1 text-xs bg-muted/60  px-2 py-1">
+                  <span className="text-primary font-medium">Street/Satellite</span>
+                  <span className="text-muted-foreground/70">|</span>
+                  <span className="text-muted-foreground">Layer toggle (top-right)</span>
                 </div>
                 <div className="flex items-center gap-1 text-xs">
-                  <span className="text-gray-500">Lat:</span>
+                  <span className="text-muted-foreground">Lat:</span>
                   <input
                     type="text"
                     value={lat}
                     onChange={e => handleLatLonChange(e.target.value, lon)}
-                    className="w-20 bg-gray-800 border border-gray-700 rounded px-1.5 py-0.5 text-gray-300 font-mono text-xs"
+                    className="w-20 bg-muted border border-border rounded px-1.5 py-0.5 text-foreground/80 font-mono text-xs"
                   />
-                  <span className="text-gray-500">Lon:</span>
+                  <span className="text-muted-foreground">Lon:</span>
                   <input
                     type="text"
                     value={lon}
                     onChange={e => handleLatLonChange(lat, e.target.value)}
-                    className="w-20 bg-gray-800 border border-gray-700 rounded px-1.5 py-0.5 text-gray-300 font-mono text-xs"
+                    className="w-20 bg-muted border border-border rounded px-1.5 py-0.5 text-foreground/80 font-mono text-xs"
                   />
                 </div>
               </div>
@@ -458,31 +458,31 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
             />
             <div className="mt-2 flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
-                <label className="text-xs text-gray-500">Site Area (acres):</label>
+                <label className="text-xs text-muted-foreground">Site Area (acres):</label>
                 <input
                   type="number"
                   value={siteAcres}
                   onChange={e => handleAcresManualInput(e.target.value)}
                   min={1}
                   max={500}
-                  className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-gray-300 font-mono text-sm"
+                  className="w-20 bg-muted border border-border rounded px-2 py-1 text-foreground/80 font-mono text-sm"
                 />
-                <span className="text-xs text-gray-600">(~{Math.round(siteAcres * 0.4047)} ha)</span>
+                <span className="text-xs text-muted-foreground/70">(~{Math.round(siteAcres * 0.4047)} ha)</span>
               </div>
-              <div className="flex items-center gap-3 text-xs text-gray-600">
-                <span>State: <span className="text-gray-400 font-medium">{selectedState}</span></span>
-                <span className="text-gray-700">|</span>
-                <span className="text-gray-500">
-                  <span className="text-indigo-400">{locationPresets.find(p => p.state === selectedState && p.lat === lat)?.label || selectedState}</span>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground/70">
+                <span>State: <span className="text-muted-foreground font-medium">{selectedState}</span></span>
+                <span className="text-muted-foreground/50">|</span>
+                <span className="text-muted-foreground">
+                  <span className="text-primary">{locationPresets.find(p => p.state === selectedState && p.lat === lat)?.label || selectedState}</span>
                 </span>
-                <span className="text-gray-500">Drag marker / click map to reposition</span>
+                <span className="text-muted-foreground">Drag marker / click map to reposition</span>
               </div>
             </div>
           </div>
 
           {/* Site Details Summary */}
-          <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4">
-            <h3 className="text-xs font-semibold text-gray-400 mb-3">Current Site Configuration</h3>
+          <div className=" border border-border/40 bg-card/40 p-4">
+            <h3 className="text-xs font-semibold text-muted-foreground mb-3">Current Site Configuration</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
               {[
                 { label: 'Turbines', value: `${inputs.turbines} \u00d7 ${inputs.mwPerTurbine} MW` },
@@ -494,22 +494,22 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                 { label: 'PUE Target', value: inputs.pueTarget },
                 { label: 'Stack Height', value: `${inputs.stackHeight} ft` },
               ].map(item => (
-                <div key={item.label} className="bg-gray-800/40 rounded-lg p-2.5">
-                  <div className="text-gray-500 mb-0.5">{item.label}</div>
-                  <div className="text-gray-200 font-semibold">{item.value}</div>
+                <div key={item.label} className="bg-muted/40  p-2.5">
+                  <div className="text-muted-foreground mb-0.5">{item.label}</div>
+                  <div className="text-foreground font-semibold">{item.value}</div>
                 </div>
               ))}
             </div>
             <div className="mt-3 flex gap-2">
               <button
                 onClick={() => setShowScenario(!showScenario)}
-                className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg font-semibold transition-all"
+                className="text-xs bg-primary hover:bg-primary text-white px-3 py-1.5  font-semibold transition-all"
               >
                 {showScenario ? 'Hide Scenario Test' : 'Quick Scenario Test'}
               </button>
               <button
                 onClick={() => { applyLocation(setInputs, { state: selectedState, lat, lon, acres: siteAcres, presetLabel: selectedLocationLabel, scenarioTitle: selectedLocationLabel }); setActiveTab('intake'); }}
-                className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded-lg font-semibold transition-all"
+                className="text-xs bg-muted hover:bg-muted-foreground/20 text-foreground px-3 py-1.5  font-semibold transition-all"
               >
                 Send to Site Intake
               </button>
@@ -518,9 +518,9 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
 
           {/* Scenario Test Panel */}
           {showScenario && (
-            <div className="rounded-xl border border-violet-700/30 bg-violet-950/20 p-5">
+            <div className=" border border-primary/30 bg-violet-950/20 p-5">
               <h3 className="text-sm font-semibold text-violet-300 mb-4">Quick Scenario Test</h3>
-              <p className="text-xs text-gray-500 mb-4">Adjust sliders to see instant PTE and pathway changes. Apply to sync with Site Intake.</p>
+              <p className="text-xs text-muted-foreground mb-4">Adjust sliders to see instant PTE and pathway changes. Apply to sync with Site Intake.</p>
               <ScenarioTest inputs={inputs} onApply={handleApplyScenario} onNavigateToIntake={() => setActiveTab('intake')} />
             </div>
           )}
@@ -529,15 +529,15 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
         {/* Right Column: Scenario Explorer */}
         <div className="lg:col-span-2 space-y-4">
           {/* Scenario Explorer */}
-          <div className="rounded-xl border border-indigo-700/30 bg-indigo-950/20 p-5">
+          <div className=" border border-primary/30 bg-primary/10 p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-sm font-semibold text-indigo-300">Scenario Explorer</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Click any scenario to instantly see emissions, pathway, and compliance impact</p>
+                <h3 className="text-sm font-semibold text-primary">Scenario Explorer</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Click any scenario to instantly see emissions, pathway, and compliance impact</p>
               </div>
               <button
                 onClick={() => setShowScenario(!showScenario)}
-                className={`text-xs ${showScenario ? 'bg-violet-600 hover:bg-violet-500' : 'bg-gray-700 hover:bg-gray-600'} text-white px-3 py-1.5 rounded-lg font-semibold transition-all`}
+                className={`text-xs ${showScenario ? 'bg-primary hover:bg-primary/80' : 'bg-muted hover:bg-muted-foreground/20'} text-white px-3 py-1.5  font-semibold transition-all`}
               >
                 {showScenario ? 'Hide Sliders' : 'Custom Sliders'}
               </button>
@@ -549,12 +549,12 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                 {
                   title: 'Edge Site (Small)',
                   badge: 'SMALL',
-                  badgeColor: 'bg-green-900/30 text-green-400 border-green-800/40',
+                  badgeColor: 'bg-primary/10 text-primary border-primary/40',
                   icon: '📡',
                   desc: 'Distributed edge node, minimal footprint',
                   params: { turbines: 4, mwPerTurbine: 15, hours: 4000, brickSavings: 20, gensetCount: 6, gensetHours: 100, datacenterMW: 40, siteAcres: 22, pueTarget: 1.40, stackHeight: 40, buildingSqFt: 5000, stories: 1, occupancyType: 'Business (B)', fireSuppression: 'Pre-action sprinkler', emergencyPowerConfig: '2N', powerSourceType: 'Grid-only', interconnectionVoltage: 69, transformerCapacity: 70 },
                   highlight: 'Fastest permit path',
-                  highlightColor: 'text-green-400',
+                  highlightColor: 'text-primary',
                   metrics: { mw: 60, nox: '19.8', psd: 'No', title5: 'No' },
                 },
                 {
@@ -565,29 +565,29 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                   desc: 'Existing campus expansion, moderate scale',
                   params: { turbines: 8, mwPerTurbine: 25, hours: 6000, brickSavings: 15, gensetCount: 12, gensetHours: 150, datacenterMW: 133, siteAcres: 50, pueTarget: 1.35, stackHeight: 55, buildingSqFt: 16000, stories: 2, occupancyType: 'Business (B)', fireSuppression: 'Pre-action sprinkler', emergencyPowerConfig: 'N+1', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 138, transformerCapacity: 230 },
                   highlight: 'Synthetic minor viable',
-                  highlightColor: 'text-amber-400',
+                  highlightColor: 'text-destructive',
                   metrics: { mw: 200, nox: '52.8', psd: 'No', title5: 'Yes' },
                 },
                 {
                   title: 'Hyperscale Campus',
                   badge: 'LARGE',
-                  badgeColor: 'bg-red-900/30 text-red-400 border-red-800/40',
+                  badgeColor: 'bg-destructive/10 text-destructive border-destructive/40',
                   icon: '🏗️',
                   desc: 'Full hyperscale buildout, major source',
                   params: { turbines: 16, mwPerTurbine: 50, hours: 7000, brickSavings: 25, gensetCount: 24, gensetHours: 100, datacenterMW: 533, siteAcres: 200, pueTarget: 1.30, stackHeight: 80, buildingSqFt: 65000, stories: 5, occupancyType: 'Business (B)', fireSuppression: 'Hybrid (pre-action + clean agent)', emergencyPowerConfig: '2N', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 345, transformerCapacity: 920 },
                   highlight: 'PSD major source',
-                  highlightColor: 'text-red-400',
+                  highlightColor: 'text-destructive',
                   metrics: { mw: 800, nox: '186.7', psd: 'Yes', title5: 'Yes' },
                 },
                 {
                   title: 'CA Nonattainment',
                   badge: 'CA',
-                  badgeColor: 'bg-amber-900/30 text-amber-400 border-amber-800/40',
+                  badgeColor: 'bg-amber-900/30 text-destructive border-amber-800/40',
                   icon: '🌴',
                   desc: 'California site with NNSR/LAER requirements',
                   params: { turbines: 6, mwPerTurbine: 20, hours: 5000, brickSavings: 30, gensetCount: 8, gensetHours: 80, datacenterMW: 80, siteAcres: 35, pueTarget: 1.38, stackHeight: 50, state: 'California', lat: '37.3861', lon: '-122.0839', nonAttainment: true, nonAttainNOx: true, nonAttainPM25: true, nonAttainOzone: true, buildingSqFt: 10000, stories: 2, occupancyType: 'Business (B)', fireSuppression: 'Clean agent (FM-200/Novec)', emergencyPowerConfig: 'N+1', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 69, transformerCapacity: 138 },
                   highlight: 'LAER + offsets needed',
-                  highlightColor: 'text-amber-400',
+                  highlightColor: 'text-destructive',
                   metrics: { mw: 120, nox: '28.3', psd: 'No', title5: 'Yes' },
                 },
               ].map(scenario => (
@@ -613,18 +613,18 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                       if (s.siteAcres) setSiteAcres(s.siteAcres);
                     }
                   }}
-                  className={`rounded-xl border p-4 cursor-pointer transition-all duration-200
+                  className={` border p-4 cursor-pointer transition-all duration-200
                     ${inputs._scenario === scenario.title 
-                      ? 'border-indigo-500 bg-indigo-900/20 shadow-lg shadow-indigo-900/20' 
-                      : 'border-gray-700/40 bg-gray-900/40 hover:border-indigo-700/40 hover:bg-gray-900/60'}`}
+                      ? 'border-primary bg-primary/15  shadow-indigo-900/20' 
+                      : 'border-border/40 bg-card/40 hover:border-primary/40 hover:bg-card/60'}`}
                 >
                   {/* Header row */}
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{scenario.icon}</span>
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-200">{scenario.title}</h4>
-                        <p className="text-[10px] text-gray-500">{scenario.desc}</p>
+                        <h4 className="text-sm font-semibold text-foreground">{scenario.title}</h4>
+                        <p className="text-[10px] text-muted-foreground">{scenario.desc}</p>
                       </div>
                     </div>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded border ${scenario.badgeColor}`}>{scenario.badge}</span>
@@ -632,21 +632,21 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
 
                   {/* Metric badges */}
                   <div className="grid grid-cols-4 gap-1.5 mb-2">
-                    <div className="bg-gray-800/60 rounded-lg p-1.5 text-center">
-                      <div className="text-[10px] text-gray-500">Capacity</div>
-                      <div className="text-xs font-bold text-gray-200">{scenario.metrics.mw} MW</div>
+                    <div className="bg-muted/60  p-1.5 text-center">
+                      <div className="text-[10px] text-muted-foreground">Capacity</div>
+                      <div className="text-xs font-bold text-foreground">{scenario.metrics.mw} MW</div>
                     </div>
-                    <div className="bg-gray-800/60 rounded-lg p-1.5 text-center">
-                      <div className="text-[10px] text-gray-500">NOx</div>
-                      <div className="text-xs font-bold text-gray-200">{scenario.metrics.nox} tpy</div>
+                    <div className="bg-muted/60  p-1.5 text-center">
+                      <div className="text-[10px] text-muted-foreground">NOx</div>
+                      <div className="text-xs font-bold text-foreground">{scenario.metrics.nox} tpy</div>
                     </div>
-                    <div className="bg-gray-800/60 rounded-lg p-1.5 text-center">
-                      <div className="text-[10px] text-gray-500">PSD</div>
-                      <div className={`text-xs font-bold ${scenario.metrics.psd === 'Yes' ? 'text-red-400' : 'text-green-400'}`}>{scenario.metrics.psd}</div>
+                    <div className="bg-muted/60  p-1.5 text-center">
+                      <div className="text-[10px] text-muted-foreground">PSD</div>
+                      <div className={`text-xs font-bold ${scenario.metrics.psd === 'Yes' ? 'text-destructive' : 'text-primary'}`}>{scenario.metrics.psd}</div>
                     </div>
-                    <div className="bg-gray-800/60 rounded-lg p-1.5 text-center">
-                      <div className="text-[10px] text-gray-500">Title V</div>
-                      <div className={`text-xs font-bold ${scenario.metrics.title5 === 'Yes' ? 'text-amber-400' : 'text-green-400'}`}>{scenario.metrics.title5}</div>
+                    <div className="bg-muted/60  p-1.5 text-center">
+                      <div className="text-[10px] text-muted-foreground">Title V</div>
+                      <div className={`text-xs font-bold ${scenario.metrics.title5 === 'Yes' ? 'text-destructive' : 'text-primary'}`}>{scenario.metrics.title5}</div>
                     </div>
                   </div>
 
@@ -675,7 +675,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                         }
                         setActiveTab('intake');
                       }}
-                      className="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded-lg font-medium transition-all"
+                      className="text-[10px] bg-primary hover:bg-primary text-white px-2 py-1  font-medium transition-all"
                     >
                       Apply → Intake
                     </button>
@@ -686,52 +686,52 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
 
             {/* Scenario summary note */}
             <div className="mt-3 text-center">
-              <span className="text-[10px] text-gray-600">
+              <span className="text-[10px] text-muted-foreground/70">
                 Click any card to preview its impact on the map and metrics. 
-                <span className="text-indigo-500"> Apply &rarr; Intake</span> to run full screening.
+                <span className="text-primary"> Apply &rarr; Intake</span> to run full screening.
               </span>
             </div>
           </div>
 
           {/* Custom Scenario Sliders (togglable) */}
           {showScenario && (
-            <div className="rounded-xl border border-violet-700/30 bg-violet-950/20 p-5">
+            <div className=" border border-primary/30 bg-violet-950/20 p-5">
               <h3 className="text-sm font-semibold text-violet-300 mb-4">Custom Scenario Builder</h3>
-              <p className="text-xs text-gray-500 mb-4">Fine-tune parameters manually and see instant PTE results. Apply to sync with Site Intake.</p>
+              <p className="text-xs text-muted-foreground mb-4">Fine-tune parameters manually and see instant PTE results. Apply to sync with Site Intake.</p>
               <ScenarioTest inputs={inputs} onApply={handleApplyScenario} onNavigateToIntake={() => setActiveTab('intake')} />
             </div>
           )}
 
           {/* Quick Map Reference */}
-          <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4">
-            <h3 className="text-xs font-semibold text-gray-400 mb-2 flex items-center gap-1.5">
+          <div className=" border border-border/40 bg-card/40 p-4">
+            <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
               <span>Quick Reference</span>
-              <span className="text-[10px] text-gray-600 font-normal">Map controls &amp; site info</span>
+              <span className="text-[10px] text-muted-foreground/70 font-normal">Map controls &amp; site info</span>
             </h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-gray-800/40 rounded-lg p-2 flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 flex-shrink-0 opacity-60"></span>
-                <span className="text-gray-400">Drag marker / click map to reposition</span>
+              <div className="bg-muted/40  p-2 flex items-center gap-2">
+                <span className="w-2.5 h-2.5  bg-primary flex-shrink-0 opacity-60"></span>
+                <span className="text-muted-foreground">Drag marker / click map to reposition</span>
               </div>
-              <div className="bg-gray-800/40 rounded-lg p-2 flex items-center gap-2">
+              <div className="bg-muted/40  p-2 flex items-center gap-2">
                 <div className="w-4 h-2 border border-indigo-400 border-dashed rounded flex-shrink-0"></div>
-                <span className="text-gray-400">Boundary auto-scaled to acreage</span>
+                <span className="text-muted-foreground">Boundary auto-scaled to acreage</span>
               </div>
-              <div className="bg-gray-800/40 rounded-lg p-2 flex items-center gap-2">
+              <div className="bg-muted/40  p-2 flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded bg-blue-500 flex-shrink-0"></span>
-                <span className="text-gray-400">Toggle Street / Satellite (top-right)</span>
+                <span className="text-muted-foreground">Toggle Street / Satellite (top-right)</span>
               </div>
-              <div className="bg-gray-800/40 rounded-lg p-2 flex items-center gap-2">
-                <span className="text-gray-500 font-mono text-[10px]">+/-</span>
-                <span className="text-gray-400">Zoom controls &amp; mouse wheel</span>
+              <div className="bg-muted/40  p-2 flex items-center gap-2">
+                <span className="text-muted-foreground font-mono text-[10px]">+/-</span>
+                <span className="text-muted-foreground">Zoom controls &amp; mouse wheel</span>
               </div>
             </div>
-            <div className="mt-2 flex items-center justify-between text-[10px] text-gray-600">
-              <span>Current: <span className="text-gray-400 font-medium">{inputs.turbines}&times;{inputs.mwPerTurbine}MW</span></span>
-              <span className="text-gray-700">|</span>
-              <span>State: <span className="text-gray-400">{selectedState}</span></span>
-              <span className="text-gray-700">|</span>
-              <span>Acres: <span className="text-gray-400">{siteAcres}</span></span>
+            <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground/70">
+              <span>Current: <span className="text-muted-foreground font-medium">{inputs.turbines}&times;{inputs.mwPerTurbine}MW</span></span>
+              <span className="text-muted-foreground/50">|</span>
+              <span>State: <span className="text-muted-foreground">{selectedState}</span></span>
+              <span className="text-muted-foreground/50">|</span>
+              <span>Acres: <span className="text-muted-foreground">{siteAcres}</span></span>
             </div>
           </div>
         </div></div>

@@ -246,12 +246,12 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
       {/* Chat bubble button */}
       <button
         onClick={() => setOpen(!open)}
-        className={`fixed bottom-5 right-5 z-40 w-12 h-12 rounded-full shadow-xl transition-all duration-300 flex items-center justify-center
-          ${open ? 'bg-gray-800 scale-90' : 'bg-indigo-600 hover:bg-indigo-500 hover:scale-105'}`}
+        className={`fixed bottom-5 right-5 z-40 w-12 h-12   transition-all duration-300 flex items-center justify-center
+          ${open ? 'bg-muted scale-90' : 'bg-primary hover:bg-primary hover:scale-105'}`}
         title="Site Assistant"
       >
         {open ? (
-          <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         ) : (
@@ -263,24 +263,24 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-20 right-5 z-40 w-[420px] max-w-[calc(100vw-2rem)] h-[580px] max-h-[calc(100vh-10rem)] bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl shadow-black/50 flex flex-col overflow-hidden animate-fade-in">
+        <div className="fixed bottom-20 right-5 z-40 w-[420px] max-w-[calc(100vw-2rem)] h-[580px] max-h-[calc(100vh-10rem)] bg-card border border-border   shadow-black/50 flex flex-col overflow-hidden animate-fade-in">
           {/* Header */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-800 bg-gray-900/95 flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-900/40 flex-shrink-0">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card/95 flex-shrink-0">
+            <div className="w-8 h-8  bg-gradient-to-br bg-primary  flex items-center justify-center   flex-shrink-0">
               <span className="text-white font-bold text-sm">B</span>
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-gray-200 truncate">PermitOS Assistant</div>
-              <div className="text-xs text-green-400 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+              <div className="text-sm font-medium text-foreground truncate">PermitOS Assistant</div>
+              <div className="text-xs text-primary flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5  bg-primary animate-pulse"></span>
                 {hasResults ? `${siteName} loaded` : 'Site ready'}
-                <span className="text-gray-600 ml-1">· RAG + Web</span>
+                <span className="text-muted-foreground/70 ml-1">· RAG + Web</span>
               </div>
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={clearChat}
-                className="text-xs text-gray-600 hover:text-gray-400 bg-gray-800 rounded-lg px-2 py-1 transition-colors"
+                className="text-xs text-muted-foreground/70 hover:text-muted-foreground bg-muted  px-2 py-1 transition-colors"
                 title="Clear chat"
               >
                 Clear
@@ -292,19 +292,19 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {chatHistory.map((msg, i) => (
               <div key={i} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5
-                  ${msg.role === 'user' ? 'bg-indigo-700 text-white' : 'bg-violet-700 text-white'}`}>
+                <div className={`w-5 h-5  flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5
+                  ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-violet-700 text-white'}`}>
                   {msg.role === 'user' ? 'U' : 'AI'}
                 </div>
-                <div className={`max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap
+                <div className={`max-w-[85%]  px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap
                   ${msg.role === 'user'
-                    ? 'bg-indigo-700/30 border border-indigo-700/40 text-indigo-100'
-                    : 'bg-gray-800/60 border border-gray-700/40 text-gray-300'}`}>
+                    ? 'bg-primary/30 border border-primary/40 text-indigo-100'
+                    : 'bg-muted/60 border border-border/40 text-foreground/80'}`}>
                   {/* Source type badge */}
                   {msg.role === 'assistant' && msg.sourceType && msg.sourceType !== 'system' && (
-                    <div className="flex flex-wrap items-center gap-1.5 mb-1.5 pb-1.5 border-b border-gray-700/30">
+                    <div className="flex flex-wrap items-center gap-1.5 mb-1.5 pb-1.5 border-b border-border/30">
                       {msg.sourceType === 'llm' && (
-                        <span className="text-[10px] bg-green-900/40 text-green-300 rounded px-1.5 py-0.5 border border-green-800/30">
+                        <span className="text-[10px] bg-green-900/40 text-primary rounded px-1.5 py-0.5 border border-green-800/30">
                           Claude AI
                         </span>
                       )}
@@ -319,22 +319,22 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
                         </span>
                       )}
                       {msg.sourceType === 'scenario' && (
-                        <span className="text-[10px] bg-indigo-900/40 text-indigo-300 rounded px-1.5 py-0.5 border border-indigo-800/30">
+                        <span className="text-[10px] bg-primary/30 text-primary rounded px-1.5 py-0.5 border border-primary/30">
                           Scenario Engine
                         </span>
                       )}
                       {msg.sourceType === 'fallback' && (
-                        <span className="text-[10px] bg-red-900/60 text-red-300 rounded px-1.5 py-0.5 border border-red-700/50 font-semibold">
+                        <span className="text-[10px] bg-red-900/60 text-destructive rounded px-1.5 py-0.5 border border-red-700/50 font-semibold">
                           AI unavailable — limited results
                         </span>
                       )}
                       {(msg.sourceCount > 0) && (
-                        <span className="text-[10px] text-gray-500">
+                        <span className="text-[10px] text-muted-foreground">
                           {msg.sourceCount} source{msg.sourceCount > 1 ? 's' : ''}
                         </span>
                       )}
                       {msg.webSource && (
-                        <span className="text-[10px] text-gray-500 max-w-[120px] truncate" title={msg.webSource}>
+                        <span className="text-[10px] text-muted-foreground max-w-[120px] truncate" title={msg.webSource}>
                           EPA data
                         </span>
                       )}
@@ -347,38 +347,38 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
 
             {/* Scenario analysis result card */}
             {scenarioResult && (
-              <div className="bg-gray-800/60 border border-indigo-700/40 rounded-xl p-3 text-xs">
+              <div className="bg-muted/60 border border-primary/40  p-3 text-xs">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-indigo-400 font-semibold">Scenario: {scenarioResult.label}</span>
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                    scenarioResult.complexity === 'high' ? 'bg-red-900/30 text-red-400' :
-                    scenarioResult.complexity === 'moderate' ? 'bg-amber-900/30 text-amber-400' :
-                    'bg-green-900/30 text-green-400'
+                  <span className="text-primary font-semibold">Scenario: {scenarioResult.label}</span>
+                  <span className={`text-xs px-1.5 py-0.5  ${
+                    scenarioResult.complexity === 'high' ? 'bg-destructive/10 text-destructive' :
+                    scenarioResult.complexity === 'moderate' ? 'bg-amber-900/30 text-destructive' :
+                    'bg-primary/10 text-primary'
                   }`}>{scenarioResult.complexity}</span>
                 </div>
                 <div className="flex items-center gap-3 mb-1.5">
-                  <span className="text-gray-500">Timeline:</span>
-                  <span className="text-gray-200 font-semibold">
+                  <span className="text-muted-foreground">Timeline:</span>
+                  <span className="text-foreground font-semibold">
                     {scenarioResult.timelineMonths?.min}–{scenarioResult.timelineMonths?.max} months
                   </span>
                 </div>
                 {scenarioResult.permitTypes?.length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-1.5">
                     {scenarioResult.permitTypes.slice(0, 4).map((p, i) => (
-                      <span key={i} className="bg-gray-800 text-gray-400 rounded px-1.5 py-0.5">{p}</span>
+                      <span key={i} className="bg-muted text-muted-foreground rounded px-1.5 py-0.5">{p}</span>
                     ))}
                   </div>
                 )}
-                <div className="flex gap-1.5 mt-2 pt-1.5 border-t border-gray-700/40">
+                <div className="flex gap-1.5 mt-2 pt-1.5 border-t border-border/40">
                   <button
                     onClick={() => handleTabNav('milestones')}
-                    className="text-xs bg-indigo-700/30 hover:bg-indigo-700/50 text-indigo-300 rounded px-2 py-0.5 transition-colors"
+                    className="text-xs bg-primary/30 hover:bg-primary/50 text-primary rounded px-2 py-0.5 transition-colors"
                   >
                     View Timeline
                   </button>
                   <button
                     onClick={() => handleTabNav('intake')}
-                    className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded px-2 py-0.5 transition-colors"
+                    className="text-xs bg-muted hover:bg-muted-foreground/20 text-foreground/80 rounded px-2 py-0.5 transition-colors"
                   >
                     Adjust Parameters
                   </button>
@@ -388,12 +388,12 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
 
             {thinking && (
               <div className="flex gap-2">
-                <div className="w-5 h-5 rounded-full bg-violet-700 flex items-center justify-center text-[10px] text-white font-bold flex-shrink-0">AI</div>
-                <div className="bg-gray-800/60 border border-gray-700/40 rounded-xl px-3 py-2">
+                <div className="w-5 h-5  bg-violet-700 flex items-center justify-center text-[10px] text-white font-bold flex-shrink-0">AI</div>
+                <div className="bg-muted/60 border border-border/40  px-3 py-2">
                   <div className="flex gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    <span className="w-1.5 h-1.5  bg-violet-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-1.5 h-1.5  bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="w-1.5 h-1.5  bg-violet-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
                   </div>
                 </div>
               </div>
@@ -402,14 +402,14 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
           </div>
 
           {/* Quick prompts */}
-          <div className="px-4 py-2 border-t border-gray-800/40 flex-shrink-0">
+          <div className="px-4 py-2 border-t border-border/40 flex-shrink-0">
             <div className="flex flex-wrap gap-1">
               {QUICK_TEMPLATES.map(t => (
                 <button
                   key={t.id}
                   onClick={() => handleQuickPrompt(t.id)}
                   disabled={thinking}
-                  className="text-[10px] text-gray-600 hover:text-gray-400 bg-gray-800/40 rounded-full px-2 py-0.5 border border-gray-700/40 transition-colors disabled:opacity-40"
+                  className="text-[10px] text-muted-foreground/70 hover:text-muted-foreground bg-muted/40  px-2 py-0.5 border border-border/40 transition-colors disabled:opacity-40"
                 >
                   {t.label}
                 </button>
@@ -418,7 +418,7 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
           </div>
 
           {/* Input */}
-          <div className="px-4 py-3 border-t border-gray-800/40 flex-shrink-0 bg-gray-900/95">
+          <div className="px-4 py-3 border-t border-border/40 flex-shrink-0 bg-card/95">
             <div className="flex gap-2">
               <input
                 ref={inputRef}
@@ -427,13 +427,13 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
                 onChange={e => setChatMsg(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
                 placeholder="Ask about permits, CFR, regulations..."
-                className="flex-1 bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-colors"
+                className="flex-1 bg-background border border-border  px-3 py-2 text-xs text-foreground placeholder-gray-600 focus:outline-none focus:border-primary transition-colors"
                 disabled={thinking}
               />
               <button
                 onClick={sendChat}
                 disabled={!chatMsg.trim() || thinking}
-                className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 disabled:text-gray-600 text-white px-3 py-2 rounded-xl text-xs font-semibold transition-colors flex-shrink-0"
+                className="bg-primary hover:bg-primary disabled:bg-muted disabled:text-muted-foreground/70 text-white px-3 py-2  text-xs font-semibold transition-colors flex-shrink-0"
               >
                 Send
               </button>

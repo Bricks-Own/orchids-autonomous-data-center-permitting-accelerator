@@ -88,13 +88,13 @@ export default function FormulaPopover({ metricKey, data, children }) {
     if (val === undefined || val === null) return 'gray';
     const isLowerBetter = ['trir', 'ltir', 'reworkPct', 'rfiResponseDays', 'scheduleSlipDays', 'milestoneVarianceDays', 'contingencyUtilization', 'contingencyBurnRatio'].includes(metricKey);
     if (isLowerBetter) {
-      if (val <= thresholds.green) return 'text-green-400';
-      if (val <= thresholds.amber) return 'text-amber-400';
-      return 'text-red-400';
+      if (val <= thresholds.green) return 'text-primary';
+      if (val <= thresholds.amber) return 'text-destructive';
+      return 'text-destructive';
     }
-    if (val >= thresholds.green) return 'text-green-400';
-    if (val >= thresholds.amber) return 'text-amber-400';
-    return 'text-red-400';
+    if (val >= thresholds.green) return 'text-primary';
+    if (val >= thresholds.amber) return 'text-destructive';
+    return 'text-destructive';
   };
 
   const getStatusLabel = (val) => {
@@ -150,7 +150,7 @@ export default function FormulaPopover({ metricKey, data, children }) {
       <button
         ref={btnRef}
         onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
-        className="ml-1.5 text-[10px] font-mono text-indigo-400 bg-indigo-900/30 border border-indigo-700/40 rounded px-1 py-0.5 hover:bg-indigo-800/40 transition-colors cursor-pointer"
+        className="ml-1.5 text-[10px] font-mono text-primary bg-primary/20 border border-primary/40 rounded px-1 py-0.5 hover:bg-primary/30 transition-colors cursor-pointer"
         title="See how this is computed"
       >
         ƒx
@@ -158,28 +158,28 @@ export default function FormulaPopover({ metricKey, data, children }) {
       {open && createPortal(
         <div
           ref={panelRef}
-          className="fixed z-50 bg-gray-950 border border-gray-700 rounded-xl shadow-2xl p-4 min-w-[320px] max-w-[400px]"
+          className="fixed z-50 bg-background border border-border   p-4 min-w-[320px] max-w-[400px]"
           style={{ top: pos.top, left: pos.left }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="mb-3">
-            <h4 className="text-xs font-semibold text-gray-200">{def.label}</h4>
-            <p className="text-[10px] text-gray-500 mt-0.5">{def.detail || ''}</p>
+            <h4 className="text-xs font-semibold text-foreground">{def.label}</h4>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{def.detail || ''}</p>
           </div>
 
           {/* Row 1: Formula in named terms */}
           <div className="mb-2">
-            <div className="text-[10px] text-gray-600 uppercase tracking-wider mb-1">Formula</div>
-            <div className="text-xs text-indigo-300 font-mono bg-indigo-950/30 rounded-lg px-3 py-2 border border-indigo-800/30">
+            <div className="text-[10px] text-muted-foreground/70 uppercase tracking-wider mb-1">Formula</div>
+            <div className="text-xs text-primary font-mono bg-primary/10  px-3 py-2 border border-primary/30">
               {def.formulaText}
             </div>
           </div>
 
           {/* Row 2: Formula with live substituted values */}
           <div className="mb-2">
-            <div className="text-[10px] text-gray-600 uppercase tracking-wider mb-1">With Current Values</div>
-            <div className="text-xs text-gray-300 font-mono bg-gray-800/50 rounded-lg px-3 py-2 border border-gray-700/30">
+            <div className="text-[10px] text-muted-foreground/70 uppercase tracking-wider mb-1">With Current Values</div>
+            <div className="text-xs text-foreground/80 font-mono bg-muted/50  px-3 py-2 border border-border/30">
               {def.formulaText.replace(/[A-Za-z\s%()]+/g, (match) => {
                 // Try to substitute known values
                 for (const inp of def.inputs) {
@@ -198,13 +198,13 @@ export default function FormulaPopover({ metricKey, data, children }) {
 
           {/* Row 3: Result with threshold */}
           <div>
-            <div className="text-[10px] text-gray-600 uppercase tracking-wider mb-1">Result</div>
-            <div className="flex items-center justify-between bg-gray-800/50 rounded-lg px-3 py-2 border border-gray-700/30">
-              <span className="text-xs font-bold text-gray-200">{fmtResult(computedValue)}</span>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${statusColor} bg-opacity-20 ${
-                statusLabel === 'GREEN' ? 'bg-green-900/30 text-green-400' :
-                statusLabel === 'AMBER' ? 'bg-amber-900/30 text-amber-400' :
-                'bg-red-900/30 text-red-400'
+            <div className="text-[10px] text-muted-foreground/70 uppercase tracking-wider mb-1">Result</div>
+            <div className="flex items-center justify-between bg-muted/50  px-3 py-2 border border-border/30">
+              <span className="text-xs font-bold text-foreground">{fmtResult(computedValue)}</span>
+              <span className={`text-xs font-bold px-2 py-0.5  ${statusColor} bg-opacity-20 ${
+                statusLabel === 'GREEN' ? 'bg-primary/10 text-primary' :
+                statusLabel === 'AMBER' ? 'bg-amber-900/30 text-destructive' :
+                'bg-destructive/10 text-destructive'
               }`}>
                 {statusLabel} {statusLabel === 'GREEN' ? '(≥ ' + thresholds.green + ')' : statusLabel === 'AMBER' ? '(≥ ' + thresholds.amber + ')' : '(< ' + thresholds.amber + ')'}
               </span>
@@ -213,13 +213,13 @@ export default function FormulaPopover({ metricKey, data, children }) {
 
           {/* Input values */}
           {def.inputs.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-800">
-              <div className="text-[10px] text-gray-600 uppercase tracking-wider mb-1">Input Values</div>
+            <div className="mt-3 pt-3 border-t border-border">
+              <div className="text-[10px] text-muted-foreground/70 uppercase tracking-wider mb-1">Input Values</div>
               <div className="space-y-1">
                 {def.inputs.map((inp, i) => (
                   <div key={i} className="flex justify-between text-[11px]">
-                    <span className="text-gray-500">{inp.label}</span>
-                    <span className="text-gray-300 font-mono">{resolveInput(inp.key)}</span>
+                    <span className="text-muted-foreground">{inp.label}</span>
+                    <span className="text-foreground/80 font-mono">{resolveInput(inp.key)}</span>
                   </div>
                 ))}
               </div>

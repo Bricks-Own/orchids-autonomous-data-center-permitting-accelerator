@@ -50,6 +50,7 @@ export const defaultInputs = {
   nearestReceptorFt: 1200,
   nonAttainment: false,
   permitTypesNeeded: null,
+  projectScenario: 'greenfield',
 };
 
 function App() {
@@ -122,8 +123,8 @@ function App() {
 
   if (!authChecked) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-gray-500 text-sm">Loading...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground text-sm">Loading...</div>
       </div>
     );
   }
@@ -133,7 +134,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
+    <div className="min-h-screen bg-background text-foreground">
       <Header activeTab={activeTab} setActiveTab={setActiveTab} results={results} inputs={inputs} onLogout={handleLogout} />
       <main className="max-w-[1400px] mx-auto">
         {renderTab()}

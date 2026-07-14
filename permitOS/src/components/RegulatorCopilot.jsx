@@ -157,18 +157,18 @@ export default function RegulatorCopilot({ results, inputs }) {
     <div className="p-6 space-y-6">
       {/* Toast notification */}
       {notify && (
-        <div className="fixed top-4 right-4 z-50 bg-indigo-900/90 border border-indigo-600/60 text-indigo-200 text-xs rounded-xl px-4 py-3 shadow-2xl backdrop-blur-sm animate-fade-in">
+        <div className="fixed top-4 right-4 z-50 bg-primary/80 border border-primary/60 text-primary text-xs  px-4 py-3  backdrop-blur-sm animate-fade-in">
           {notify}
-          <button onClick={() => setNotify('')} className="ml-3 text-indigo-400 hover:text-white">&times;</button>
+          <button onClick={() => setNotify('')} className="ml-3 text-primary hover:text-white">&times;</button>
         </div>
       )}
 
       {/* Header */}
-      <div className="rounded-xl border border-violet-700/30 bg-violet-950/20 p-5">
+      <div className=" border border-primary/30 bg-violet-950/20 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-base font-semibold text-white">Regulator QA Copilot</h2>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               AI-powered response engine for RAI questions, deficiency letters, public comments, and modeling comments.
               Draws from the indexed permit record — not from scratch.
             </p>
@@ -180,8 +180,8 @@ export default function RegulatorCopilot({ results, inputs }) {
               { id: 'chat', label: 'Live QA Chat' },
             ].map(m => (
               <button key={m.id} onClick={() => setActiveMode(m.id)}
-                className={`text-xs px-3 py-1.5 rounded-full border transition-all
-                  ${activeMode === m.id ? 'bg-violet-700 text-white border-violet-600' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}>
+                className={`text-xs px-3 py-1.5  border transition-all
+                  ${activeMode === m.id ? 'bg-violet-700 text-white border-violet-600' : 'bg-muted text-muted-foreground border-border hover:text-foreground'}`}>
                 {m.label}
               </button>
             ))}
@@ -191,13 +191,13 @@ export default function RegulatorCopilot({ results, inputs }) {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
           {[
-            { label: 'RAI Templates', value: RAI_TEMPLATES.length, color: 'text-violet-400' },
-            { label: 'Avg Response Time', value: '< 2 days', color: 'text-green-400' },
-            { label: 'vs. Manual Response', value: '3–6 wks', color: 'text-red-400' },
-            { label: 'Permit Index Coverage', value: '100%', color: 'text-indigo-400' },
+            { label: 'RAI Templates', value: RAI_TEMPLATES.length, color: 'text-primary' },
+            { label: 'Avg Response Time', value: '< 2 days', color: 'text-primary' },
+            { label: 'vs. Manual Response', value: '3–6 wks', color: 'text-destructive' },
+            { label: 'Permit Index Coverage', value: '100%', color: 'text-primary' },
           ].map(m => (
-            <div key={m.label} className="bg-gray-900/40 border border-gray-700/40 rounded-xl p-3">
-              <div className="text-xs text-gray-500">{m.label}</div>
+            <div key={m.label} className="bg-card/40 border border-border/40  p-3">
+              <div className="text-xs text-muted-foreground">{m.label}</div>
               <div className={`text-xl font-bold mt-0.5 ${m.color}`}>{m.value}</div>
             </div>
           ))}
@@ -211,8 +211,8 @@ export default function RegulatorCopilot({ results, inputs }) {
           <div className="flex gap-2 flex-wrap">
             {CATEGORIES.map(c => (
               <button key={c} onClick={() => setFilter(c)}
-                className={`text-xs px-3 py-1.5 rounded-full border transition-all
-                  ${filter === c ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}>
+                className={`text-xs px-3 py-1.5  border transition-all
+                  ${filter === c ? 'bg-primary text-white border-primary' : 'bg-muted text-muted-foreground border-border hover:text-foreground'}`}>
                 {c}
               </button>
             ))}
@@ -220,29 +220,29 @@ export default function RegulatorCopilot({ results, inputs }) {
 
           <div className="space-y-4">
             {filteredRAI.map(rai => (
-              <div key={rai.id} className="rounded-xl border border-gray-700/40 bg-gray-900/40 overflow-hidden">
+              <div key={rai.id} className=" border border-border/40 bg-card/40 overflow-hidden">
                 <button
                   onClick={() => setSelectedRAI(selectedRAI === rai.id ? null : rai.id)}
-                  className="w-full p-4 flex items-start justify-between gap-4 hover:bg-gray-800/20 transition-colors text-left"
+                  className="w-full p-4 flex items-start justify-between gap-4 hover:bg-muted/20 transition-colors text-left"
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs bg-violet-900/40 text-violet-300 border border-violet-800/40 rounded-full px-2 py-0.5">{rai.category}</span>
+                      <span className="text-xs bg-violet-900/40 text-violet-300 border border-violet-800/40  px-2 py-0.5">{rai.category}</span>
                     </div>
-                    <div className="text-sm font-medium text-gray-300 italic">"{rai.question}"</div>
-                    <div className="text-xs text-gray-600 mt-1">{rai.citation}</div>
+                    <div className="text-sm font-medium text-foreground/80 italic">"{rai.question}"</div>
+                    <div className="text-xs text-muted-foreground/70 mt-1">{rai.citation}</div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-xs text-green-400 bg-green-900/30 border border-green-700/40 rounded-full px-2.5 py-0.5">Response Ready</span>
-                    <span className="text-gray-600">{selectedRAI === rai.id ? '▲' : '▼'}</span>
+                    <span className="text-xs text-primary bg-primary/10 border border-green-700/40  px-2.5 py-0.5">Response Ready</span>
+                    <span className="text-muted-foreground/70">{selectedRAI === rai.id ? '▲' : '▼'}</span>
                   </div>
                 </button>
 
                 {selectedRAI === rai.id && (
-                  <div className="border-t border-gray-800/40 p-4 space-y-4 bg-gray-900/30">
+                  <div className="border-t border-border/40 p-4 space-y-4 bg-card/30">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs font-semibold text-green-400">Prepared Response (Site-Specific)</p>
+                        <p className="text-xs font-semibold text-primary">Prepared Response (Site-Specific)</p>
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(rai.answer(inputs || {}, results || {})).then(() => {
@@ -252,12 +252,12 @@ export default function RegulatorCopilot({ results, inputs }) {
                               setNotify('Clipboard access denied. Copy manually from the response box.');
                             });
                           }}
-                          className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg px-3 py-1 transition-colors border border-gray-600"
+                          className="text-xs bg-muted hover:bg-muted-foreground/20 text-foreground/80  px-3 py-1 transition-colors border border-border"
                         >
                           {copied === rai.id ? '✓ Copied!' : '📋 Copy to Clipboard'}
                         </button>
                       </div>
-                      <div className="bg-gray-950/60 border border-gray-700/40 rounded-xl p-4 text-xs text-gray-300 leading-relaxed font-mono whitespace-pre-wrap">
+                      <div className="bg-background/60 border border-border/40  p-4 text-xs text-foreground/80 leading-relaxed font-mono whitespace-pre-wrap">
                         {rai.answer(inputs || {}, results || {})}
                       </div>
                     </div>
@@ -273,19 +273,19 @@ export default function RegulatorCopilot({ results, inputs }) {
                             setNotify(`Export failed: ${err.message}`);
                           }
                         }}
-                        className="text-xs bg-indigo-700/40 hover:bg-indigo-600/40 text-indigo-300 rounded-lg px-3 py-1.5 transition-colors border border-indigo-700/40"
+                        className="text-xs bg-primary/40 hover:bg-primary/40 text-primary  px-3 py-1.5 transition-colors border border-primary/40"
                       >
                         {exporting === rai.id ? '✓ Exported' : '📤 Export as Word Doc'}
                       </button>
                       <button
                         onClick={() => setNotify('Response marked as sent to agency. Awaiting agency review (typical response: 30–60 days).')}
-                        className="text-xs bg-green-700/40 hover:bg-green-600/40 text-green-300 rounded-lg px-3 py-1.5 transition-colors border border-green-700/40"
+                        className="text-xs bg-primary/40 hover:bg-primary/80/40 text-primary  px-3 py-1.5 transition-colors border border-green-700/40"
                       >
                         ✓ Mark Sent to Agency
                       </button>
                       <button
                         onClick={() => setNotify('File picker opened — select supporting exhibit (PDF, DOCX) from the permit record.')}
-                        className="text-xs bg-gray-700/40 hover:bg-gray-600/40 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-700/40"
+                        className="text-xs bg-muted/40 hover:bg-muted-foreground/20/40 text-foreground/80  px-3 py-1.5 transition-colors border border-border/40"
                       >
                         📎 Attach Supporting Exhibit
                       </button>
@@ -301,32 +301,32 @@ export default function RegulatorCopilot({ results, inputs }) {
       {/* Deficiency Resolver */}
       {activeMode === 'deficiency' && (
         <div className="space-y-4">
-          <div className="rounded-xl border border-amber-700/30 bg-amber-950/10 p-4 text-xs text-amber-300">
+          <div className=" border border-amber-700/30 bg-amber-950/10 p-4 text-xs text-amber-300">
             <strong>How it works:</strong> Upload or paste a deficiency letter from the permitting agency. Brick PermitOS maps each deficiency item to the relevant permit document, identifies the cure, and drafts the response within 24 hours for PE review.
           </div>
           {DEFICIENCY_TEMPLATES.map(d => (
-            <div key={d.id} className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4 space-y-3">
+            <div key={d.id} className=" border border-border/40 bg-card/40 p-4 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-sm font-semibold text-amber-400 mb-1">{d.label}</div>
-                  <div className="text-xs text-gray-400">{d.desc}</div>
+                  <div className="text-sm font-semibold text-destructive mb-1">{d.label}</div>
+                  <div className="text-xs text-muted-foreground">{d.desc}</div>
                 </div>
-                <span className="text-xs bg-amber-900/30 text-amber-400 border border-amber-700/40 rounded-full px-2.5 py-0.5 flex-shrink-0">Action Required</span>
+                <span className="text-xs bg-amber-900/30 text-destructive border border-amber-700/40  px-2.5 py-0.5 flex-shrink-0">Action Required</span>
               </div>
-              <div className="bg-green-950/20 border border-green-700/30 rounded-lg p-3">
-                <p className="text-xs text-green-400 font-semibold mb-1">Brick Resolution</p>
-                <p className="text-xs text-gray-400">{d.resolution}</p>
+              <div className="bg-green-950/20 border border-green-700/30  p-3">
+                <p className="text-xs text-primary font-semibold mb-1">Brick Resolution</p>
+                <p className="text-xs text-muted-foreground">{d.resolution}</p>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setNotify(`Cure response generated for "${d.label}" — ready for PE review within 24 hours.`)}
-                  className="text-xs bg-indigo-700/40 hover:bg-indigo-600/40 text-indigo-300 rounded-lg px-3 py-1.5 transition-colors border border-indigo-700/40"
+                  className="text-xs bg-primary/40 hover:bg-primary/40 text-primary  px-3 py-1.5 transition-colors border border-primary/40"
                 >
                   🤖 Generate Cure Response
                 </button>
                 <button
                   onClick={() => setNotify(`"${d.label}" assigned to Lead Engineer — notification sent. ETA: 24-hour cure response.`)}
-                  className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-600"
+                  className="text-xs bg-muted hover:bg-muted-foreground/20 text-foreground/80  px-3 py-1.5 transition-colors border border-border"
                 >
                   📌 Assign to Engineer
                 </button>
@@ -334,13 +334,13 @@ export default function RegulatorCopilot({ results, inputs }) {
             </div>
           ))}
           {/* Upload zone */}
-          <div className="border-2 border-dashed border-gray-700/60 rounded-xl p-8 text-center">
+          <div className="border-2 border-dashed border-border/60  p-8 text-center">
             <div className="text-2xl mb-2">📄</div>
-            <p className="text-gray-500 text-sm mb-2">Upload agency deficiency letter or RAI document</p>
-            <p className="text-gray-600 text-xs mb-4">Supports PDF, DOCX, TXT — AI will parse and map to permit record</p>
+            <p className="text-muted-foreground text-sm mb-2">Upload agency deficiency letter or RAI document</p>
+            <p className="text-muted-foreground/70 text-xs mb-4">Supports PDF, DOCX, TXT — AI will parse and map to permit record</p>
             <button
               onClick={() => setNotify('File upload opened — supported formats: PDF, DOCX, TXT. Document will be parsed and mapped to the permit record automatically.')}
-              className="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-xl px-4 py-2 border border-gray-700 transition-colors"
+              className="bg-muted hover:bg-muted-foreground/10 text-foreground/80 text-xs  px-4 py-2 border border-border transition-colors"
             >
               📎 Upload Document
             </button>
@@ -350,13 +350,13 @@ export default function RegulatorCopilot({ results, inputs }) {
 
       {/* Live QA Chat */}
       {activeMode === 'chat' && (
-        <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 flex flex-col" style={{ height: '560px' }}>
-          <div className="flex items-center gap-3 p-4 border-b border-gray-800/40">
-            <div className="w-7 h-7 rounded-full bg-violet-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">AI</div>
+        <div className=" border border-border/40 bg-card/40 flex flex-col" style={{ height: '560px' }}>
+          <div className="flex items-center gap-3 p-4 border-b border-border/40">
+            <div className="w-7 h-7  bg-violet-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">AI</div>
             <div className="flex-1">
-              <div className="text-sm font-medium text-gray-300">Brick Regulator QA Copilot</div>
-              <div className="text-xs text-green-400 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+              <div className="text-sm font-medium text-foreground/80">Brick Regulator QA Copilot</div>
+              <div className="text-xs text-primary flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5  bg-primary animate-pulse"></span>
                 Permit record indexed — {inputs?.siteName || 'site'} loaded
               </div>
             </div>
@@ -372,7 +372,7 @@ export default function RegulatorCopilot({ results, inputs }) {
                   URL.revokeObjectURL(a.href);
                   setNotify('Chat exported as text file.');
                 }}
-                className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg px-2.5 py-1.5 transition-colors border border-gray-600"
+                className="text-xs bg-muted hover:bg-muted-foreground/20 text-foreground/80  px-2.5 py-1.5 transition-colors border border-border"
               >
                 Export Chat
               </button>
@@ -383,14 +383,14 @@ export default function RegulatorCopilot({ results, inputs }) {
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {chatHistory.map((msg, i) => (
               <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5
-                  ${msg.role === 'user' ? 'bg-indigo-700 text-white' : 'bg-violet-700 text-white'}`}>
+                <div className={`w-6 h-6  flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5
+                  ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-violet-700 text-white'}`}>
                   {msg.role === 'user' ? 'U' : 'AI'}
                 </div>
-                <div className={`max-w-[80%] rounded-xl px-4 py-3 text-xs leading-relaxed
+                <div className={`max-w-[80%]  px-4 py-3 text-xs leading-relaxed
                   ${msg.role === 'user'
-                    ? 'bg-indigo-700/30 border border-indigo-700/40 text-indigo-100'
-                    : 'bg-gray-800/60 border border-gray-700/40 text-gray-300'}`}>
+                    ? 'bg-primary/30 border border-primary/40 text-indigo-100'
+                    : 'bg-muted/60 border border-border/40 text-foreground/80'}`}>
                   {msg.sourceType === 'fallback' && (
                     <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-amber-800/40">
                       <span className="text-[10px] bg-amber-900/60 text-amber-300 rounded px-1.5 py-0.5 border border-amber-700/50 font-semibold">
@@ -404,12 +404,12 @@ export default function RegulatorCopilot({ results, inputs }) {
             ))}
             {thinking && (
               <div className="flex gap-3">
-                <div className="w-6 h-6 rounded-full bg-violet-700 flex items-center justify-center text-xs text-white font-bold flex-shrink-0">AI</div>
-                <div className="bg-gray-800/60 border border-gray-700/40 rounded-xl px-4 py-3">
+                <div className="w-6 h-6  bg-violet-700 flex items-center justify-center text-xs text-white font-bold flex-shrink-0">AI</div>
+                <div className="bg-muted/60 border border-border/40  px-4 py-3">
                   <div className="flex gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                    <span className="w-2 h-2 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                    <span className="w-2 h-2 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    <span className="w-2 h-2  bg-violet-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-2 h-2  bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="w-2 h-2  bg-violet-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
                   </div>
                 </div>
               </div>
@@ -418,7 +418,7 @@ export default function RegulatorCopilot({ results, inputs }) {
           </div>
 
           {/* Input */}
-          <div className="p-4 border-t border-gray-800/40">
+          <div className="p-4 border-t border-border/40">
             <div className="flex gap-3">
               <input
                 type="text"
@@ -426,12 +426,12 @@ export default function RegulatorCopilot({ results, inputs }) {
                 onChange={e => setChatMsg(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
                 placeholder="Ask an agency question (e.g. 'How do we respond to a NOx modeling exceedance?')"
-                className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-muted border border-border  px-4 py-2.5 text-xs text-foreground placeholder-gray-600 focus:outline-none focus:border-primary"
               />
               <button
                 onClick={sendChat}
                 disabled={!chatMsg.trim() || thinking}
-                className="bg-violet-600 hover:bg-violet-500 disabled:bg-gray-700 disabled:text-gray-600 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors"
+                className="bg-primary hover:bg-primary/80 disabled:bg-muted disabled:text-muted-foreground/70 text-white px-4 py-2.5  text-xs font-semibold transition-colors"
               >
                 Send
               </button>
@@ -439,7 +439,7 @@ export default function RegulatorCopilot({ results, inputs }) {
             <div className="flex gap-2 mt-2 flex-wrap">
               {['Explain BACT for gas turbines', 'Draft EJ response', 'AERMOD met data justification', 'Synthetic minor enforcement'].map(s => (
                 <button key={s} onClick={() => setChatMsg(s)}
-                  className="text-xs text-gray-600 hover:text-gray-400 bg-gray-800/40 rounded-full px-2.5 py-1 border border-gray-700/40 transition-colors">
+                  className="text-xs text-muted-foreground/70 hover:text-muted-foreground bg-muted/40  px-2.5 py-1 border border-border/40 transition-colors">
                   {s}
                 </button>
               ))}

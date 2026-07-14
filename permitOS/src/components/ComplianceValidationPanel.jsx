@@ -573,9 +573,9 @@ function validateAllDocuments(inputs, results) {
 // ─── UI ─────────────────────────────────────────────────────────────────────
 
 const STATUS_COLORS = {
-  pass: 'text-green-400 bg-green-900/30 border-green-700/40',
-  warning: 'text-amber-400 bg-amber-900/30 border-amber-700/40',
-  fail: 'text-red-400 bg-red-900/30 border-red-700/40',
+  pass: 'text-primary bg-primary/10 border-green-700/40',
+  warning: 'text-destructive bg-amber-900/30 border-amber-700/40',
+  fail: 'text-destructive bg-destructive/10 border-red-700/40',
 };
 
 const STATUS_ICONS = {
@@ -606,10 +606,10 @@ function Gauge({ score }) {
         />
       </svg>
       <div className="absolute flex flex-col items-center justify-center">
-        <span className={`text-3xl font-bold ${score >= 80 ? 'text-green-400' : score >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+        <span className={`text-3xl font-bold ${score >= 80 ? 'text-primary' : score >= 50 ? 'text-destructive' : 'text-destructive'}`}>
           {score}%
         </span>
-        <span className="text-[10px] text-gray-500 uppercase tracking-wider">Compliant</span>
+        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Compliant</span>
       </div>
     </div>
   );
@@ -643,7 +643,7 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
   return (
     <div className="space-y-5">
       {/* ── Validation Summary ──────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-emerald-700/30 bg-emerald-950/10 p-5">
+      <div className=" border border-emerald-700/30 bg-emerald-950/10 p-5">
         <div className="flex flex-wrap items-start gap-6">
           {/* Gauge */}
           <div className="relative flex items-center justify-center">
@@ -653,25 +653,25 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
           {/* Stats */}
           <div className="flex-1 min-w-[200px]">
             <h3 className="text-sm font-semibold text-white mb-1">Document Compliance Validation</h3>
-            <p className="text-xs text-gray-500 mb-4">
+            <p className="text-xs text-muted-foreground mb-4">
               Each of the 26 permit documents is validated against applicable CFR regulations, emission thresholds, and operational limits. Results indicate regulatory readiness for agency submission.
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="bg-gray-900/60 rounded-xl p-3 border border-green-700/30">
-                <div className="text-lg font-bold text-green-400">{validation.passed}</div>
-                <div className="text-[10px] text-gray-500 uppercase tracking-wider">Passed</div>
+              <div className="bg-card/60  p-3 border border-green-700/30">
+                <div className="text-lg font-bold text-primary">{validation.passed}</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Passed</div>
               </div>
-              <div className="bg-gray-900/60 rounded-xl p-3 border border-amber-700/30">
-                <div className="text-lg font-bold text-amber-400">{validation.warnings}</div>
-                <div className="text-[10px] text-gray-500 uppercase tracking-wider">Warnings</div>
+              <div className="bg-card/60  p-3 border border-amber-700/30">
+                <div className="text-lg font-bold text-destructive">{validation.warnings}</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Warnings</div>
               </div>
-              <div className="bg-gray-900/60 rounded-xl p-3 border border-red-700/30">
-                <div className="text-lg font-bold text-red-400">{validation.failed}</div>
-                <div className="text-[10px] text-gray-500 uppercase tracking-wider">Failed</div>
+              <div className="bg-card/60  p-3 border border-red-700/30">
+                <div className="text-lg font-bold text-destructive">{validation.failed}</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Failed</div>
               </div>
-              <div className="bg-gray-900/60 rounded-xl p-3 border border-indigo-700/30">
-                <div className="text-lg font-bold text-indigo-400">{validation.total}</div>
-                <div className="text-[10px] text-gray-500 uppercase tracking-wider">Total Checks</div>
+              <div className="bg-card/60  p-3 border border-primary/30">
+                <div className="text-lg font-bold text-primary">{validation.total}</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Checks</div>
               </div>
             </div>
           </div>
@@ -679,49 +679,49 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
 
         {/* Air / Water breakdown */}
         <div className="grid grid-cols-2 gap-3 mt-4">
-          <div className="bg-orange-950/20 border border-orange-800/30 rounded-xl p-3">
+          <div className="bg-orange-950/20 border border-orange-800/30  p-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-orange-400">Air Documents</span>
               <span className="text-xs text-orange-500">{airPassed}/{airDocs.length} passed</span>
             </div>
-            <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-              <div className="h-full bg-orange-500 rounded-full transition-all" style={{ width: `${(airPassed / airDocs.length) * 100}%` }} />
+            <div className="h-2 bg-muted  overflow-hidden">
+              <div className="h-full bg-orange-500  transition-all" style={{ width: `${(airPassed / airDocs.length) * 100}%` }} />
             </div>
           </div>
-          <div className="bg-blue-950/20 border border-blue-800/30 rounded-xl p-3">
+          <div className="bg-blue-950/20 border border-blue-800/30  p-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-blue-400">Water Documents</span>
               <span className="text-xs text-blue-500">{waterPassed}/{waterDocs.length} passed</span>
             </div>
-            <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-              <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${(waterPassed / waterDocs.length) * 100}%` }} />
+            <div className="h-2 bg-muted  overflow-hidden">
+              <div className="h-full bg-blue-500  transition-all" style={{ width: `${(waterPassed / waterDocs.length) * 100}%` }} />
             </div>
           </div>
         </div>
       </div>
 
       {/* ── Tools & Filter Bar ──────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-gray-900/40 border border-gray-700/40 rounded-xl px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-card/40 border border-border/40  px-4 py-3">
         <div className="flex items-center gap-2">
           {['All', 'Air', 'Water'].map(c => (
             <button key={c}
               onClick={() => setFilter(c)}
-              className={`text-xs px-3 py-1.5 rounded-full border transition-all
+              className={`text-xs px-3 py-1.5  border transition-all
                 ${filter === c
                   ? c === 'Air' ? 'bg-orange-700 text-white border-orange-600'
                     : c === 'Water' ? 'bg-blue-700 text-white border-blue-600'
                     : 'bg-emerald-700 text-white border-emerald-600'
-                  : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}>
+                  : 'bg-muted text-muted-foreground border-border hover:text-foreground'}`}>
               {c === 'Air' ? c + ' (' + airDocs.length + ')' : c === 'Water' ? c + ' (' + waterDocs.length + ')' : 'All (' + validation.total + ')'}
             </button>
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-gray-600 uppercase tracking-wider">Sort</span>
+          <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider">Sort</span>
           <select
             value={sortBy}
             onChange={e => setSortBy(e.target.value)}
-            className="text-xs bg-gray-800 text-gray-300 border border-gray-700 rounded-lg px-2 py-1.5"
+            className="text-xs bg-muted text-foreground/80 border border-border  px-2 py-1.5"
           >
             <option value="key">Document Order</option>
             <option value="status">Compliance Status</option>
@@ -744,14 +744,14 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
             : 'border-amber-700/20';
 
           return (
-            <div key={doc.key} className={`rounded-xl border ${borderColor} overflow-hidden`}>
+            <div key={doc.key} className={` border ${borderColor} overflow-hidden`}>
               {/* Header */}
               <button
                 onClick={() => setExpandedDoc(expandedDoc === doc.key ? null : doc.key)}
                 className={`w-full flex items-center justify-between gap-3 p-3.5 ${headerBg} border-b ${headerBorder} hover:opacity-90 transition-colors text-left`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className={`text-lg ${STATUS_COLORS[doc.overallStatus]} w-6 h-6 rounded-full flex items-center justify-center text-xs border flex-shrink-0`}>
+                  <span className={`text-lg ${STATUS_COLORS[doc.overallStatus]} w-6 h-6  flex items-center justify-center text-xs border flex-shrink-0`}>
                     {STATUS_ICONS[doc.overallStatus]}
                   </span>
                   <div className="min-w-0">
@@ -759,29 +759,29 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                       <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded ${isAir ? 'bg-orange-900/30 text-orange-400' : 'bg-blue-900/30 text-blue-400'}`}>
                         {doc.key.toUpperCase()}
                       </span>
-                      <span className="text-xs font-medium text-gray-300 truncate">{doc.title}</span>
+                      <span className="text-xs font-medium text-foreground/80 truncate">{doc.title}</span>
                     </div>
-                    <div className="text-[10px] text-gray-600 mt-0.5">
-                      {doc.checks} validation checks · {doc.passed} passed · {doc.failed} failed · {doc.warnings} warnings · <span className="text-indigo-400">RAG: {doc.ragMatchScore}%</span>
+                    <div className="text-[10px] text-muted-foreground/70 mt-0.5">
+                      {doc.checks} validation checks · {doc.passed} passed · {doc.failed} failed · {doc.warnings} warnings · <span className="text-primary">RAG: {doc.ragMatchScore}%</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${STATUS_COLORS[doc.overallStatus]}`}>
+                  <span className={`text-[10px] px-2 py-0.5  border font-medium ${STATUS_COLORS[doc.overallStatus]}`}>
                     {doc.overallStatus === 'pass' ? 'COMPLIANT' : doc.overallStatus === 'fail' ? 'NON-COMPLIANT' : 'NEEDS REVIEW'}
                   </span>
-                  <span className="text-gray-600 text-xs">{expandedDoc === doc.key ? '▲' : '▼'}</span>
+                  <span className="text-muted-foreground/70 text-xs">{expandedDoc === doc.key ? '▲' : '▼'}</span>
                 </div>
               </button>
 
               {/* Expanded content */}
               {expandedDoc === doc.key && (
-                <div className="bg-gray-900/50">
+                <div className="bg-card/50">
                   {/* Validation checks */}
                   <div className="divide-y divide-gray-800/40">
                     {doc.validations.map((v, vi) => (
-                      <div key={vi} className="p-3.5 flex items-start gap-3 hover:bg-gray-800/20 transition-colors">
-                        <span className={`w-2 h-2 rounded-full mt-1 flex-shrink-0 ${
+                      <div key={vi} className="p-3.5 flex items-start gap-3 hover:bg-muted/20 transition-colors">
+                        <span className={`w-2 h-2  mt-1 flex-shrink-0 ${
                           v.status === 'pass' ? 'bg-green-500'
                           : v.status === 'fail' ? 'bg-red-500'
                           : 'bg-amber-500'
@@ -789,24 +789,24 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-                              v.status === 'pass' ? 'text-green-400 bg-green-900/20'
-                              : v.status === 'fail' ? 'text-red-400 bg-red-900/20'
-                              : 'text-amber-400 bg-amber-900/20'
+                              v.status === 'pass' ? 'text-primary bg-green-900/20'
+                              : v.status === 'fail' ? 'text-destructive bg-red-900/20'
+                              : 'text-destructive bg-amber-900/20'
                             }`}>
                               {v.status === 'pass' ? 'PASS' : v.status === 'fail' ? 'FAIL' : 'WARN'}
                             </span>
-                            <span className="text-xs font-mono text-indigo-400">{v.regulation}</span>
+                            <span className="text-xs font-mono text-primary">{v.regulation}</span>
                             {v.required && (
-                              <span className="text-[9px] text-gray-600 bg-gray-800/60 px-1.5 py-0.5 rounded uppercase tracking-wider">Required</span>
+                              <span className="text-[9px] text-muted-foreground/70 bg-muted/60 px-1.5 py-0.5 rounded uppercase tracking-wider">Required</span>
                             )}
                           </div>
-                          <p className="text-xs text-gray-400 mt-1 leading-relaxed">{v.description}</p>
+                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{v.description}</p>
                           {v.ragSnippet && (
-                            <p className="text-[10px] text-gray-600 mt-1 italic leading-relaxed line-clamp-2">{v.ragSnippet}</p>
+                            <p className="text-[10px] text-muted-foreground/70 mt-1 italic leading-relaxed line-clamp-2">{v.ragSnippet}</p>
                           )}
                           <div className="flex items-center gap-2 mt-1.5">
                             {v.ragMatchScore > 0 && (
-                              <span className="text-[9px] text-gray-600">
+                              <span className="text-[9px] text-muted-foreground/70">
                                 RAG match: {v.ragMatchScore}%
                               </span>
                             )}
@@ -820,13 +820,13 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                   {(doc.failed > 0 || doc.warnings > 0) && doc.resolution && (
                     <div className="border-t border-amber-800/30 bg-amber-950/10 p-4">
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">Resolution & Remediation Roadmap</span>
-                        <span className="text-[10px] text-amber-600 bg-amber-900/20 px-2 py-0.5 rounded-full border border-amber-700/30">
+                        <span className="text-xs font-semibold text-destructive uppercase tracking-wider">Resolution & Remediation Roadmap</span>
+                        <span className="text-[10px] text-destructive bg-amber-900/20 px-2 py-0.5  border border-amber-700/30">
                           {doc.resolution.estimatedTimeline}
                         </span>
                       </div>
 
-                      <div className="text-xs text-gray-400 leading-relaxed mb-4 bg-gray-900/40 border border-amber-700/20 rounded-lg p-3">
+                      <div className="text-xs text-muted-foreground leading-relaxed mb-4 bg-card/40 border border-amber-700/20  p-3">
                         <span className="font-semibold text-amber-300">Gap: </span>
                         {doc.resolution.summary}
                       </div>
@@ -834,22 +834,22 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                       {/* Resolution steps */}
                       <div className="space-y-2 mb-4">
                         {doc.resolution.steps.map((step, si) => (
-                          <div key={si} className="flex items-start gap-2.5 bg-gray-900/30 border border-gray-800/40 rounded-lg p-2.5">
-                            <span className="w-5 h-5 rounded-full bg-amber-900/40 border border-amber-700/30 flex items-center justify-center text-[10px] text-amber-400 font-bold flex-shrink-0 mt-0.5">
+                          <div key={si} className="flex items-start gap-2.5 bg-card/30 border border-border/40  p-2.5">
+                            <span className="w-5 h-5  bg-amber-900/40 border border-amber-700/30 flex items-center justify-center text-[10px] text-destructive font-bold flex-shrink-0 mt-0.5">
                               {si + 1}
                             </span>
                             <div className="flex-1 min-w-0">
-                              <div className="text-xs text-gray-300 leading-relaxed">{step.action}</div>
+                              <div className="text-xs text-foreground/80 leading-relaxed">{step.action}</div>
                               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                <span className="text-[9px] text-amber-500 bg-amber-900/20 px-1.5 py-0.5 rounded">{step.effort}</span>
+                                <span className="text-[9px] text-destructive bg-amber-900/20 px-1.5 py-0.5 rounded">{step.effort}</span>
                                 <span className={`text-[9px] px-1.5 py-0.5 rounded ${
-                                  step.priority === 'Critical' ? 'text-red-400 bg-red-900/20'
-                                  : step.priority === 'High' ? 'text-amber-400 bg-amber-900/20'
+                                  step.priority === 'Critical' ? 'text-destructive bg-red-900/20'
+                                  : step.priority === 'High' ? 'text-destructive bg-amber-900/20'
                                   : 'text-blue-400 bg-blue-900/20'
                                 }`}>
                                   {step.priority}
                                 </span>
-                                <span className="text-[9px] text-gray-600">{step.responsible}</span>
+                                <span className="text-[9px] text-muted-foreground/70">{step.responsible}</span>
                               </div>
                             </div>
                           </div>
@@ -858,31 +858,31 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
 
                       {/* Roadmap + cost */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="bg-gray-900/40 border border-gray-800/40 rounded-lg p-3">
-                          <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Recommended Path</div>
-                          <p className="text-xs text-gray-400 leading-relaxed">{doc.resolution.roadmap}</p>
+                        <div className="bg-card/40 border border-border/40  p-3">
+                          <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Recommended Path</div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{doc.resolution.roadmap}</p>
                         </div>
-                        <div className="bg-gray-900/40 border border-gray-800/40 rounded-lg p-3">
-                          <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Estimated Cost</div>
-                          <p className="text-xs text-gray-400 leading-relaxed">{doc.resolution.costEstimate}</p>
+                        <div className="bg-card/40 border border-border/40  p-3">
+                          <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Estimated Cost</div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{doc.resolution.costEstimate}</p>
                         </div>
                       </div>
                     </div>
                   )}
 
                   {/* Navigation buttons */}
-                  <div className="border-t border-gray-800/40 p-3 flex items-center justify-end gap-2 bg-gray-900/30">
+                  <div className="border-t border-border/40 p-3 flex items-center justify-end gap-2 bg-card/30">
                     {onNavigateDoc && (
                       <button
                         onClick={() => onNavigateDoc(doc.key)}
-                        className="text-xs bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg px-3 py-1.5 transition-colors border border-indigo-600 flex items-center gap-1.5"
+                        className="text-xs bg-primary hover:bg-primary text-white  px-3 py-1.5 transition-colors border border-primary flex items-center gap-1.5"
                       >
                         Open in Document Factory
                       </button>
                     )}
                     <button
                       onClick={() => setExpandedDoc(null)}
-                      className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-600"
+                      className="text-xs bg-muted hover:bg-muted-foreground/20 text-foreground/80  px-3 py-1.5 transition-colors border border-border"
                     >
                       Collapse
                     </button>
@@ -896,15 +896,15 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
 
       {/* ── Aggregate Resolution Summary ────────────────────────────────────── */}
       {validation.documents.filter(d => d.failed > 0 || d.warnings > 0).length > 0 && (
-        <div className="rounded-xl border border-amber-700/30 bg-gray-900/40 overflow-hidden">
+        <div className=" border border-amber-700/30 bg-card/40 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-amber-700/30 bg-amber-950/10">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-amber-400">Consolidated Remediation Plan</span>
-              <span className="text-[10px] text-amber-500 bg-amber-900/20 px-2 py-0.5 rounded-full border border-amber-700/30">
+              <span className="text-xs font-semibold text-destructive">Consolidated Remediation Plan</span>
+              <span className="text-[10px] text-destructive bg-amber-900/20 px-2 py-0.5  border border-amber-700/30">
                 {validation.documents.filter(d => d.failed > 0 || d.warnings > 0).length} documents
               </span>
             </div>
-            <span className="text-[10px] text-gray-500">
+            <span className="text-[10px] text-muted-foreground">
               {validation.documents.filter(d => d.failed > 0 || d.warnings > 0).reduce((sum, d) => sum + (d.resolution?.steps?.length || 0), 0)} action items
             </span>
           </div>
@@ -912,38 +912,38 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
             {validation.documents.filter(d => d.failed > 0 || d.warnings > 0).map(doc => {
               const isAir = doc.key.startsWith('air');
               return (
-                <div key={doc.key} className="p-4 hover:bg-gray-800/20 transition-colors">
+                <div key={doc.key} className="p-4 hover:bg-muted/20 transition-colors">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
                       <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded ${isAir ? 'bg-orange-900/30 text-orange-400' : 'bg-blue-900/30 text-blue-400'}`}>
                         {doc.key.toUpperCase()}
                       </span>
-                      <span className="text-xs text-gray-300 font-medium">{doc.title}</span>
+                      <span className="text-xs text-foreground/80 font-medium">{doc.title}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-gray-600">{doc.resolution?.estimatedTimeline}</span>
+                      <span className="text-[10px] text-muted-foreground/70">{doc.resolution?.estimatedTimeline}</span>
                       {onNavigateDoc && (
                         <button
                           onClick={() => onNavigateDoc(doc.key)}
-                          className="text-[9px] bg-indigo-800/40 hover:bg-indigo-700/50 text-indigo-300 rounded px-2 py-1 transition-colors border border-indigo-700/40"
+                          className="text-[9px] bg-primary/30 hover:bg-primary/50 text-primary rounded px-2 py-1 transition-colors border border-primary/40"
                         >
                           Open Doc
                         </button>
                       )}
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 leading-relaxed mb-2">{doc.resolution?.summary}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-2">{doc.resolution?.summary}</p>
                   {doc.resolution?.steps && (
                     <div className="flex flex-wrap gap-1.5">
                       {doc.resolution.steps.map((step, si) => (
-                        <span key={si} className="text-[9px] bg-gray-800/60 text-gray-500 rounded-full px-2 py-0.5 border border-gray-700/30">
+                        <span key={si} className="text-[9px] bg-muted/60 text-muted-foreground  px-2 py-0.5 border border-border/30">
                           {si + 1}. {step.action.substring(0, 50)}…
                         </span>
                       ))}
                     </div>
                   )}
                   {doc.resolution?.costEstimate && (
-                    <div className="text-[9px] text-gray-600 mt-1.5">
+                    <div className="text-[9px] text-muted-foreground/70 mt-1.5">
                       Cost: {doc.resolution.costEstimate.substring(0, 60)}…
                     </div>
                   )}
@@ -952,7 +952,7 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
             })}
           </div>
           <div className="px-4 py-2.5 border-t border-amber-700/20 bg-amber-950/5">
-            <p className="text-[10px] text-amber-600">
+            <p className="text-[10px] text-destructive">
               Total estimated remediation: multiple overlapping workstreams — critical path is PSD/BACT pathway at 12-18 months.
               Agency coordination should begin immediately.
             </p>
@@ -961,27 +961,27 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
       )}
 
       {/* ── Validation Summary Table ────────────────────────────────────────── */}
-      <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-800/40">
-          <span className="text-xs font-semibold text-gray-300">All Documents — Compliance Summary</span>
+      <div className=" border border-border/40 bg-card/40 overflow-hidden">
+        <div className="px-4 py-3 border-b border-border/40">
+          <span className="text-xs font-semibold text-foreground/80">All Documents — Compliance Summary</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-800/40">
-                <th className="py-2 px-3 text-left text-[10px] text-gray-600 font-medium uppercase tracking-wider">Doc</th>
-                <th className="py-2 px-3 text-left text-[10px] text-gray-600 font-medium uppercase tracking-wider">Title</th>
-                <th className="py-2 px-3 text-center text-[10px] text-gray-600 font-medium uppercase tracking-wider">Checks</th>
-                <th className="py-2 px-3 text-center text-[10px] text-gray-600 font-medium uppercase tracking-wider">Pass</th>
-                <th className="py-2 px-3 text-center text-[10px] text-gray-600 font-medium uppercase tracking-wider">Fail</th>
-                <th className="py-2 px-3 text-center text-[10px] text-gray-600 font-medium uppercase tracking-wider">Warn</th>
-                <th className="py-2 px-3 text-center text-[10px] text-gray-600 font-medium uppercase tracking-wider">Status</th>
-                <th className="py-2 px-3 text-center text-[10px] text-gray-600 font-medium uppercase tracking-wider">Action</th>
+              <tr className="border-b border-border/40">
+                <th className="py-2 px-3 text-left text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Doc</th>
+                <th className="py-2 px-3 text-left text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Title</th>
+                <th className="py-2 px-3 text-center text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Checks</th>
+                <th className="py-2 px-3 text-center text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Pass</th>
+                <th className="py-2 px-3 text-center text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Fail</th>
+                <th className="py-2 px-3 text-center text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Warn</th>
+                <th className="py-2 px-3 text-center text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Status</th>
+                <th className="py-2 px-3 text-center text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Action</th>
               </tr>
             </thead>
             <tbody>
               {validation.documents.map(doc => (
-                <tr key={doc.key} className="border-b border-gray-800/30 hover:bg-gray-800/20 transition-colors">
+                <tr key={doc.key} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
                   <td className="py-2 px-3">
                     <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded ${
                       doc.key.startsWith('air') ? 'bg-orange-900/20 text-orange-400' : 'bg-blue-900/20 text-blue-400'
@@ -990,14 +990,14 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                     </span>
                   </td>
                   <td className="py-2 px-3">
-                    <span className="text-xs text-gray-300 truncate max-w-[220px] block">{doc.title}</span>
+                    <span className="text-xs text-foreground/80 truncate max-w-[220px] block">{doc.title}</span>
                   </td>
-                  <td className="py-2 px-3 text-center text-xs text-gray-500">{doc.checks}</td>
-                  <td className="py-2 px-3 text-center text-xs text-green-400">{doc.passed}</td>
-                  <td className="py-2 px-3 text-center text-xs text-red-400">{doc.failed}</td>
-                  <td className="py-2 px-3 text-center text-xs text-amber-400">{doc.warnings}</td>
+                  <td className="py-2 px-3 text-center text-xs text-muted-foreground">{doc.checks}</td>
+                  <td className="py-2 px-3 text-center text-xs text-primary">{doc.passed}</td>
+                  <td className="py-2 px-3 text-center text-xs text-destructive">{doc.failed}</td>
+                  <td className="py-2 px-3 text-center text-xs text-destructive">{doc.warnings}</td>
                   <td className="py-2 px-3 text-center">
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${STATUS_COLORS[doc.overallStatus]}`}>
+                    <span className={`text-[10px] px-2 py-0.5  border font-medium ${STATUS_COLORS[doc.overallStatus]}`}>
                       {doc.overallStatus === 'pass' ? 'PASS' : doc.overallStatus === 'fail' ? 'FAIL' : 'WARN'}
                     </span>
                   </td>
@@ -1005,12 +1005,12 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                     {onNavigateDoc ? (
                       <button
                         onClick={() => onNavigateDoc(doc.key)}
-                        className="text-[9px] bg-gray-800 hover:bg-indigo-700 text-gray-400 hover:text-white rounded px-2 py-1 transition-colors border border-gray-700 hover:border-indigo-600"
+                        className="text-[9px] bg-muted hover:bg-primary text-muted-foreground hover:text-white rounded px-2 py-1 transition-colors border border-border hover:border-primary"
                       >
                         Open
                       </button>
                     ) : (
-                      <span className="text-[9px] text-gray-600">—</span>
+                      <span className="text-[9px] text-muted-foreground/70">—</span>
                     )}
                   </td>
                 </tr>

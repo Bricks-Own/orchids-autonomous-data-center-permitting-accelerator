@@ -1,4 +1,31 @@
 import React, { useState } from 'react';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Separator } from './ui/separator';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './ui/dropdown-menu';
+import {
+  Compass, ChartBar, MapPin, Clipboard, Wind, Drop, Building, Lightning,
+  CalendarCheck, FileText, Cube, ShieldCheck, Robot, Books, Wrench,
+  CaretDown, CaretUp, SignOut, ShieldCheck as ShieldLogo
+} from '@phosphor-icons/react';
+
+const tabIcons = {
+  overview: Compass,
+  executive: ChartBar,
+  siteplanner: MapPin,
+  intake: Clipboard,
+  air: Wind,
+  water: Drop,
+  building: Building,
+  power: Lightning,
+  milestones: CalendarCheck,
+  docs: FileText,
+  simulation: Cube,
+  compliance: ShieldCheck,
+  copilot: Robot,
+  knowledge: Books,
+  construction: Wrench,
+};
 
 export default function Header({ activeTab, setActiveTab, results, inputs, onLogout }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -6,21 +33,21 @@ export default function Header({ activeTab, setActiveTab, results, inputs, onLog
   const permitTypes = inputs?.permitTypesNeeded || ['air', 'water', 'building', 'power'];
 
   const allTabs = [
-    { id: 'overview',    label: 'Platform Overview',   icon: '\u{1F3DB}',  group: 'start' },
-    { id: 'executive',   label: 'Executive Summary',   icon: '\u{1F4CA}',  group: 'start' },
-    { id: 'siteplanner', label: 'Site Planner',         icon: '\u{1F5FA}',  group: 'start' },
-    { id: 'intake',      label: 'Site Intake',          icon: '\u{1F4CB}',  group: 'work' },
-    { id: 'air',         label: 'Air Permit AI',        icon: '\u{1F4A8}',  group: 'work', permitKey: 'air' },
-    { id: 'water',       label: 'Water Permit AI',      icon: '\u{1F4A7}',  group: 'work', permitKey: 'water' },
-    { id: 'building',    label: 'Building Permitting',    icon: '\u{1F3D7}\uFE0F', group: 'work', permitKey: 'building' },
-    { id: 'power',       label: 'Power Permitting',       icon: '\u26A1', group: 'work', permitKey: 'power' },
-    { id: 'milestones',  label: 'Milestone Timeline',   icon: '\u{1F4C5}',  group: 'work' },
-    { id: 'docs',        label: 'Document Factory',     icon: '\u{1F4C4}',  group: 'work' },
-    { id: 'simulation',  label: 'Digital Twin',         icon: '\u26A1',  group: 'advanced' },
-    { id: 'compliance',  label: 'Compliance OS',        icon: '\u{1F6E1}',  group: 'advanced' },
-    { id: 'copilot',     label: 'Regulator Copilot',    icon: '\u{1F916}',  group: 'advanced' },
-    { id: 'knowledge',   label: 'Knowledge Hub',        icon: '\u{1F4DA}',  group: 'advanced' },
-    { id: 'construction', label: 'Construction Platform', icon: '\u{1F3D7}\uFE0F', group: 'advanced' },
+    { id: 'overview',    label: 'Platform Overview',   icon: 'overview',    group: 'start' },
+    { id: 'executive',   label: 'Executive Summary',   icon: 'executive',   group: 'start' },
+    { id: 'siteplanner', label: 'Site Planner',         icon: 'siteplanner', group: 'start' },
+    { id: 'intake',      label: 'Site Intake',          icon: 'intake',      group: 'work' },
+    { id: 'air',         label: 'Air Permit AI',        icon: 'air',         group: 'work', permitKey: 'air' },
+    { id: 'water',       label: 'Water Permit AI',      icon: 'water',       group: 'work', permitKey: 'water' },
+    { id: 'building',    label: 'Building Permitting',    icon: 'building',  group: 'work', permitKey: 'building' },
+    { id: 'power',       label: 'Power Permitting',       icon: 'power',     group: 'work', permitKey: 'power' },
+    { id: 'milestones',  label: 'Milestone Timeline',   icon: 'milestones',  group: 'work' },
+    { id: 'docs',        label: 'Document Factory',     icon: 'docs',        group: 'work' },
+    { id: 'simulation',  label: 'Digital Twin',         icon: 'simulation',  group: 'advanced' },
+    { id: 'compliance',  label: 'Compliance OS',        icon: 'compliance',  group: 'advanced' },
+    { id: 'copilot',     label: 'Regulator Copilot',    icon: 'copilot',     group: 'advanced' },
+    { id: 'knowledge',   label: 'Knowledge Hub',        icon: 'knowledge',   group: 'advanced' },
+    { id: 'construction', label: 'Construction Platform', icon: 'construction', group: 'advanced' },
   ];
 
   const tabs = allTabs.filter(t => {
@@ -28,41 +55,53 @@ export default function Header({ activeTab, setActiveTab, results, inputs, onLog
     return permitTypes.includes(t.permitKey);
   });
 
+  const renderIcon = (iconKey, className = 'w-3.5 h-3.5') => {
+    const Icon = tabIcons[iconKey];
+    return Icon ? <Icon className={className} weight="duotone" /> : null;
+  };
+
   return (
-    <div className="bg-gray-950 border-b border-gray-800 sticky top-0 z-50">
+    <div className="bg-background border-b border-border sticky top-0 z-50">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-gray-800/60">
+      <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-border/60">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-900/40">
-            <span className="text-white font-bold text-sm">B</span>
+          <div className="w-8 h-8 bg-primary flex items-center justify-center">
+            <ShieldLogo className="w-4 h-4 text-primary-foreground" weight="duotone" />
           </div>
           <div>
-            <span className="text-white font-semibold text-sm">Brick PermitOS</span>
-            <span className="text-gray-500 text-xs ml-2 hidden md:inline">— Data Center Permitting Intelligence</span>
+            <span className="text-foreground font-semibold text-sm font-heading">Brick PermitOS</span>
+            <span className="text-muted-foreground text-xs ml-2 hidden md:inline">— Data Center Permitting Intelligence</span>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {hasResults && (
-            <span className="bg-green-900/40 text-green-400 text-xs px-2.5 py-1 rounded-full border border-green-800/60 hidden sm:flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+            <Badge variant="secondary" className="gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               Site Loaded
-            </span>
+            </Badge>
           )}
-          <span className="bg-green-900/40 text-green-400 text-xs px-2.5 py-1 rounded-full border border-green-800/60 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+          <Badge variant="secondary" className="gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             Live Demo
-          </span>
-          <span className="bg-indigo-900/40 text-indigo-300 text-xs px-2.5 py-1 rounded-full border border-indigo-800/60 hidden sm:block">
+          </Badge>
+          <Badge variant="secondary" className="hidden sm:flex">
             EPA Regulatory Framework
-          </span>
+          </Badge>
           {onLogout && (
-            <button
-              onClick={onLogout}
-              className="text-xs text-gray-500 hover:text-gray-300 bg-gray-800/40 hover:bg-gray-800 rounded-lg px-2.5 py-1.5 border border-gray-700/60 transition-colors flex items-center gap-1"
-              title="Sign out"
-            >
-              Logout
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="xs" className="gap-1">
+                  <SignOut className="w-3 h-3" weight="duotone" />
+                  Logout
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onLogout} variant="destructive">
+                  <SignOut className="w-3.5 h-3.5" weight="duotone" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>
@@ -74,18 +113,18 @@ export default function Header({ activeTab, setActiveTab, results, inputs, onLog
               <button
                 key={t.id}
                 onClick={() => setActiveTab(t.id)}
-                className={`flex items-center gap-1.5 px-3 py-3 text-xs font-medium whitespace-nowrap border-b-2 transition-all
+                className={`flex items-center gap-1.5 px-3 py-3 text-xs font-semibold tracking-wider whitespace-nowrap border-b-2 transition-all uppercase
                   ${activeTab === t.id
-                    ? 'border-indigo-500 text-indigo-400 bg-indigo-950/30'
-                    : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-600'
+                    ? 'border-primary text-primary bg-primary/5'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30'
                   }`}
               >
-                <span>{t.icon}</span>
+                {renderIcon(t.icon)}
                 {t.label}
               </button>
             ))}
             {group !== 'advanced' && (
-              <div className="w-px bg-gray-800/60 my-1.5 mx-1 flex-shrink-0" />
+              <Separator orientation="vertical" className="my-1.5 mx-1 h-6" />
             )}
           </React.Fragment>
         ))}
@@ -94,22 +133,23 @@ export default function Header({ activeTab, setActiveTab, results, inputs, onLog
       <div className="md:hidden">
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="w-full flex items-center justify-between px-4 py-2.5 text-xs text-gray-400"
+          className="w-full flex items-center justify-between px-4 py-2.5 text-xs text-muted-foreground"
         >
           <span className="flex items-center gap-2">
-            <span>{tabs.find(t => t.id === activeTab)?.icon}</span>
+            {renderIcon(tabs.find(t => t.id === activeTab)?.icon)}
             {tabs.find(t => t.id === activeTab)?.label}
           </span>
-          <span>{mobileOpen ? '\u25B2' : '\u25BC'}</span>
+          {mobileOpen ? <CaretUp className="w-3 h-3" weight="duotone" /> : <CaretDown className="w-3 h-3" weight="duotone" />}
         </button>
         {mobileOpen && (
-          <div className="bg-gray-900 border-t border-gray-800 grid grid-cols-2 gap-1 p-2">
+          <div className="bg-card border-t border-border grid grid-cols-2 gap-1 p-2">
             {tabs.map(t => (
               <button key={t.id}
                 onClick={() => { setActiveTab(t.id); setMobileOpen(false); }}
-                className={`flex items-center gap-2 px-3 py-2.5 text-xs rounded-lg transition-all text-left
-                  ${activeTab === t.id ? 'bg-indigo-700/40 text-indigo-300' : 'text-gray-400 hover:bg-gray-800'}`}>
-                <span>{t.icon}</span>{t.label}
+                className={`flex items-center gap-2 px-3 py-2.5 text-xs transition-all text-left uppercase tracking-wider
+                  ${activeTab === t.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}>
+                {renderIcon(t.icon)}
+                {t.label}
               </button>
             ))}
           </div>

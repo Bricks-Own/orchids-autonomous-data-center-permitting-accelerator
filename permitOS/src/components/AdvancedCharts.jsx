@@ -52,8 +52,8 @@ export function BudgetWaterfall({ data }) {
   };
 
   return (
-    <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4">
-      <h3 className="text-xs font-semibold text-gray-400 mb-3">Budget → EAC Waterfall Bridge</h3>
+    <div className=" border border-border/40 bg-card/40 p-4">
+      <h3 className="text-xs font-semibold text-muted-foreground mb-3">Budget → EAC Waterfall Bridge</h3>
       <ResponsiveContainer width="100%" height={250}>
         <BarChart data={waterfallData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
@@ -72,7 +72,7 @@ export function BudgetWaterfall({ data }) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      <div className="text-[10px] text-gray-600 mt-1">BAC → Approved COs → Pending Exposure → Performance Variance → EAC</div>
+      <div className="text-[10px] text-muted-foreground/70 mt-1">BAC → Approved COs → Pending Exposure → Performance Variance → EAC</div>
     </div>
   );
 }
@@ -83,8 +83,8 @@ export function SCurveChart({ projections }) {
   if (data.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4">
-      <h3 className="text-xs font-semibold text-gray-400 mb-3">Cost S-Curve</h3>
+    <div className=" border border-border/40 bg-card/40 p-4">
+      <h3 className="text-xs font-semibold text-muted-foreground mb-3">Cost S-Curve</h3>
       <ResponsiveContainer width="100%" height={250}>
         <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
@@ -110,8 +110,8 @@ export function ContingencyDrawdown({ projections }) {
   const zeroCrossPct = projections?.contZeroPct || '—';
 
   return (
-    <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4">
-      <h3 className="text-xs font-semibold text-gray-400 mb-3">Contingency Drawdown vs Physical Progress</h3>
+    <div className=" border border-border/40 bg-card/40 p-4">
+      <h3 className="text-xs font-semibold text-muted-foreground mb-3">Contingency Drawdown vs Physical Progress</h3>
       <ResponsiveContainer width="100%" height={250}>
         <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
@@ -123,7 +123,7 @@ export function ContingencyDrawdown({ projections }) {
           <Line type="monotone" dataKey="physicalProgress" stroke="#22c55e" strokeWidth={2} dot={false} name="Physical Progress %" />
         </LineChart>
       </ResponsiveContainer>
-      <div className="text-[10px] text-gray-600 mt-1">
+      <div className="text-[10px] text-muted-foreground/70 mt-1">
         Contingency zero-crossing projected at ~{zeroCrossPct}% physical progress
         {zeroCrossIdx > 0 && zeroCrossIdx < data.length ? ` (between ${data[Math.max(0, zeroCrossIdx - 1)]?.period} and ${data[zeroCrossIdx]?.period})` : ''}
       </div>
@@ -143,8 +143,8 @@ export function MilestoneVarianceChart({ data }) {
   }));
 
   return (
-    <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4">
-      <h3 className="text-xs font-semibold text-gray-400 mb-3">Milestone Variance — Baseline vs Forecast</h3>
+    <div className=" border border-border/40 bg-card/40 p-4">
+      <h3 className="text-xs font-semibold text-muted-foreground mb-3">Milestone Variance — Baseline vs Forecast</h3>
       <ResponsiveContainer width="100%" height={280}>
         <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 20, left: 100, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
@@ -163,7 +163,7 @@ export function MilestoneVarianceChart({ data }) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      <div className="text-[10px] text-gray-600 mt-1">Red = critical path delay (&gt;15d); amber = at risk; green = ahead of schedule</div>
+      <div className="text-[10px] text-muted-foreground/70 mt-1">Red = critical path delay (&gt;15d); amber = at risk; green = ahead of schedule</div>
     </div>
   );
 }
@@ -174,8 +174,8 @@ export function CPISPITrend({ data }) {
   if (trendData.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-4">
-      <h3 className="text-xs font-semibold text-gray-400 mb-3">CPI / SPI Trend (6 months)</h3>
+    <div className=" border border-border/40 bg-card/40 p-4">
+      <h3 className="text-xs font-semibold text-muted-foreground mb-3">CPI / SPI Trend (6 months)</h3>
       <ResponsiveContainer width="100%" height={250}>
         <LineChart data={trendData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />

@@ -42,7 +42,7 @@ function Building({ position, size, color, label, hovered, onHover, onClick }) {
       </mesh>
       {/* Label sprite */}
       <Html position={[0, size[1] / 2 + 0.6, 0]} center style={{ pointerEvents: 'none' }}>
-        <div className="text-[9px] font-medium text-gray-400 bg-gray-950/80 px-1.5 py-0.5 rounded whitespace-nowrap border border-gray-700/50">
+        <div className="text-[9px] font-medium text-muted-foreground bg-background/80 px-1.5 py-0.5 rounded whitespace-nowrap border border-border/50">
           {label}
         </div>
       </Html>
@@ -63,7 +63,7 @@ function CoolingTower({ position, height, radius, color, label, hovered, onHover
         <meshStandardMaterial color={color} roughness={0.9} />
       </mesh>
       <Html position={[0, height + 0.5, 0]} center style={{ pointerEvents: 'none' }}>
-        <div className="text-[9px] font-medium text-gray-400 bg-gray-950/80 px-1.5 py-0.5 rounded whitespace-nowrap border border-gray-700/50">
+        <div className="text-[9px] font-medium text-muted-foreground bg-background/80 px-1.5 py-0.5 rounded whitespace-nowrap border border-border/50">
           {label}
         </div>
       </Html>
@@ -88,7 +88,7 @@ function SubstationGear({ position, color, label, hovered, onHover, onClick }) {
         </mesh>
       ))}
       <Html position={[0, 0.8, 0]} center style={{ pointerEvents: 'none' }}>
-        <div className="text-[9px] font-medium text-gray-400 bg-gray-950/80 px-1.5 py-0.5 rounded whitespace-nowrap border border-gray-700/50">
+        <div className="text-[9px] font-medium text-muted-foreground bg-background/80 px-1.5 py-0.5 rounded whitespace-nowrap border border-border/50">
           {label}
         </div>
       </Html>
@@ -316,7 +316,7 @@ function SiteView3D({ data }) {
   return (
     <div className="flex gap-4 h-full" style={{ minHeight: '480px' }}>
       {/* 3D Viewport — explicitly sized container */}
-      <div className="flex-1 rounded-xl border border-gray-700/40 bg-gray-950/80 overflow-hidden" style={{ minHeight: '480px', height: '560px', position: 'relative' }}>
+      <div className="flex-1  border border-border/40 bg-background/80 overflow-hidden" style={{ minHeight: '480px', height: '560px', position: 'relative' }}>
         <div style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
           <Canvas
             key={canvasKey}
@@ -351,10 +351,10 @@ function SiteView3D({ data }) {
       {/* Side Panel */}
       <div className="w-72 flex-shrink-0 space-y-4">
         {/* Progress Slider */}
-        <div className="rounded-xl border border-gray-700/40 bg-gray-900/60 p-4">
+        <div className=" border border-border/40 bg-card/60 p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-gray-400">Progress</span>
-            <span className="text-sm font-bold text-indigo-400">{progressPct}%</span>
+            <span className="text-xs font-semibold text-muted-foreground">Progress</span>
+            <span className="text-sm font-bold text-primary">{progressPct}%</span>
           </div>
           <input
             type="range"
@@ -362,9 +362,9 @@ function SiteView3D({ data }) {
             max="100"
             value={progressPct}
             onChange={(e) => setProgressPct(parseInt(e.target.value))}
-            className="w-full h-1.5 bg-gray-700 rounded-full appearance-none cursor-pointer accent-indigo-500"
+            className="w-full h-1.5 bg-muted  appearance-none cursor-pointer accent-primary"
           />
-          <div className="flex justify-between text-[10px] text-gray-600 mt-1">
+          <div className="flex justify-between text-[10px] text-muted-foreground/70 mt-1">
             <span>Start</span>
             <span>Today</span>
             <span>COD</span>
@@ -372,26 +372,26 @@ function SiteView3D({ data }) {
         </div>
 
         {/* Phase Details */}
-        <div className="rounded-xl border border-gray-700/40 bg-gray-900/60 p-4">
-          <h3 className="text-xs font-semibold text-gray-400 mb-3">
+        <div className=" border border-border/40 bg-card/60 p-4">
+          <h3 className="text-xs font-semibold text-muted-foreground mb-3">
             {infoMilestone ? infoMilestone.name : 'Phase Details'}
           </h3>
           {infoMilestone ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">Phase</span>
-                <span className="text-xs text-gray-300">{infoMilestone.phase} / {milestones.length}</span>
+                <span className="text-xs text-muted-foreground">Phase</span>
+                <span className="text-xs text-foreground/80">{infoMilestone.phase} / {milestones.length}</span>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500">Completion</span>
+                  <span className="text-xs text-muted-foreground">Completion</span>
                   <span className="text-xs font-medium" style={{ color: getColor(infoMilestone.displayPct) }}>
                     {infoMilestone.displayPct}%
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-muted  overflow-hidden">
                   <div
-                    className="h-full rounded-full transition-all duration-300"
+                    className="h-full  transition-all duration-300"
                     style={{
                       width: `${infoMilestone.displayPct}%`,
                       backgroundColor: getColor(infoMilestone.displayPct),
@@ -400,11 +400,11 @@ function SiteView3D({ data }) {
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">Status</span>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                  infoMilestone.displayPct >= 100 ? 'text-green-400 bg-green-900/30 border border-green-700/40' :
-                  infoMilestone.displayPct > 0 ? 'text-amber-400 bg-amber-900/30 border border-amber-700/40' :
-                  'text-gray-500 bg-gray-800/30 border border-gray-700/40'
+                <span className="text-xs text-muted-foreground">Status</span>
+                <span className={`text-xs font-medium px-2 py-0.5  ${
+                  infoMilestone.displayPct >= 100 ? 'text-primary bg-primary/10 border border-green-700/40' :
+                  infoMilestone.displayPct > 0 ? 'text-destructive bg-amber-900/30 border border-amber-700/40' :
+                  'text-muted-foreground bg-muted/30 border border-border/40'
                 }`}>
                   {infoMilestone.displayPct >= 100 ? 'Complete' :
                    infoMilestone.displayPct > 0 ? 'In Progress' : 'Not Started'}
@@ -412,23 +412,23 @@ function SiteView3D({ data }) {
               </div>
               {infoMilestone.varianceDays > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">Schedule Variance</span>
-                  <span className="text-xs text-red-400">-{infoMilestone.varianceDays}d</span>
+                  <span className="text-xs text-muted-foreground">Schedule Variance</span>
+                  <span className="text-xs text-destructive">-{infoMilestone.varianceDays}d</span>
                 </div>
               )}
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">Budget</span>
-                <span className="text-xs text-gray-300">${(infoMilestone.budget / 1e6).toFixed(1)}M</span>
+                <span className="text-xs text-muted-foreground">Budget</span>
+                <span className="text-xs text-foreground/80">${(infoMilestone.budget / 1e6).toFixed(1)}M</span>
               </div>
             </div>
           ) : (
-            <p className="text-xs text-gray-600">Hover or click a structure to see phase details</p>
+            <p className="text-xs text-muted-foreground/70">Hover or click a structure to see phase details</p>
           )}
         </div>
 
         {/* Milestone Overview */}
-        <div className="rounded-xl border border-gray-700/40 bg-gray-900/60 p-4 max-h-[280px] overflow-y-auto">
-          <h3 className="text-xs font-semibold text-gray-400 mb-2">All Phases</h3>
+        <div className=" border border-border/40 bg-card/60 p-4 max-h-[280px] overflow-y-auto">
+          <h3 className="text-xs font-semibold text-muted-foreground mb-2">All Phases</h3>
           <div className="space-y-1.5">
             {milestones.map((m, i) => {
               const displayM = displayMilestones[i];
@@ -436,12 +436,12 @@ function SiteView3D({ data }) {
               return (
                 <div
                   key={m.name}
-                  className="flex items-center gap-2 cursor-pointer rounded px-1.5 py-1 hover:bg-gray-800/40 transition-colors"
+                  className="flex items-center gap-2 cursor-pointer rounded px-1.5 py-1 hover:bg-muted/40 transition-colors"
                   onClick={() => setSelectedPhase(m.name)}
                 >
-                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                  <span className="text-[10px] text-gray-400 flex-1 truncate">{m.name}</span>
-                  <span className="text-[10px] font-medium text-gray-500">{displayM.displayPct}%</span>
+                  <span className="w-2 h-2  flex-shrink-0" style={{ backgroundColor: color }} />
+                  <span className="text-[10px] text-muted-foreground flex-1 truncate">{m.name}</span>
+                  <span className="text-[10px] font-medium text-muted-foreground">{displayM.displayPct}%</span>
                 </div>
               );
             })}

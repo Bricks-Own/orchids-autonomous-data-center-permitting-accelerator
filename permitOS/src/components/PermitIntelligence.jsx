@@ -71,13 +71,13 @@ export default function PermitIntelligence({ setActiveTab }) {
     const colors = {
       'rezoning_approved': 'bg-emerald-500', 'hearing_scheduled': 'bg-blue-500',
       'public_hearing': 'bg-amber-500', 'land_under_contract': 'bg-violet-500',
-      'option_agreement': 'bg-indigo-500', 'site_plan_review': 'bg-cyan-500',
+      'option_agreement': 'bg-primary', 'site_plan_review': 'bg-cyan-500',
       'incentive_application': 'bg-orange-500', 'use_permit_pending': 'bg-yellow-500',
-      'design_review': 'bg-teal-500', 'land_search': 'bg-gray-500',
+      'design_review': 'bg-teal-500', 'land_search': 'bg-card0',
       'rezoning_filed': 'bg-sky-500', 'lease_negotiation': 'bg-pink-500',
       'tax_abatement_approved': 'bg-green-500',
     };
-    return colors[status] || 'bg-gray-400';
+    return colors[status] || 'bg-muted-foreground/40';
   }
 
   function getStageBadge(stage) {
@@ -87,18 +87,18 @@ export default function PermitIntelligence({ setActiveTab }) {
 
   function getActivityColor(activity) {
     if (activity === 'high') return 'text-emerald-400 bg-emerald-900/30';
-    if (activity === 'medium') return 'text-amber-400 bg-amber-900/30';
-    return 'text-gray-400 bg-gray-800/50';
+    if (activity === 'medium') return 'text-destructive bg-amber-900/30';
+    return 'text-muted-foreground bg-muted/50';
   }
 
   function getFreshnessIndicator(dateStr) {
     const d = new Date(dateStr);
     const now = new Date();
     const diffDays = Math.round((now - d) / (1000 * 60 * 60 * 24));
-    if (diffDays <= 1) return { label: 'Updated today', color: 'text-green-400' };
-    if (diffDays <= 7) return { label: `Updated ${diffDays}d ago`, color: 'text-green-400' };
-    if (diffDays <= 30) return { label: `Updated ${diffDays}d ago`, color: 'text-amber-400' };
-    return { label: `Updated ${diffDays}d ago`, color: 'text-red-400' };
+    if (diffDays <= 1) return { label: 'Updated today', color: 'text-primary' };
+    if (diffDays <= 7) return { label: `Updated ${diffDays}d ago`, color: 'text-primary' };
+    if (diffDays <= 30) return { label: `Updated ${diffDays}d ago`, color: 'text-destructive' };
+    return { label: `Updated ${diffDays}d ago`, color: 'text-destructive' };
   }
 
   function formatDate(dateStr) {
@@ -111,11 +111,11 @@ export default function PermitIntelligence({ setActiveTab }) {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-800 rounded w-1/3"></div>
+          <div className="h-8 bg-muted rounded w-1/3"></div>
           <div className="grid grid-cols-4 gap-4">
-            {[1,2,3,4].map(i => <div key={i} className="h-24 bg-gray-800 rounded"></div>)}
+            {[1,2,3,4].map(i => <div key={i} className="h-24 bg-muted rounded"></div>)}
           </div>
-          <div className="h-64 bg-gray-800 rounded"></div>
+          <div className="h-64 bg-muted rounded"></div>
         </div>
       </div>
     );
@@ -126,17 +126,17 @@ export default function PermitIntelligence({ setActiveTab }) {
     return (
       <div className="p-4 md:p-6">
         <div className="mb-6">
-          <button onClick={handleBack} className="text-sm text-indigo-400 hover:text-indigo-300 mb-2 flex items-center gap-1">
+          <button onClick={handleBack} className="text-sm text-primary hover:text-primary mb-2 flex items-center gap-1">
             ← Back to All Markets
           </button>
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">{marketDetail.name}</h1>
-              <p className="text-gray-400">{marketDetail.state}</p>
+              <p className="text-muted-foreground">{marketDetail.state}</p>
             </div>
             <div className="text-right">
-              <div className="text-xs text-gray-500">Data Sources</div>
-              <div className="text-xs text-indigo-400">{marketDetail.dataSources?.length || 0} sources</div>
+              <div className="text-xs text-muted-foreground">Data Sources</div>
+              <div className="text-xs text-primary">{marketDetail.dataSources?.length || 0} sources</div>
               <div className={`text-xs mt-1 ${getFreshnessIndicator(marketDetail.lastRefreshed).color}`}>
                 {getFreshnessIndicator(marketDetail.lastRefreshed).label}
               </div>
@@ -145,7 +145,7 @@ export default function PermitIntelligence({ setActiveTab }) {
           {marketDetail.dataSources && (
             <div className="mt-2 flex flex-wrap gap-2">
               {marketDetail.dataSources.map((s, i) => (
-                <span key={i} className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">{s}</span>
+                <span key={i} className="text-xs bg-muted text-muted-foreground px-2 py-0.5 ">{s}</span>
               ))}
             </div>
           )}
@@ -153,20 +153,20 @@ export default function PermitIntelligence({ setActiveTab }) {
 
         {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-            <div className="text-gray-500 text-xs mb-1">Installed Capacity</div>
+          <div className="bg-card  p-4 border border-border">
+            <div className="text-muted-foreground text-xs mb-1">Installed Capacity</div>
             <div className="text-2xl font-bold text-white">{marketDetail.totalMW} MW</div>
           </div>
-          <div className="bg-gray-900 rounded-xl p-4 border border-amber-900/30">
-            <div className="text-gray-500 text-xs mb-1">Pipeline MW</div>
-            <div className="text-2xl font-bold text-amber-400">{marketDetail.inPipeline} MW</div>
+          <div className="bg-card  p-4 border border-amber-900/30">
+            <div className="text-muted-foreground text-xs mb-1">Pipeline MW</div>
+            <div className="text-2xl font-bold text-destructive">{marketDetail.inPipeline} MW</div>
           </div>
-          <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-            <div className="text-gray-500 text-xs mb-1">Active Projects</div>
+          <div className="bg-card  p-4 border border-border">
+            <div className="text-muted-foreground text-xs mb-1">Active Projects</div>
             <div className="text-2xl font-bold text-white">{marketDetail.projects.length}</div>
           </div>
-          <div className="bg-gray-900 rounded-xl p-4 border border-blue-900/30">
-            <div className="text-gray-500 text-xs mb-1">Upcoming Hearings</div>
+          <div className="bg-card  p-4 border border-blue-900/30">
+            <div className="text-muted-foreground text-xs mb-1">Upcoming Hearings</div>
             <div className="text-2xl font-bold text-blue-400">{marketDetail.hearingSchedule.filter(h => h.status === 'scheduled').length}</div>
           </div>
         </div>
@@ -175,39 +175,39 @@ export default function PermitIntelligence({ setActiveTab }) {
         <h2 className="text-lg font-semibold text-white mb-3">Projects in Pipeline</h2>
         <div className="space-y-3 mb-8">
           {marketDetail.projects.map((proj, i) => (
-            <div key={i} className="bg-gray-900 rounded-xl p-4 border border-gray-800 hover:border-gray-700 transition-all">
+            <div key={i} className="bg-card  p-4 border border-border hover:border-border transition-all">
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <h3 className="text-white font-medium">{proj.name}</h3>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    <span className="text-xs bg-indigo-900/30 text-indigo-300 px-2 py-0.5 rounded-full">
+                    <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 ">
                       Developer: {proj.developer}
                     </span>
-                    <span className="text-xs bg-violet-900/30 text-violet-300 px-2 py-0.5 rounded-full">
+                    <span className="text-xs bg-primary/20 text-violet-300 px-2 py-0.5 ">
                       Offtaker: {proj.offtaker}
                     </span>
-                    <span className="text-xs text-gray-500">{proj.mw} MW · {proj.acres} acres</span>
+                    <span className="text-xs text-muted-foreground">{proj.mw} MW · {proj.acres} acres</span>
                   </div>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded-full ${getActivityColor(marketDetail.activity)}`}>
+                <span className={`text-xs px-2 py-1  ${getActivityColor(marketDetail.activity)}`}>
                   {getStageBadge(proj.stage)}
                 </span>
               </div>
               <div className="flex flex-wrap gap-2 mb-2">
-                <span className={`px-2 py-0.5 rounded text-xs bg-gray-800 text-white`}>
+                <span className={`px-2 py-0.5 rounded text-xs bg-muted text-white`}>
                   {proj.status.replace(/_/g, ' ')}
                 </span>
               </div>
               <div className="space-y-1">
                 {proj.signals.map((s, j) => (
-                  <div key={j} className="flex items-start gap-2 text-xs text-gray-400">
-                    <span className="text-indigo-500 mt-1">•</span>
+                  <div key={j} className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <span className="text-primary mt-1">•</span>
                     <span>{s}</span>
                   </div>
                 ))}
               </div>
               {proj.source && (
-                <div className="mt-2 text-xs text-gray-600 italic">
+                <div className="mt-2 text-xs text-muted-foreground/70 italic">
                   Source: {proj.source}
                 </div>
               )}
@@ -220,14 +220,14 @@ export default function PermitIntelligence({ setActiveTab }) {
           <h2 className="text-lg font-semibold text-white">Municipal Hearing Record</h2>
           <div className="flex gap-2 text-xs">
             <span className="text-blue-400">{marketDetail.hearingSchedule.filter(h => h.status === 'scheduled').length} upcoming</span>
-            <span className="text-gray-500">·</span>
-            <span className="text-gray-500">{marketDetail.hearingSchedule.filter(h => h.status === 'completed').length} completed</span>
+            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground">{marketDetail.hearingSchedule.filter(h => h.status === 'completed').length} completed</span>
           </div>
         </div>
-        <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+        <div className="bg-card  border border-border overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-800 text-gray-500 text-xs">
+              <tr className="border-b border-border text-muted-foreground text-xs">
                 <th className="text-left p-3">Date</th>
                 <th className="text-left p-3">Body</th>
                 <th className="text-left p-3">Item</th>
@@ -237,18 +237,18 @@ export default function PermitIntelligence({ setActiveTab }) {
             </thead>
             <tbody>
               {marketDetail.hearingSchedule.sort((a, b) => b.date.localeCompare(a.date)).map((h, i) => (
-                <tr key={i} className={`border-b border-gray-800/50 hover:bg-gray-800/30 ${h.status === 'completed' ? 'opacity-60' : ''}`}>
+                <tr key={i} className={`border-b border-border/50 hover:bg-muted/30 ${h.status === 'completed' ? 'opacity-60' : ''}`}>
                   <td className="p-3 text-white whitespace-nowrap">{formatDate(h.date)}</td>
-                  <td className="p-3 text-gray-300">{h.body}</td>
-                  <td className="p-3 text-gray-400">{h.item}</td>
+                  <td className="p-3 text-foreground/80">{h.body}</td>
+                  <td className="p-3 text-muted-foreground">{h.item}</td>
                   <td className="p-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    <span className={`text-xs px-2 py-0.5  ${
                       h.status === 'scheduled' ? 'bg-blue-900/30 text-blue-400' :
-                      h.status === 'completed' ? 'bg-gray-800 text-gray-400' :
-                      h.status === 'rescheduled' ? 'bg-amber-900/30 text-amber-400' : 'bg-gray-800 text-gray-400'
+                      h.status === 'completed' ? 'bg-muted text-muted-foreground' :
+                      h.status === 'rescheduled' ? 'bg-amber-900/30 text-destructive' : 'bg-muted text-muted-foreground'
                     }`}>{h.status}</span>
                   </td>
-                  <td className="p-3 text-gray-500 text-xs">{h.source || '—'}</td>
+                  <td className="p-3 text-muted-foreground text-xs">{h.source || '—'}</td>
                 </tr>
               ))}
             </tbody>
@@ -265,19 +265,19 @@ export default function PermitIntelligence({ setActiveTab }) {
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white">Permit Intelligence</h1>
-          <p className="text-gray-400 text-sm mt-1">Real-time market intelligence tracking data center development signals from public sources — hearings, rezoning, land records, and pre-permit filings across 12 US markets.</p>
+          <p className="text-muted-foreground text-sm mt-1">Real-time market intelligence tracking data center development signals from public sources — hearings, rezoning, land records, and pre-permit filings across 12 US markets.</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowSources(!showSources)}
-            className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-3 py-1.5 border border-gray-700 transition-colors"
+            className="text-xs bg-muted hover:bg-muted-foreground/10 text-foreground/80  px-3 py-1.5 border border-border transition-colors"
           >
             📡 Data Sources
           </button>
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="text-xs bg-indigo-700 hover:bg-indigo-600 disabled:bg-gray-700 text-white rounded-lg px-3 py-1.5 transition-colors flex items-center gap-1"
+            className="text-xs bg-primary hover:bg-primary disabled:bg-muted text-white  px-3 py-1.5 transition-colors flex items-center gap-1"
           >
             {refreshing ? '⟳ Refreshing...' : '⟳ Refresh Data'}
           </button>
@@ -286,26 +286,26 @@ export default function PermitIntelligence({ setActiveTab }) {
 
       {/* Data Sources Panel */}
       {showSources && (
-        <div className="mb-6 bg-gray-900 rounded-xl border border-gray-800 p-4">
+        <div className="mb-6 bg-card  border border-border p-4">
           <h3 className="text-sm font-semibold text-white mb-3">Data Sources & Attribution</h3>
           {stats?.dataSources && (
             <div className="flex flex-wrap gap-2 mb-3">
               {stats.dataSources.map((s, i) => (
-                <span key={i} className="text-xs bg-gray-800 text-gray-400 px-2 py-1 rounded-full">{s}</span>
+                <span key={i} className="text-xs bg-muted text-muted-foreground px-2 py-1 ">{s}</span>
               ))}
             </div>
           )}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             {sources.map((s, i) => (
-              <div key={i} className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
-                <div className="font-semibold text-gray-300">{s.name}</div>
-                <div className="text-gray-500 mt-1">{s.description}</div>
-                <div className="text-green-400 mt-1">{s.public ? 'Public API' : 'Curated'}</div>
+              <div key={i} className="bg-muted/50  p-3 border border-border/50">
+                <div className="font-semibold text-foreground/80">{s.name}</div>
+                <div className="text-muted-foreground mt-1">{s.description}</div>
+                <div className="text-primary mt-1">{s.public ? 'Public API' : 'Curated'}</div>
               </div>
             ))}
           </div>
           {stats?.lastRefreshed && (
-            <div className="mt-3 text-xs text-gray-500">
+            <div className="mt-3 text-xs text-muted-foreground">
               Last refreshed: {new Date(stats.lastRefreshed).toLocaleString()}
               {' · '}{stats.sourceCount} total sources
               {' · '}{stats.uniqueDeveloperCount} unique developers tracked
@@ -318,28 +318,28 @@ export default function PermitIntelligence({ setActiveTab }) {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-8">
-          <div className="bg-gradient-to-br from-gray-900/80 to-gray-900/40 rounded-xl p-4 border border-gray-800">
-            <div className="text-gray-500 text-xs mb-1">Total Market Capacity</div>
+          <div className="bg-gradient-to-br from-card/80 to-gray-900/40  p-4 border border-border">
+            <div className="text-muted-foreground text-xs mb-1">Total Market Capacity</div>
             <div className="text-xl font-bold text-white">{stats.totalMW.toLocaleString()} MW</div>
           </div>
-          <div className="bg-gradient-to-br from-amber-900/20 to-gray-900/40 rounded-xl p-4 border border-amber-900/30">
-            <div className="text-gray-500 text-xs mb-1">Pipeline MW</div>
-            <div className="text-xl font-bold text-amber-400">{stats.totalPipeline.toLocaleString()} MW</div>
+          <div className="bg-gradient-to-br from-amber-900/20 to-gray-900/40  p-4 border border-amber-900/30">
+            <div className="text-muted-foreground text-xs mb-1">Pipeline MW</div>
+            <div className="text-xl font-bold text-destructive">{stats.totalPipeline.toLocaleString()} MW</div>
           </div>
-          <div className="bg-gradient-to-br from-gray-900/80 to-gray-900/40 rounded-xl p-4 border border-gray-800">
-            <div className="text-gray-500 text-xs mb-1">Tracked Projects</div>
+          <div className="bg-gradient-to-br from-card/80 to-gray-900/40  p-4 border border-border">
+            <div className="text-muted-foreground text-xs mb-1">Tracked Projects</div>
             <div className="text-xl font-bold text-white">{stats.totalProjects}</div>
           </div>
-          <div className="bg-gradient-to-br from-blue-900/20 to-gray-900/40 rounded-xl p-4 border border-blue-900/30">
-            <div className="text-gray-500 text-xs mb-1">Upcoming Hearings</div>
+          <div className="bg-gradient-to-br from-blue-900/20 to-gray-900/40  p-4 border border-blue-900/30">
+            <div className="text-muted-foreground text-xs mb-1">Upcoming Hearings</div>
             <div className="text-xl font-bold text-blue-400">{stats.totalHearings}</div>
           </div>
-          <div className="bg-gradient-to-br from-violet-900/20 to-gray-900/40 rounded-xl p-4 border border-violet-900/30">
-            <div className="text-gray-500 text-xs mb-1">Developers</div>
-            <div className="text-xl font-bold text-violet-400">{stats.uniqueDeveloperCount}</div>
+          <div className="bg-gradient-to-br from-violet-900/20 to-gray-900/40  p-4 border border-violet-900/30">
+            <div className="text-muted-foreground text-xs mb-1">Developers</div>
+            <div className="text-xl font-bold text-primary">{stats.uniqueDeveloperCount}</div>
           </div>
-          <div className="bg-gradient-to-br from-emerald-900/20 to-gray-900/40 rounded-xl p-4 border border-emerald-900/30">
-            <div className="text-gray-500 text-xs mb-1">Offtakers</div>
+          <div className="bg-gradient-to-br from-emerald-900/20 to-gray-900/40  p-4 border border-emerald-900/30">
+            <div className="text-muted-foreground text-xs mb-1">Offtakers</div>
             <div className="text-xl font-bold text-emerald-400">{stats.uniqueOfftakerCount}</div>
           </div>
         </div>
@@ -354,32 +354,32 @@ export default function PermitIntelligence({ setActiveTab }) {
             onChange={e => setSearchQuery(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSearch()}
             placeholder="Search projects, developers, offtakers, markets, hearings... (e.g., 'AWS', 'Google', 'Meta', 'Northern Virginia', 'rezoning')"
-            className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+            className="flex-1 bg-card border border-border  px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary"
           />
           <button
             onClick={handleSearch}
             disabled={searching || !searchQuery.trim()}
-            className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 text-white px-4 py-2 rounded-xl text-sm transition-colors"
+            className="bg-primary hover:bg-primary disabled:bg-muted text-white px-4 py-2  text-sm transition-colors"
           >
             {searching ? 'Searching...' : 'Search'}
           </button>
         </div>
         {searchResults.length > 0 && (
-          <div className="mt-3 bg-gray-900 rounded-xl border border-gray-800 p-3 space-y-2 max-h-64 overflow-y-auto">
-            <div className="text-xs text-gray-500 mb-1">Search Results ({searchResults.length})</div>
+          <div className="mt-3 bg-card  border border-border p-3 space-y-2 max-h-64 overflow-y-auto">
+            <div className="text-xs text-muted-foreground mb-1">Search Results ({searchResults.length})</div>
             {searchResults.map((r, i) => (
-              <div key={i} className="flex items-start gap-2 text-sm text-gray-300 p-2 hover:bg-gray-800/50 rounded-lg">
+              <div key={i} className="flex items-start gap-2 text-sm text-foreground/80 p-2 hover:bg-muted/50 ">
                 <span className={`mt-0.5 text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${
-                  r.type === 'project' ? 'bg-indigo-900/40 text-indigo-300' :
+                  r.type === 'project' ? 'bg-primary/30 text-primary' :
                   r.type === 'developer' ? 'bg-violet-900/40 text-violet-300' :
                   r.type === 'offtaker' ? 'bg-emerald-900/40 text-emerald-300' :
                   r.type === 'market' ? 'bg-amber-900/40 text-amber-300' : 'bg-blue-900/40 text-blue-300'
                 }`}>{r.type}</span>
                 <div className="flex-1">
                   <span>{r.project?.name || r.market?.name || r.hearing?.item || r.developer || r.offtaker}</span>
-                  {r.developer && <span className="text-gray-500 ml-2">Developer: {r.developer}</span>}
-                  {r.offtaker && <span className="text-gray-500 ml-2">Offtaker: {r.offtaker}</span>}
-                  <span className="text-gray-500 ml-2 text-xs">{r.marketName || ''}</span>
+                  {r.developer && <span className="text-muted-foreground ml-2">Developer: {r.developer}</span>}
+                  {r.offtaker && <span className="text-muted-foreground ml-2">Offtaker: {r.offtaker}</span>}
+                  <span className="text-muted-foreground ml-2 text-xs">{r.marketName || ''}</span>
                 </div>
               </div>
             ))}
@@ -394,20 +394,20 @@ export default function PermitIntelligence({ setActiveTab }) {
           <button
             key={m.id}
             onClick={() => handleSelectMarket(m.id)}
-            className="bg-gray-900 rounded-xl p-4 border border-gray-800 hover:border-indigo-700/50 text-left transition-all hover:shadow-lg hover:shadow-indigo-900/10 group"
+            className="bg-card  p-4 border border-border hover:border-indigo-700/50 text-left transition-all hover: hover:shadow-indigo-900/10 group"
           >
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-white font-medium group-hover:text-indigo-400 transition-colors">{m.name}</h3>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${
+              <h3 className="text-white font-medium group-hover:text-primary transition-colors">{m.name}</h3>
+              <span className={`text-xs px-2 py-0.5  ${
                 m.activity === 'high' ? 'bg-emerald-900/30 text-emerald-400' :
-                m.activity === 'medium' ? 'bg-amber-900/30 text-amber-400' : 'bg-gray-800 text-gray-400'
+                m.activity === 'medium' ? 'bg-amber-900/30 text-destructive' : 'bg-muted text-muted-foreground'
               }`}>{m.activity}</span>
             </div>
-            <div className="text-gray-500 text-xs mb-3">{m.state} · {m.dataSources?.length || 0} data sources</div>
+            <div className="text-muted-foreground text-xs mb-3">{m.state} · {m.dataSources?.length || 0} data sources</div>
             <div className="flex items-center gap-4 text-xs">
-              <div><span className="text-white font-medium">{m.totalMW}</span> <span className="text-gray-500">MW</span></div>
-              <div><span className="text-amber-400 font-medium">{m.inPipeline}</span> <span className="text-gray-500">MW pipeline</span></div>
-              <div><span className="text-blue-400">{m.projectCount}</span> <span className="text-gray-500">projects</span></div>
+              <div><span className="text-white font-medium">{m.totalMW}</span> <span className="text-muted-foreground">MW</span></div>
+              <div><span className="text-destructive font-medium">{m.inPipeline}</span> <span className="text-muted-foreground">MW pipeline</span></div>
+              <div><span className="text-blue-400">{m.projectCount}</span> <span className="text-muted-foreground">projects</span></div>
             </div>
             {m.hearingCount > 0 && (
               <div className="mt-2 text-xs text-blue-400">{m.hearingCount} upcoming hearing{m.hearingCount > 1 ? 's' : ''}</div>
@@ -427,16 +427,16 @@ export default function PermitIntelligence({ setActiveTab }) {
         <div className="flex gap-2 text-xs">
           {['all', 'land_assembly', 'hearing', 'pre-permit'].map(s => (
             <button key={s} onClick={() => setFilterStage(s)}
-              className={`px-2 py-1 rounded-lg transition-colors ${filterStage === s ? 'bg-indigo-700/40 text-indigo-300' : 'bg-gray-800 text-gray-500 hover:text-gray-300'}`}
+              className={`px-2 py-1  transition-colors ${filterStage === s ? 'bg-primary/40 text-primary' : 'bg-muted text-muted-foreground hover:text-foreground/80'}`}
             >{s === 'all' ? 'All' : getStageBadge(s)}</button>
           ))}
         </div>
       </div>
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden mb-8">
+      <div className="bg-card  border border-border overflow-hidden mb-8">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-800 text-gray-500 text-xs">
+              <tr className="border-b border-border text-muted-foreground text-xs">
                 <th className="text-left p-3">Project</th>
                 <th className="text-left p-3">Developer</th>
                 <th className="text-left p-3">Offtaker</th>
@@ -453,26 +453,26 @@ export default function PermitIntelligence({ setActiveTab }) {
                 .sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated))
                 .slice(0, 20)
                 .map((p, i) => (
-                <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-800/30">
+                <tr key={i} className="border-b border-border/50 hover:bg-muted/30">
                   <td className="p-3 text-white font-medium whitespace-nowrap">{p.name}</td>
-                  <td className="p-3 text-indigo-300 whitespace-nowrap">{p.developer}</td>
+                  <td className="p-3 text-primary whitespace-nowrap">{p.developer}</td>
                   <td className="p-3 text-violet-300 whitespace-nowrap">{p.offtaker}</td>
-                  <td className="p-3 text-gray-400">{p.marketName}</td>
-                  <td className="p-3 text-gray-300">{p.mw}</td>
+                  <td className="p-3 text-muted-foreground">{p.marketName}</td>
+                  <td className="p-3 text-foreground/80">{p.mw}</td>
                   <td className="p-3">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-300">{getStageBadge(p.stage)}</span>
+                    <span className="text-xs px-2 py-0.5  bg-muted text-foreground/80">{getStageBadge(p.stage)}</span>
                   </td>
                   <td className="p-3">
                     <span className="flex items-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full ${getStatusColor(p.status)}`}></span>
-                      <span className="text-gray-400 text-xs">{p.status.replace(/_/g, ' ')}</span>
+                      <span className={`w-1.5 h-1.5  ${getStatusColor(p.status)}`}></span>
+                      <span className="text-muted-foreground text-xs">{p.status.replace(/_/g, ' ')}</span>
                     </span>
                   </td>
-                  <td className="p-3 text-gray-500 text-xs">{p.lastUpdated}</td>
+                  <td className="p-3 text-muted-foreground text-xs">{p.lastUpdated}</td>
                 </tr>
               ))}
               {allProjects.length === 0 && (
-                <tr><td colSpan="8" className="p-6 text-center text-gray-500">No projects found</td></tr>
+                <tr><td colSpan="8" className="p-6 text-center text-muted-foreground">No projects found</td></tr>
               )}
             </tbody>
           </table>
@@ -485,16 +485,16 @@ export default function PermitIntelligence({ setActiveTab }) {
         <div className="flex gap-2 text-xs">
           {['all', 'scheduled', 'completed', 'rescheduled'].map(s => (
             <button key={s} onClick={() => setFilterHearingStatus(s)}
-              className={`px-2 py-1 rounded-lg transition-colors ${filterHearingStatus === s ? 'bg-indigo-700/40 text-indigo-300' : 'bg-gray-800 text-gray-500 hover:text-gray-300'}`}
+              className={`px-2 py-1  transition-colors ${filterHearingStatus === s ? 'bg-primary/40 text-primary' : 'bg-muted text-muted-foreground hover:text-foreground/80'}`}
             >{s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}</button>
           ))}
         </div>
       </div>
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+      <div className="bg-card  border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-800 text-gray-500 text-xs">
+              <tr className="border-b border-border text-muted-foreground text-xs">
                 <th className="text-left p-3">Date</th>
                 <th className="text-left p-3">Market</th>
                 <th className="text-left p-3">Body</th>
@@ -509,23 +509,23 @@ export default function PermitIntelligence({ setActiveTab }) {
                 .sort((a, b) => b.date.localeCompare(a.date))
                 .slice(0, 20)
                 .map((h, i) => (
-                <tr key={i} className={`border-b border-gray-800/50 hover:bg-gray-800/30 ${h.status === 'completed' ? 'opacity-60' : ''}`}>
+                <tr key={i} className={`border-b border-border/50 hover:bg-muted/30 ${h.status === 'completed' ? 'opacity-60' : ''}`}>
                   <td className="p-3 text-white whitespace-nowrap">{formatDate(h.date)}</td>
-                  <td className="p-3 text-gray-300">{h.marketName}</td>
-                  <td className="p-3 text-gray-400">{h.body}</td>
-                  <td className="p-3 text-gray-400">{h.item}</td>
+                  <td className="p-3 text-foreground/80">{h.marketName}</td>
+                  <td className="p-3 text-muted-foreground">{h.body}</td>
+                  <td className="p-3 text-muted-foreground">{h.item}</td>
                   <td className="p-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    <span className={`text-xs px-2 py-0.5  ${
                       h.status === 'scheduled' ? 'bg-blue-900/30 text-blue-400' :
-                      h.status === 'completed' ? 'bg-gray-800 text-gray-400' :
-                      h.status === 'rescheduled' ? 'bg-amber-900/30 text-amber-400' : 'bg-gray-800 text-gray-400'
+                      h.status === 'completed' ? 'bg-muted text-muted-foreground' :
+                      h.status === 'rescheduled' ? 'bg-amber-900/30 text-destructive' : 'bg-muted text-muted-foreground'
                     }`}>{h.status}</span>
                   </td>
-                  <td className="p-3 text-gray-500 text-xs">{h.source || '—'}</td>
+                  <td className="p-3 text-muted-foreground text-xs">{h.source || '—'}</td>
                 </tr>
               ))}
               {allHearings.length === 0 && (
-                <tr><td colSpan="6" className="p-6 text-center text-gray-500">No hearings found</td></tr>
+                <tr><td colSpan="6" className="p-6 text-center text-muted-foreground">No hearings found</td></tr>
               )}
             </tbody>
           </table>

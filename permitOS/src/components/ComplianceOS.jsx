@@ -121,9 +121,9 @@ const CONDITIONS = [
 
 const CATEGORIES = ['All', 'Air', 'Water', 'Reporting'];
 const STATUS_COLORS = {
-  compliant: 'text-green-400 bg-green-900/30 border-green-700/40',
-  warning: 'text-amber-400 bg-amber-900/30 border-amber-700/40',
-  violation: 'text-red-400 bg-red-900/30 border-red-700/40',
+  compliant: 'text-primary bg-primary/10 border-green-700/40',
+  warning: 'text-destructive bg-amber-900/30 border-amber-700/40',
+  violation: 'text-destructive bg-destructive/10 border-red-700/40',
   pending: 'text-blue-400 bg-blue-900/30 border-blue-700/40',
 };
 const STATUS_LABELS = {
@@ -272,9 +272,9 @@ function LiveTicker({ results }) {
     `BACT NOx performance verified — DLN operating in spec`,
   ];
   return (
-    <div className="flex items-center gap-3 bg-gray-900/60 border border-gray-700/40 rounded-full px-4 py-2">
-      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0"></span>
-      <span className="text-xs text-gray-400 transition-all">{msgs[tick % msgs.length]}</span>
+    <div className="flex items-center gap-3 bg-card/60 border border-border/40  px-4 py-2">
+      <span className="w-2 h-2  bg-green-500 animate-pulse flex-shrink-0"></span>
+      <span className="text-xs text-muted-foreground transition-all">{msgs[tick % msgs.length]}</span>
     </div>
   );
 }
@@ -375,35 +375,35 @@ export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
     <div className="p-6 space-y-6">
       {/* Toast notification */}
       {notify && (
-        <div className="fixed top-4 right-4 z-50 bg-indigo-900/90 border border-indigo-600/60 text-indigo-200 text-xs rounded-xl px-4 py-3 shadow-2xl backdrop-blur-sm animate-fade-in">
+        <div className="fixed top-4 right-4 z-50 bg-primary/80 border border-primary/60 text-primary text-xs  px-4 py-3  backdrop-blur-sm animate-fade-in">
           {notify}
-          <button onClick={() => setNotify('')} className="ml-3 text-indigo-400 hover:text-white">&times;</button>
+          <button onClick={() => setNotify('')} className="ml-3 text-primary hover:text-white">&times;</button>
         </div>
       )}
 
       {/* Header */}
-      <div className="rounded-xl border border-indigo-700/30 bg-indigo-950/20 p-5">
+      <div className=" border border-primary/30 bg-primary/10 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-base font-semibold text-white">Continuous Compliance Operating System</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Every permit condition converted to live controls, alarms, reports, and audit logs. This is how Brick operates the site post-COD.</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Every permit condition converted to live controls, alarms, reports, and audit logs. This is how Brick operates the site post-COD.</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setView('conditions')}
-              className={`text-xs px-4 py-2 rounded-lg border transition-all ${view === 'conditions' ? 'bg-indigo-700 text-white border-indigo-600' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}
+              className={`text-xs px-4 py-2  border transition-all ${view === 'conditions' ? 'bg-primary text-white border-primary' : 'bg-muted text-muted-foreground border-border hover:text-foreground'}`}
             >
               Permit Conditions
             </button>
             <button
               onClick={() => setView('validation')}
-              className={`text-xs px-4 py-2 rounded-lg border transition-all ${view === 'validation' ? 'bg-emerald-700 text-white border-emerald-600' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}
+              className={`text-xs px-4 py-2  border transition-all ${view === 'validation' ? 'bg-emerald-700 text-white border-emerald-600' : 'bg-muted text-muted-foreground border-border hover:text-foreground'}`}
             >
               Document Validation
             </button>
             <button
               onClick={() => setView('submissions')}
-              className={`text-xs px-4 py-2 rounded-lg border transition-all ${view === 'submissions' ? 'bg-amber-700 text-white border-amber-600' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}
+              className={`text-xs px-4 py-2  border transition-all ${view === 'submissions' ? 'bg-destructive text-white border-amber-600' : 'bg-muted text-muted-foreground border-border hover:text-foreground'}`}
             >
               Agency Submissions
             </button>
@@ -411,30 +411,30 @@ export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-          <div className="bg-gray-900/40 rounded-xl p-3 border border-green-700/30">
-            <div className="text-xs text-gray-500">Compliant Conditions</div>
-            <div className="text-2xl font-bold text-green-400">{compliantCount}</div>
-            <div className="text-xs text-gray-600">of {CONDITIONS.length} tracked</div>
+          <div className="bg-card/40  p-3 border border-green-700/30">
+            <div className="text-xs text-muted-foreground">Compliant Conditions</div>
+            <div className="text-2xl font-bold text-primary">{compliantCount}</div>
+            <div className="text-xs text-muted-foreground/70">of {CONDITIONS.length} tracked</div>
           </div>
-          <div className="bg-gray-900/40 rounded-xl p-3 border border-amber-700/30">
-            <div className="text-xs text-gray-500">Near-Limit Alerts</div>
-            <div className="text-2xl font-bold text-amber-400">{warningCount}</div>
-            <div className="text-xs text-gray-600">proactive warning</div>
+          <div className="bg-card/40  p-3 border border-amber-700/30">
+            <div className="text-xs text-muted-foreground">Near-Limit Alerts</div>
+            <div className="text-2xl font-bold text-destructive">{warningCount}</div>
+            <div className="text-xs text-muted-foreground/70">proactive warning</div>
           </div>
-          <div className="bg-gray-900/40 rounded-xl p-3 border border-red-700/30">
-            <div className="text-xs text-gray-500">Violations</div>
-            <div className="text-2xl font-bold text-red-400">{violationCount}</div>
-            <div className="text-xs text-gray-600">requires action</div>
+          <div className="bg-card/40  p-3 border border-red-700/30">
+            <div className="text-xs text-muted-foreground">Violations</div>
+            <div className="text-2xl font-bold text-destructive">{violationCount}</div>
+            <div className="text-xs text-muted-foreground/70">requires action</div>
           </div>
-          <div className="bg-gray-900/40 rounded-xl p-3 border border-blue-700/30">
-            <div className="text-xs text-gray-500">Reporting Due</div>
+          <div className="bg-card/40  p-3 border border-blue-700/30">
+            <div className="text-xs text-muted-foreground">Reporting Due</div>
             <div className="text-2xl font-bold text-blue-400">{pendingCount}</div>
-            <div className="text-xs text-gray-600">upcoming deadlines</div>
+            <div className="text-xs text-muted-foreground/70">upcoming deadlines</div>
           </div>
-          <div className="bg-gray-900/40 rounded-xl p-3 border border-indigo-700/30">
-            <div className="text-xs text-gray-500">Audit Trail</div>
-            <div className="text-2xl font-bold text-indigo-400">Live</div>
-            <div className="text-xs text-gray-600">all actions logged</div>
+          <div className="bg-card/40  p-3 border border-primary/30">
+            <div className="text-xs text-muted-foreground">Audit Trail</div>
+            <div className="text-2xl font-bold text-primary">Live</div>
+            <div className="text-xs text-muted-foreground/70">all actions logged</div>
           </div>
         </div>
       </div>
@@ -447,8 +447,8 @@ export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
             {CATEGORIES.map(c => (
               <button key={c}
                 onClick={() => setFilter(c)}
-                className={`text-xs px-3 py-1.5 rounded-full border transition-all
-                  ${filter === c ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'}`}>
+                className={`text-xs px-3 py-1.5  border transition-all
+                  ${filter === c ? 'bg-primary text-white border-primary' : 'bg-muted text-muted-foreground border-border hover:text-foreground'}`}>
                 {c}
               </button>
             ))}
@@ -457,58 +457,58 @@ export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
           {/* Conditions */}
           <div className="space-y-3">
             {filtered.map(cond => (
-              <div key={cond.id} className="rounded-xl border border-gray-700/40 bg-gray-900/40 overflow-hidden">
+              <div key={cond.id} className=" border border-border/40 bg-card/40 overflow-hidden">
                 <button
                   onClick={() => setExpanded(expanded === cond.id ? null : cond.id)}
-                  className="w-full p-4 flex items-start justify-between gap-4 hover:bg-gray-800/20 transition-colors text-left"
+                  className="w-full p-4 flex items-start justify-between gap-4 hover:bg-muted/20 transition-colors text-left"
                 >
                   <div className="flex items-start gap-3 flex-1">
-                    <span className={`text-xs px-2.5 py-1 rounded-full border flex-shrink-0 mt-0.5 ${STATUS_COLORS[getStatus(cond.id)]}`}>
+                    <span className={`text-xs px-2.5 py-1  border flex-shrink-0 mt-0.5 ${STATUS_COLORS[getStatus(cond.id)]}`}>
                       {STATUS_LABELS[getStatus(cond.id)]}
                     </span>
                     <div>
-                      <div className="text-sm font-medium text-gray-300">{cond.condition}</div>
-                      <div className="text-xs text-gray-600 mt-0.5">{cond.cfr} · {cond.category}</div>
+                      <div className="text-sm font-medium text-foreground/80">{cond.condition}</div>
+                      <div className="text-xs text-muted-foreground/70 mt-0.5">{cond.cfr} · {cond.category}</div>
                     </div>
                   </div>
-                  <span className="text-gray-600 flex-shrink-0">{expanded === cond.id ? '▲' : '▼'}</span>
+                  <span className="text-muted-foreground/70 flex-shrink-0">{expanded === cond.id ? '▲' : '▼'}</span>
                 </button>
 
                 {expanded === cond.id && (
-                  <div className="border-t border-gray-800/40 p-4 grid md:grid-cols-2 gap-4 bg-gray-900/30">
+                  <div className="border-t border-border/40 p-4 grid md:grid-cols-2 gap-4 bg-card/30">
                     <div>
-                      <p className="text-xs font-semibold text-indigo-400 mb-2">Brick Control Action</p>
-                      <p className="text-xs text-gray-400 leading-relaxed">{cond.brickControl}</p>
+                      <p className="text-xs font-semibold text-primary mb-2">Brick Control Action</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{cond.brickControl}</p>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-green-400 mb-2">Evidence Generated</p>
-                      <p className="text-xs text-gray-400 leading-relaxed">{cond.evidence}</p>
+                      <p className="text-xs font-semibold text-primary mb-2">Evidence Generated</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{cond.evidence}</p>
                     </div>
                     <div className="md:col-span-2 flex gap-2 flex-wrap">
                       <button
                         onClick={() => setNotify(`Trend data for "${cond.condition}" loaded — view the Digital Twin tab for full charts.`)}
-                        className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-700">
+                        className="text-xs bg-muted hover:bg-muted-foreground/10 text-foreground/80  px-3 py-1.5 transition-colors border border-border">
                         📊 View Trend Data
                       </button>
                       <button
                         onClick={() => handleGenerateReport(cond)}
                         disabled={reportLoading}
-                        className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-700 disabled:opacity-50">
+                        className="text-xs bg-muted hover:bg-muted-foreground/10 text-foreground/80  px-3 py-1.5 transition-colors border border-border disabled:opacity-50">
                         {reportLoading ? '⏳ Generating...' : '📄 Generate Compliance Report'}
                       </button>
                       <button
                         onClick={handleExportAudit}
-                        className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-3 py-1.5 transition-colors border border-gray-700">
+                        className="text-xs bg-muted hover:bg-muted-foreground/10 text-foreground/80  px-3 py-1.5 transition-colors border border-border">
                         📤 Export Audit Log
                       </button>
                       <button
                         onClick={() => handleExportConditionDocx(cond)}
-                        className="text-xs bg-blue-800/40 hover:bg-blue-700/40 text-blue-300 rounded-lg px-3 py-1.5 transition-colors border border-blue-700/40">
+                        className="text-xs bg-blue-800/40 hover:bg-blue-700/40 text-blue-300  px-3 py-1.5 transition-colors border border-blue-700/40">
                         📝 Export as Word Doc
                       </button>
                       <button
                         onClick={() => setNotify(`Opening Regulator QA Copilot with "${cond.condition}" context.`)}
-                        className="text-xs bg-indigo-800/40 hover:bg-indigo-700/40 text-indigo-300 rounded-lg px-3 py-1.5 transition-colors border border-indigo-700/40">
+                        className="text-xs bg-primary/30 hover:bg-primary/40 text-primary  px-3 py-1.5 transition-colors border border-primary/40">
                         🤖 Regulator QA Copilot
                       </button>
                     </div>
@@ -519,8 +519,8 @@ export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
           </div>
 
           {/* Regulator QA Copilot */}
-          <div className="rounded-xl border border-violet-700/30 bg-violet-950/20 p-5">
-            <h3 className="text-sm font-semibold text-violet-300 mb-3">Regulator QA Copilot — RAI & Deficiency Response Engine</h3>
+          <div className=" border border-primary/30 bg-primary/10 p-5">
+            <h3 className="text-sm font-semibold text-primary mb-3">Regulator QA Copilot — RAI & Deficiency Response Engine</h3>
             <div className="grid md:grid-cols-2 gap-4 text-xs">
               {[
                 { type: 'RAI Response', icon: '📝', desc: 'Agency Request for Additional Information auto-responded from indexed permit record. Average response time: 2 days vs. 3–6 weeks.' },
@@ -528,11 +528,11 @@ export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
                 { type: 'Public Comment', icon: '💬', desc: 'Environmental justice and public comment responses generated from community data, site stats, and health impact analysis.' },
                 { type: 'Modeling Comments', icon: '📊', desc: 'AERMOD peer review comments responded to with model parameter citations, meteorological data justifications, and receptor grid rationale.' },
               ].map(item => (
-                <div key={item.type} className="bg-gray-900/40 border border-gray-700/40 rounded-xl p-4 flex gap-3">
+                <div key={item.type} className="bg-card/40 border border-border/40  p-4 flex gap-3">
                   <span className="text-2xl flex-shrink-0">{item.icon}</span>
                   <div>
-                    <div className="font-semibold text-gray-300 mb-1">{item.type}</div>
-                    <div className="text-gray-500 leading-relaxed">{item.desc}</div>
+                    <div className="font-semibold text-foreground/80 mb-1">{item.type}</div>
+                    <div className="text-muted-foreground leading-relaxed">{item.desc}</div>
                   </div>
                 </div>
               ))}
@@ -554,25 +554,25 @@ export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
       {/* ── Report Preview Modal ─────────────────────────────────────────────── */}
       {reportModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setReportModal(null)}>
-          <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-gray-900/95 backdrop-blur-sm border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+          <div className="bg-card border border-border  w-full max-w-2xl max-h-[80vh] overflow-y-auto " onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-semibold text-white">Compliance Report</h3>
-                <p className="text-xs text-gray-500">{reportModal.report.title}</p>
+                <p className="text-xs text-muted-foreground">{reportModal.report.title}</p>
               </div>
-              <button onClick={() => setReportModal(null)} className="text-gray-500 hover:text-white text-lg">&times;</button>
+              <button onClick={() => setReportModal(null)} className="text-muted-foreground hover:text-white text-lg">&times;</button>
             </div>
             <div className="p-6 space-y-6">
               {reportModal.report.sections?.map((section, i) => (
                 <div key={i}>
-                  <h4 className="text-xs font-semibold text-indigo-400 mb-2">{section.heading}</h4>
-                  <p className="text-xs text-gray-300 leading-relaxed">{section.body}</p>
+                  <h4 className="text-xs font-semibold text-primary mb-2">{section.heading}</h4>
+                  <p className="text-xs text-foreground/80 leading-relaxed">{section.body}</p>
                 </div>
               ))}
             </div>
-            <div className="sticky bottom-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-800 px-6 py-4 flex gap-3 justify-end">
+            <div className="sticky bottom-0 bg-card/95 backdrop-blur-sm border-t border-border px-6 py-4 flex gap-3 justify-end">
               <button onClick={() => setReportModal(null)}
-                className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg px-4 py-2 border border-gray-700 transition-colors">
+                className="text-xs bg-muted hover:bg-muted-foreground/10 text-foreground/80  px-4 py-2 border border-border transition-colors">
                 Close
               </button>
               <button onClick={() => {
@@ -580,7 +580,7 @@ export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
                 exportDocx(reportModal.report.title, sections);
                 setNotify('Report downloaded as Word document.');
               }}
-                className="text-xs bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg px-4 py-2 transition-colors">
+                className="text-xs bg-primary hover:bg-primary text-white  px-4 py-2 transition-colors">
                 📥 Download as Word Doc
               </button>
             </div>

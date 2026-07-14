@@ -1,34 +1,61 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   MapPin, Gear, HardDrives, Wind, Drop, Buildings, Lightning,
-  Check, ArrowRight, CircleNotch, PencilSimple, MapTrifold
+  Check, ArrowRight, CircleNotch, Tree,
+  ArrowsOut, Wrench, Factory, Timer, SealCheck, CaretRight,
+  ChartBar, ArrowLeft
 } from '@phosphor-icons/react';
 import { US_STATES, STATES_ATTAINMENT, NOX_EMISSION_FACTORS, CO_EMISSION_FACTORS } from '../data/permitData';
 import { STATE_ADDRESS_DEFAULTS } from '../utils/locationUtils';
 import { calcPTE } from '../utils/calculations';
 import { calculatePTE as apiPTE, analyzeScenario, listScenarios } from '../utils/api';
-import PermitSelectionModal from './PermitSelectionModal';
+import Stepper from './Stepper';
+import { computeTimelineComparison } from '../utils/timelineCalc';
 
 const turbineTypes = ['Gas Turbine (DLN, modern)', 'Gas Turbine (standard combustion)', 'Gas Turbine (older frame, uncontrolled)'];
 
-function Field({ label, children, hint }) {
+// ─── Design System Components ────────────────────────────────────────────────
+
+function Card({ children, className = '' }) {
   return (
-    <div>
-      <label className="block text-xs font-medium text-zinc-500 mb-1">{label}</label>
+    <div className={`bg-background border border-border  p-7 ${className}`}>
       {children}
-      {hint && <p className="text-xs text-zinc-600 mt-0.5">{hint}</p>}
     </div>
   );
 }
 
-function Input({ value, onChange, type = 'text', step }) {
+function Field({ label, children, hint }) {
+  return (
+    <div>
+      <label className="block text-[11.5px] font-medium text-muted-foreground mb-[7px]">{label}</label>
+      {children}
+      {hint && <p className="text-xs text-muted-foreground mt-1.5">{hint}</p>}
+    </div>
+  );
+}
+
+function Input({ value, onChange, type = 'text', step, className = '' }) {
   return (
     <input
       type={type}
       step={step}
       value={value}
       onChange={e => onChange(type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value)}
-      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600/50 transition-colors"
+      className={`w-full bg-background border border-border  px-3 py-3 text-xs text-foreground placeholder-[#71717a]
+        focus:outline-none focus:border-[#52525b] focus:shadow-[0_0_0_3px_#ffffff14] transition-colors ${className}`}
+    />
+  );
+}
+
+function InputMono({ value, onChange, type = 'text', step, className = '' }) {
+  return (
+    <input
+      type={type}
+      step={step}
+      value={value}
+      onChange={e => onChange(type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value)}
+      className={`w-full bg-background border border-border  px-3 py-3 text-xs text-foreground placeholder-[#71717a]
+        font-['IBM_Plex_Mono'] focus:outline-none focus:border-[#52525b] focus:shadow-[0_0_0_3px_#ffffff14] transition-colors ${className}`}
     />
   );
 }
@@ -38,7 +65,15 @@ function Select({ value, onChange, options }) {
     <select
       value={value}
       onChange={e => onChange(e.target.value)}
-      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600/50 transition-colors"
+      className="w-full bg-background border border-border  px-3 py-3 text-xs text-foreground
+        focus:outline-none focus:border-[#52525b] focus:shadow-[0_0_0_3px_#ffffff14] transition-colors appearance-none"
+      style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 256 256'%3E%3Cpath fill='%2371717a' d='M213.66 101.66a8 8 0 0 1-11.32 0L128 27.31l-74.34 74.35a8 8 0 0 1-11.32-11.32l80-80a8 8 0 0 1 11.32 0l80 80a8 8 0 0 1 0 11.32Z'/%3E%3C/svg%3E")`,
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 12px center',
+        backgroundSize: '12px',
+        paddingRight: '32px',
+      }}
     >
       {options.map(o => (
         <option key={o.value ?? o} value={o.value ?? o}>{o.label ?? o}</option>
@@ -47,70 +82,102 @@ function Select({ value, onChange, options }) {
   );
 }
 
-const PERMIT_DEFS = {
-  air: { label: 'Air Permit', icon: Wind, accent: 'text-violet-400' },
-  water: { label: 'Water Permit', icon: Drop, accent: 'text-sky-400' },
-  building: { label: 'Building Permit', icon: Buildings, accent: 'text-indigo-400' },
-  power: { label: 'Power / Interconnection', icon: Lightning, accent: 'text-amber-400' },
-};
-
-const SECTION_ICONS = {
-  site: { icon: MapPin, accent: 'text-zinc-400' },
-  generation: { icon: Gear, accent: 'text-zinc-400' },
-  datacenter: { icon: HardDrives, accent: 'text-zinc-400' },
-  air: { icon: Wind, accent: 'text-violet-400' },
-  water: { icon: Drop, accent: 'text-sky-400' },
-  building: { icon: Buildings, accent: 'text-indigo-400' },
-  power: { icon: Lightning, accent: 'text-amber-400' },
-};
-
-function SectionHeading({ icon: Icon, accent, label }) {
+function PrimaryButton({ onClick, disabled, children, icon: Icon, fullWidth = false }) {
   return (
-    <h3 className="flex items-center gap-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-4">
-      <Icon weight="duotone" size={18} className={accent} />
-      {label}
-    </h3>
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`${fullWidth ? 'w-full' : ''} inline-flex items-center justify-center gap-2 bg-foreground text-background  px-6 py-3 text-sm font-semibold
+        transition-all hover:brightness-[1.15] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100`}
+    >
+      {Icon && <Icon weight="duotone" size={18} />}
+      {children}
+    </button>
   );
 }
 
+function SecondaryButton({ onClick, disabled, children, icon: Icon }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex items-center justify-center gap-2 bg-card border border-border text-foreground  px-6 py-3 text-xs font-semibold
+        transition-all hover:bg-[#27272a] disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+      {Icon && <Icon weight="duotone" size={18} />}
+      {children}
+    </button>
+  );
+}
+
+function GhostButton({ onClick, disabled, children, icon: Icon }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex items-center justify-center gap-2 bg-transparent border border-border  px-5 py-3 text-xs font-semibold
+        transition-all text-foreground/80 hover:bg-card disabled:text-[#3a4558] disabled:cursor-not-allowed"
+    >
+      {Icon && <Icon weight="duotone" size={18} />}
+      {children}
+    </button>
+  );
+}
+
+function Badge({ children, color = 'text-muted-foreground', dotColor = null }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 bg-card text-xs font-semibold px-3.5 py-1.5  ${color}`}>
+      {dotColor && <span className={`w-1.5 h-1.5  ${dotColor}`} />}
+      {children}
+    </span>
+  );
+}
+
+function SectionHeading({ icon: Icon, label, count }) {
+  return (
+    <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center gap-2.5">
+        {Icon && <Icon weight="duotone" size={18} className="text-muted-foreground" />}
+        <h3 className="text-[15px] font-bold text-foreground">{label}</h3>
+      </div>
+      {count !== undefined && (
+        <span className="text-xs text-muted-foreground bg-card px-[10px] py-[4px] ">{count} fields</span>
+      )}
+    </div>
+  );
+}
+
+// ─── Project Type Config ─────────────────────────────────────────────────────
+const PROJECT_TYPE_CONFIG = {
+  greenfield: { icon: Tree, label: 'Greenfield Development', desc: 'New data center campus on undeveloped land. Full permitting suite required.' },
+  expansion: { icon: ArrowsOut, label: 'Campus Expansion', desc: 'Adding capacity to an existing campus. May benefit from existing permits.' },
+  upsized: { icon: Wrench, label: 'Permit Upsizing / Modification', desc: 'Modifying an existing permit to increase capacity or change parameters.' },
+  colocated: { icon: Factory, label: 'Co-Located / Powered Site', desc: 'Data center at an existing power generation site. Shared permits possible.' },
+};
+
+// ─── Permit Type Config ─────────────────────────────────────────────────────
+const PERMIT_TYPE_CONFIG = [
+  { key: 'air', label: 'Air Permit', icon: Wind, desc: 'Emissions, PSD/NSR, BACT, Title V, NSPS, NESHAP' },
+  { key: 'water', label: 'Water Permit', icon: Drop, desc: 'NPDES, SPCC, 316(b), stormwater, wetlands, POTW' },
+  { key: 'building', label: 'Building Permit', icon: Buildings, desc: 'IBC/IRC, fire suppression, occupancy, structural' },
+  { key: 'power', label: 'Power / Interconnection', icon: Lightning, desc: 'Grid interconnection, transformers, gensets, FERC' },
+];
+
+// ─── Main Component ─────────────────────────────────────────────────────────
 export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab, results }) {
+  const [step, setStep] = useState(1);
   const [running, setRunning] = useState(false);
   const done = results !== null;
-  const [scenario, setScenario] = useState('greenfield');
   const [scenarioAnalysis, setScenarioAnalysis] = useState(null);
   const [scenarioLoading, setScenarioLoading] = useState(false);
   const [scenarioDefs, setScenarioDefs] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
   const addressFieldsTouched = useRef(false);
   const markAddressTouched = () => { if (!addressFieldsTouched.current) addressFieldsTouched.current = true; };
 
   const update = (key, val) => setInputs(prev => ({ ...prev, [key]: val }));
 
   const permitTypes = inputs.permitTypesNeeded || ['air', 'water', 'building', 'power'];
-
-  // Open modal on mount if permitTypesNeeded has never been set (first visit)
-  useEffect(() => {
-    if (inputs.permitTypesNeeded === null) {
-      setModalOpen(true);
-    }
-  }, []); // only on mount
-
-  const handleModalConfirm = (selected, navigateTo) => {
-    if (navigateTo) {
-      // "Site Planner" option
-      setActiveTab(navigateTo);
-      setModalOpen(false);
-      return;
-    }
-    update('permitTypesNeeded', selected);
-    setModalOpen(false);
-  };
-
-  const handleTurbineType = (type) => {
-    update('turbineType', type);
-    update('noxFactor', NOX_EMISSION_FACTORS[type]);
-    update('coFactor', CO_EMISSION_FACTORS[type]);
-  };
+  const projectScenario = inputs.projectScenario || 'greenfield';
 
   // Load scenario definitions on mount
   useEffect(() => {
@@ -119,24 +186,23 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
     }).catch(() => {});
   }, []);
 
-  // Run scenario analysis when scenario type or inputs change (debounced 500ms)
+  // Run scenario analysis when project type or inputs change (debounced 500ms)
   useEffect(() => {
     if (!inputs) return;
     let cancelled = false;
     const timer = setTimeout(() => {
       setScenarioLoading(true);
-      analyzeScenario(scenario, inputs).then(data => {
+      analyzeScenario(projectScenario, inputs).then(data => {
         if (!cancelled && data?.analysis) setScenarioAnalysis(data.analysis);
         if (!cancelled) setScenarioLoading(false);
       }).catch(() => { if (!cancelled) setScenarioLoading(false); });
     }, 500);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [scenario, inputs]);
+  }, [projectScenario, inputs]);
 
   const runScreening = async () => {
     setRunning(true);
     try {
-      // Try backend API first
       const apiResponse = await apiPTE(inputs);
       const calcResults = apiResponse.results || apiResponse;
       setResults({
@@ -151,7 +217,6 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
         genset: calcResults.genset,
         thresholdAnalysis: calcResults.thresholdAnalysis,
         breaches: calcResults.breaches,
-        // Compute building pathway from inputs
         building: {
           ibcClass: (inputs.turbines * inputs.mwPerTurbine) > 400 ? 'Type IB' : 'Type IIB',
           stories: inputs.stories || 2,
@@ -160,7 +225,6 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           buildingSqFt: inputs.buildingSqFt || Math.round((inputs.datacenterMW || 133) * 800),
           occupancy: inputs.occupancyType || 'Business (B)',
         },
-        // Compute power/interconnection pathway from inputs
         power: {
           totalMW: inputs.turbines * inputs.mwPerTurbine,
           interconnectionVoltage: inputs.interconnectionVoltage || ((inputs.turbines * inputs.mwPerTurbine) > 500 ? 345 : (inputs.turbines * inputs.mwPerTurbine) >= 200 ? 138 : 69),
@@ -170,7 +234,6 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
         },
       });
     } catch {
-      // Fallback to local calculation if API unavailable
       await new Promise(r => setTimeout(r, 800));
       const localResults = calcPTE(inputs);
       setResults(localResults);
@@ -178,73 +241,99 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
     setRunning(false);
   };
 
+  const handleTurbineType = (type) => {
+    update('turbineType', type);
+    update('noxFactor', NOX_EMISSION_FACTORS[type]);
+    update('coFactor', CO_EMISSION_FACTORS[type]);
+  };
+
+  const togglePermitType = (key) => {
+    const current = inputs.permitTypesNeeded || ['air', 'water', 'building', 'power'];
+    if (current.includes(key) && current.length <= 1) return;
+    const next = current.includes(key) ? current.filter(k => k !== key) : [...current, key];
+    update('permitTypesNeeded', next);
+  };
+
   const attainmentStatus = STATES_ATTAINMENT[inputs.state] || 'Unknown';
 
-  const resultsNavItems = [];
-  if (permitTypes.includes('air')) resultsNavItems.push({ label: 'Air Permit AI', tab: 'air' });
-  if (permitTypes.includes('water')) resultsNavItems.push({ label: 'Water Permit AI', tab: 'water' });
-  if (permitTypes.includes('building')) resultsNavItems.push({ label: 'Building Permitting', tab: 'building' });
-  if (permitTypes.includes('power')) resultsNavItems.push({ label: 'Power Permitting', tab: 'power' });
-  resultsNavItems.push({ label: 'Milestone Timeline', tab: 'milestones' });
-  resultsNavItems.push({ label: 'Document Factory', tab: 'docs' });
-
-  return (
-    <div className="p-6 space-y-6">
-      {/* Permit Selection Modal */}
-      <PermitSelectionModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onConfirm={handleModalConfirm}
-        initialSelection={inputs.permitTypesNeeded || ['air', 'water', 'building', 'power']}
-        dismissable={inputs.permitTypesNeeded !== null}
-      />
-
-      {/* Intro */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h2 className="text-base font-semibold text-zinc-100 mb-1">Site Intake & Data Collection</h2>
-            <p className="text-xs text-zinc-500">Enter site, equipment, and operational parameters. PermitOS runs full applicability screening and generates the complete permit pathway in seconds.</p>
-          </div>
-          <div className="flex-shrink-0 text-xs text-zinc-600 bg-zinc-800/50 rounded-lg px-3 py-2 text-right">
-            <div className="text-zinc-400 font-medium">Automated acceleration</div>
-            <div className="text-emerald-400 font-bold text-sm">Phase 1 {'\u2192'} instant</div>
-            <div>(vs. 2{'\u2013'}3 weeks manual)</div>
-          </div>
+  // ─── STEP 1: Project Setup ────────────────────────────────────────────────
+  const renderStep1 = () => (
+    <div className="space-y-6">
+      <Card>
+        <SectionHeading icon={SealCheck} label="Permit Types Needed" />
+        <p className="text-[13px] text-muted-foreground mb-5">
+          Select the permits you're pursuing — the intake form will only show relevant fields.
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          {PERMIT_TYPE_CONFIG.map(p => {
+            const isSelected = (inputs.permitTypesNeeded || ['air', 'water', 'building', 'power']).includes(p.key);
+            const Icon = p.icon;
+            return (
+              <button
+                key={p.key}
+                onClick={() => togglePermitType(p.key)}
+                className={`relative flex flex-col items-start gap-2  border p-4 text-left transition-all
+                  ${isSelected
+                    ? 'border-border bg-card'
+                    : 'border-border bg-transparent hover:bg-card'
+                  }`}
+              >
+                {isSelected && (
+                  <span className="absolute top-3 right-3 w-5 h-5  bg-foreground flex items-center justify-center">
+                    <Check weight="bold" size={12} className="text-background" />
+                  </span>
+                )}
+                <Icon weight="duotone" size={22} className="text-muted-foreground" />
+                <span className="text-[13px] font-semibold text-foreground">{p.label}</span>
+                <span className="text-xs text-muted-foreground leading-tight">{p.desc}</span>
+              </button>
+            );
+          })}
         </div>
-      </div>
+      </Card>
 
-      {/* Permit Type Selection Summary / Change */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 flex-wrap min-w-0">
-            <span className="text-xs font-medium text-zinc-500 whitespace-nowrap">Permits selected:</span>
-            {permitTypes.map(key => {
-              const def = PERMIT_DEFS[key];
-              if (!def) return null;
-              const Icon = def.icon;
-              return (
-                <span key={key} className="inline-flex items-center gap-1.5 text-xs text-zinc-300 bg-zinc-800/60 rounded-lg px-2.5 py-1.5">
-                  <Icon weight="duotone" size={14} className={def.accent} />
-                  {def.label}
-                </span>
-              );
-            })}
-          </div>
-          <button
-            onClick={() => setModalOpen(true)}
-            className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200 bg-zinc-800/60 hover:bg-zinc-800 rounded-lg px-3 py-1.5 transition-colors flex-shrink-0"
-          >
-            <PencilSimple weight="duotone" size={14} />
-            Change
-          </button>
+      <Card>
+        <SectionHeading icon={MapPin} label="Project Type" />
+        <p className="text-[13px] text-muted-foreground mb-5">
+          What type of development is this? This affects permit pathway complexity and timeline.
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          {Object.entries(PROJECT_TYPE_CONFIG).map(([key, config]) => {
+            const isSelected = projectScenario === key;
+            const Icon = config.icon;
+            return (
+              <button
+                key={key}
+                onClick={() => update('projectScenario', key)}
+                className={`relative flex flex-col items-start gap-2  border p-4 text-left transition-all
+                  ${isSelected
+                    ? 'border-border bg-card'
+                    : 'border-border bg-transparent hover:bg-card'
+                  }`}
+              >
+                {isSelected && (
+                  <span className="absolute top-3 right-3 w-5 h-5  bg-foreground flex items-center justify-center">
+                    <Check weight="bold" size={12} className="text-background" />
+                  </span>
+                )}
+                <Icon weight="duotone" size={22} className="text-muted-foreground" />
+                <span className="text-[13px] font-semibold text-foreground">{config.label}</span>
+                <span className="text-xs text-muted-foreground leading-tight">{config.desc}</span>
+              </button>
+            );
+          })}
         </div>
-      </div>
+      </Card>
+    </div>
+  );
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Site Information — always visible */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
-          <SectionHeading icon={SECTION_ICONS.site.icon} accent={SECTION_ICONS.site.accent} label="Site Information" />
+  // ─── STEP 2: Site Details ─────────────────────────────────────────────────
+  const renderStep2 = () => (
+    <div className="grid grid-cols-2 gap-5">
+      {/* Site Information */}
+      <Card className="col-span-2">
+        <SectionHeading icon={MapPin} label="Site Information" count={9} />
+        <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
           <Field label="Site Name"><Input value={inputs.siteName} onChange={v => update('siteName', v)} /></Field>
           <Field label="Client / Owner"><Input value={inputs.client} onChange={v => update('client', v)} /></Field>
           <Field label="State">
@@ -258,7 +347,6 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                 update('nonAttainPM25', true);
                 update('nonAttainOzone', true);
               }
-              // Auto-fill address fields from state defaults if user hasn't manually edited them
               if (!addressFieldsTouched.current) {
                 const defaults = STATE_ADDRESS_DEFAULTS[v];
                 if (defaults) {
@@ -272,107 +360,140 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           </Field>
           <Field label="County / Jurisdiction"><Input value={inputs.county} onChange={v => { update('county', v); markAddressTouched(); }} /></Field>
           <Field label="Site Address"><Input value={inputs.address} onChange={v => { update('address', v); markAddressTouched(); }} /></Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Latitude"><Input value={inputs.lat} onChange={v => { update('lat', v); markAddressTouched(); }} /></Field>
-            <Field label="Longitude"><Input value={inputs.lon} onChange={v => { update('lon', v); markAddressTouched(); }} /></Field>
-          </div>
-          <Field label="Site Acreage"><Input value={inputs.siteAcres} onChange={v => update('siteAcres', v)} type="number" /></Field>
           <Field label="Target COD"><Input value={inputs.codTarget} onChange={v => update('codTarget', v)} /></Field>
-          {/* Attainment status auto-lookup */}
-          <div className="bg-zinc-800/40 rounded-lg p-3">
-            <div className="text-xs text-zinc-500 mb-1">Air Quality Area Status</div>
-            <div className={`text-sm font-medium ${attainmentStatus.includes('Nonattainment') ? 'text-amber-400' : attainmentStatus.includes('Mixed') ? 'text-yellow-400' : 'text-emerald-400'}`}>
-              {attainmentStatus}
-            </div>
-            <div className="text-xs text-zinc-600 mt-1">Determines PSD vs. NSR pathway</div>
-            {/* Per-pollutant nonattainment overrides — air-specific */}
-            {permitTypes.includes('air') && attainmentStatus.includes('Nonattainment') && (
-              <div className="mt-3 pt-3 border-t border-zinc-700/40 space-y-1.5">
-                <div className="text-xs text-zinc-500 mb-1 font-medium">Per-Pollutant Nonattainment (override for county-specific SIP)</div>
-                {[
-                  { key: 'nonAttainNOx', label: 'NOₓ (Ozone Precursor)' },
-                  { key: 'nonAttainOzone', label: 'Ozone (VOC)' },
-                  { key: 'nonAttainPM25', label: 'PM₂.₅ (Direct)' },
-                ].map(p => (
-                  <label key={p.key} className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer hover:text-zinc-300">
-                    <input
-                      type="checkbox"
-                      checked={inputs[p.key]}
-                      onChange={e => update(p.key, e.target.checked)}
-                      className="accent-amber-500 rounded"
-                    />
-                    {p.label}
-                  </label>
-                ))}
-                <p className="text-xs text-zinc-600 mt-1 italic">Checking these applies Severe nonattainment thresholds (25 tpy NOₓ/VOC, 30 tpy PM₂.₅)</p>
+          <Field label="Latitude"><InputMono value={inputs.lat} onChange={v => { update('lat', v); markAddressTouched(); }} /></Field>
+          <Field label="Longitude"><InputMono value={inputs.lon} onChange={v => { update('lon', v); markAddressTouched(); }} /></Field>
+          <Field label="Site Acreage"><Input value={inputs.siteAcres} onChange={v => update('siteAcres', v)} type="number" /></Field>
+
+          <div className="bg-card  p-4 flex items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Air Quality Area Status</div>
+              <div className={`text-[13px] font-semibold ${
+                attainmentStatus.includes('Nonattainment') ? 'text-[#e0a95c]' :
+                attainmentStatus.includes('Mixed') ? 'text-[#e0a95c]' : 'text-primary'
+              }`}>
+                {attainmentStatus}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Universal Generation Fields — always visible */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
-          <SectionHeading icon={SECTION_ICONS.generation.icon} accent={SECTION_ICONS.generation.accent} label="Generation Overview" />
-          <Field label="Number of Gas Turbines"><Input value={inputs.turbines} onChange={v => update('turbines', v)} type="number" /></Field>
-          <Field label="MW per Turbine"><Input value={inputs.mwPerTurbine} onChange={v => update('mwPerTurbine', v)} type="number" /></Field>
-          <Field label="Operating Hours / Year" hint="Max 8,760 for continuous; <500 for limited-use threshold"><Input value={inputs.hours} onChange={v => update('hours', v)} type="number" /></Field>
-          <Field label="Brick Load Reduction (%)" hint="Efficiency gains from Brick controls vs. baseline">
-            <input
-              type="range" min={0} max={30} step={1}
-              value={inputs.brickSavings}
-              onChange={e => update('brickSavings', parseFloat(e.target.value))}
-              className="w-full accent-zinc-500"
-            />
-            <div className="text-right text-zinc-400 font-semibold text-sm">{inputs.brickSavings}%</div>
-          </Field>
-        </div>
-
-        {/* Data Center Systems — always visible */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
-          <SectionHeading icon={SECTION_ICONS.datacenter.icon} accent={SECTION_ICONS.datacenter.accent} label="Data Center Systems" />
-          <div className="flex items-end gap-2">
-            <div className="flex-1">
-              <Field label="Data Center IT Load (MW)"><Input value={inputs.datacenterMW} onChange={v => update('datacenterMW', v)} type="number" /></Field>
+              <div className="text-xs text-muted-foreground mt-1">Determines PSD vs. NSR pathway</div>
             </div>
-            <button
-              onClick={() => {
-                const totalMW = (inputs.turbines || 0) * (inputs.mwPerTurbine || 0);
-                const pue = inputs.pueTarget || 1.35;
-                const derived = Math.round(totalMW / (pue + 0.15));
-                update('datacenterMW', derived);
-              }}
-              className="flex items-center gap-1 text-[10px] bg-zinc-800 hover:bg-zinc-700 text-zinc-400 px-2 py-1.5 rounded-lg mb-1 transition-colors whitespace-nowrap"
-              title="Derive IT load from installed capacity and PUE: datacenterMW = totalMW / (PUE + 0.15)"
-            >
-              Auto-derive {'\u26A1'}
-            </button>
           </div>
-          <Field label="Target PUE"><Input value={inputs.pueTarget} onChange={v => update('pueTarget', v)} type="number" step="0.01" /></Field>
-          <Field label="Number of Build Phases"><Input value={inputs.phases} onChange={v => update('phases', v)} type="number" /></Field>
         </div>
 
-        {/* Air-Specific Parameters — only when 'air' selected */}
-        {permitTypes.includes('air') && (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
-            <SectionHeading icon={SECTION_ICONS.air.icon} accent={SECTION_ICONS.air.accent} label="Air Permit Parameters" />
-            <Field label="Turbine / Engine Type">
-              <Select value={inputs.turbineType} onChange={handleTurbineType} options={turbineTypes} />
-            </Field>
-            <Field label="Heat Rate (MMBtu/MWh)"><Input value={inputs.heatRate} onChange={v => update('heatRate', v)} type="number" step="0.1" /></Field>
-            <Field label="NOₓ Emission Factor (lb/MMBtu)"><Input value={inputs.noxFactor} onChange={v => update('noxFactor', v)} type="number" step="0.001" /></Field>
-            <Field label="CO Emission Factor (lb/MMBtu)"><Input value={inputs.coFactor} onChange={v => update('coFactor', v)} type="number" step="0.001" /></Field>
-            <Field label="Stack Height (ft)"><Input value={inputs.stackHeight} onChange={v => update('stackHeight', v)} type="number" /></Field>
-            <Field label="Nearest Receptor (ft)" hint="For AERMOD modeling scope"><Input value={inputs.nearestReceptorFt} onChange={v => update('nearestReceptorFt', v)} type="number" /></Field>
+        {permitTypes.includes('air') && attainmentStatus.includes('Nonattainment') && (
+          <div className="mt-5 pt-5 border-t border-border">
+            <div className="text-[11.5px] font-medium text-muted-foreground mb-3">Per-Pollutant Nonattainment Overrides</div>
+            <div className="flex flex-wrap gap-4">
+              {[
+                { key: 'nonAttainNOx', label: 'NOx (Ozone Precursor)' },
+                { key: 'nonAttainOzone', label: 'Ozone (VOC)' },
+                { key: 'nonAttainPM25', label: 'PM2.5 (Direct)' },
+              ].map(p => (
+                <label key={p.key} className="flex items-center gap-2 text-[12px] text-muted-foreground cursor-pointer hover:text-foreground/80">
+                  <input
+                    type="checkbox"
+                    checked={inputs[p.key]}
+                    onChange={e => update(p.key, e.target.checked)}
+                    className="accent-[#fafafa] rounded"
+                  />
+                  {p.label}
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2 italic">Checking these applies Severe nonattainment thresholds (25 tpy NOx/VOC, 30 tpy PM2.5)</p>
           </div>
         )}
+      </Card>
 
-        {/* Water-Specific Parameters — only when 'water' selected */}
-        {permitTypes.includes('water') && (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
-            <SectionHeading icon={SECTION_ICONS.water.icon} accent={SECTION_ICONS.water.accent} label="Water Permit Parameters" />
-            <Field label="Cooling Water Use (MGD)" hint="Evaporation rate only (blowdown added separately below)"><Input value={inputs.coolingMGD} onChange={v => update('coolingMGD', v)} type="number" step="0.1" /></Field>
-            <Field label="Blowdown Fraction (%)" hint="% of circulating water discharged"><Input value={inputs.blowdownPct} onChange={v => update('blowdownPct', v)} type="number" /></Field>
-            <Field label="Process Water Use (MGD)"><Input value={inputs.waterMGD} onChange={v => update('waterMGD', v)} type="number" step="0.1" /></Field>
+      {/* Generation Overview */}
+      <Card>
+        <SectionHeading icon={Gear} label="Generation Overview" count={3} />
+        <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
+          <Field label="Gas Turbines (count)"><Input value={inputs.turbines} onChange={v => update('turbines', v)} type="number" /></Field>
+          <Field label="MW per Turbine"><Input value={inputs.mwPerTurbine} onChange={v => update('mwPerTurbine', v)} type="number" /></Field>
+          <Field label="Operating Hours / Year" hint="Max 8,760 for continuous; <500 for limited-use"><Input value={inputs.hours} onChange={v => update('hours', v)} type="number" /></Field>
+        </div>
+      </Card>
+
+      {/* Data Center Systems */}
+      <Card>
+        <SectionHeading icon={HardDrives} label="Data Center Systems" count={3} />
+        <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
+          <Field label="IT Load (MW)">
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Input value={inputs.datacenterMW} onChange={v => update('datacenterMW', v)} type="number" />
+              </div>
+              <button
+                onClick={() => {
+                  const totalMW = (inputs.turbines || 0) * (inputs.mwPerTurbine || 0);
+                  const pue = inputs.pueTarget || 1.35;
+                  update('datacenterMW', Math.round(totalMW / (pue + 0.15)));
+                }}
+                className="bg-card border border-border text-xs text-muted-foreground px-2.5 py-1.5  hover:bg-[#27272a] transition-colors whitespace-nowrap"
+                title="Derive from generation capacity"
+              >
+                Auto
+              </button>
+            </div>
+          </Field>
+          <Field label="Target PUE"><Input value={inputs.pueTarget} onChange={v => update('pueTarget', v)} type="number" step="0.01" /></Field>
+          <Field label="Build Phases"><Input value={inputs.phases} onChange={v => update('phases', v)} type="number" /></Field>
+        </div>
+      </Card>
+
+      {/* Brick Load Reduction */}
+      <Card className="col-span-2">
+        <SectionHeading icon={Timer} label="Brick Dispatch Optimization" />
+        <div className="max-w-md">
+          <Field label="Brick Load Reduction (%)" hint="Dispatch efficiency gains from Brick controls vs. baseline">
+            <div className="relative pt-1">
+              <div className="relative h-[5px]  bg-[#27272a]">
+                <div
+                  className="h-full  bg-foreground"
+                  style={{ width: `${inputs.brickSavings || 0}%` }}
+                />
+              </div>
+              <input
+                type="range" min={0} max={30} step={1}
+                value={inputs.brickSavings}
+                onChange={e => update('brickSavings', parseFloat(e.target.value))}
+                className="brick-slider w-full mt-[-5px]"
+              />
+              <div className="flex justify-between mt-1">
+                <span className="text-xs text-muted-foreground">0%</span>
+                <span className="text-xs text-muted-foreground">30%</span>
+              </div>
+              <div className="text-right text-[13px] font-semibold text-foreground mt-1">{inputs.brickSavings || 0}% reduction</div>
+            </div>
+          </Field>
+        </div>
+      </Card>
+
+      {/* Air-Specific Parameters */}
+      {permitTypes.includes('air') && (
+        <Card>
+          <SectionHeading icon={Wind} label="Air Permit Parameters" count={6} />
+          <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
+            <Field label="Turbine / Engine Type" hint="Sets emission factors automatically">
+              <Select value={inputs.turbineType} onChange={handleTurbineType} options={turbineTypes} />
+            </Field>
+            <Field label="Heat Rate (MMBtu/MWh)"><InputMono value={inputs.heatRate} onChange={v => update('heatRate', v)} type="number" step="0.1" /></Field>
+            <Field label="NOx Factor (lb/MMBtu)"><InputMono value={inputs.noxFactor} onChange={v => update('noxFactor', v)} type="number" step="0.001" /></Field>
+            <Field label="CO Factor (lb/MMBtu)"><InputMono value={inputs.coFactor} onChange={v => update('coFactor', v)} type="number" step="0.001" /></Field>
+            <Field label="Stack Height (ft)"><InputMono value={inputs.stackHeight} onChange={v => update('stackHeight', v)} type="number" /></Field>
+            <Field label="Nearest Receptor (ft)" hint="For AERMOD modeling scope"><InputMono value={inputs.nearestReceptorFt} onChange={v => update('nearestReceptorFt', v)} type="number" /></Field>
+          </div>
+        </Card>
+      )}
+
+      {/* Water-Specific Parameters */}
+      {permitTypes.includes('water') && (
+        <Card>
+          <SectionHeading icon={Drop} label="Water Permit Parameters" count={4} />
+          <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
+            <Field label="Cooling Water (MGD)" hint="Evaporation rate only"><InputMono value={inputs.coolingMGD} onChange={v => update('coolingMGD', v)} type="number" step="0.1" /></Field>
+            <Field label="Blowdown (%)" hint="% of circulating water discharged"><InputMono value={inputs.blowdownPct} onChange={v => update('blowdownPct', v)} type="number" /></Field>
+            <Field label="Process Water (MGD)"><InputMono value={inputs.waterMGD} onChange={v => update('waterMGD', v)} type="number" step="0.1" /></Field>
             <Field label="Discharge Pathway">
               <Select
                 value={inputs.dischargePathway || ''}
@@ -385,195 +506,436 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               />
             </Field>
           </div>
-        )}
-
-        {/* Building-Specific Parameters — only when 'building' selected */}
-        {permitTypes.includes('building') && (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
-            <SectionHeading icon={SECTION_ICONS.building.icon} accent={SECTION_ICONS.building.accent} label="Building Permitting Parameters" />
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <Field label="Building Footprint (sqft)"><Input value={inputs.buildingSqFt} onChange={v => update('buildingSqFt', v)} type="number" /></Field>
-              <Field label="Stories"><Input value={inputs.stories} onChange={v => update('stories', v)} type="number" min="1" max="12" /></Field>
-              <Field label="Occupancy Type">
-                <select value={inputs.occupancyType} onChange={e => update('occupancyType', e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600/50">
-                  {['Business (B)','Industrial (F-1)','Storage (S-1)','Mixed (B/S-1)'].map(o =>
-                    <option key={o} value={o}>{o}</option>
-                  )}
-                </select>
-              </Field>
-              <Field label="Fire Suppression">
-                <select value={inputs.fireSuppression} onChange={e => update('fireSuppression', e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600/50">
-                  {['Pre-action sprinkler','Wet pipe sprinkler','Dry pipe sprinkler','Clean agent (FM-200/Novec)','Hybrid (pre-action + clean agent)'].map(o =>
-                    <option key={o} value={o}>{o}</option>
-                  )}
-                </select>
-              </Field>
-              <Field label="Emergency Power Config">
-                <select value={inputs.emergencyPowerConfig} onChange={e => update('emergencyPowerConfig', e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600/50">
-                  {['N','N+1','2N','2N+1'].map(o =>
-                    <option key={o} value={o}>{o}</option>
-                  )}
-                </select>
-              </Field>
-            </div>
-          </div>
-        )}
-
-        {/* Power/Interconnection Parameters — only when 'power' selected */}
-        {permitTypes.includes('power') && (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
-            <SectionHeading icon={SECTION_ICONS.power.icon} accent={SECTION_ICONS.power.accent} label="Power / Interconnection Parameters" />
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <Field label="Power Source Type">
-                <select value={inputs.powerSourceType} onChange={e => update('powerSourceType', e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600/50">
-                  {['Grid-only','On-site Generation','Hybrid (Grid + On-site)','Microgrid'].map(o =>
-                    <option key={o} value={o}>{o}</option>
-                  )}
-                </select>
-              </Field>
-              <Field label="Interconnection Voltage (kV)"><Input value={inputs.interconnectionVoltage} onChange={v => update('interconnectionVoltage', v)} type="number" /></Field>
-              <Field label="Transformer Capacity (MVA)"><Input value={inputs.transformerCapacity} onChange={v => update('transformerCapacity', v)} type="number" /></Field>
-            </div>
-            <div className="border-t border-zinc-700/40 pt-4">
-              <p className="text-xs text-zinc-500 mb-3 font-medium">Backup / Emergency Generators</p>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Genset Fuel Type">
-                  <Select
-                    value={inputs.gensetFuelType || 'Diesel'}
-                    onChange={v => update('gensetFuelType', v)}
-                    options={['Diesel', 'Natural Gas']}
-                  />
-                </Field>
-              </div>
-              <div className="grid grid-cols-3 gap-2 mt-3">
-                <Field label="# Gensets"><Input value={inputs.gensetCount} onChange={v => update('gensetCount', v)} type="number" /></Field>
-                <Field label="HP Each"><Input value={inputs.gensetHP} onChange={v => update('gensetHP', v)} type="number" /></Field>
-                <Field label="Hrs/yr" hint={'\u2264100 = emergency'}><Input value={inputs.gensetHours} onChange={v => update('gensetHours', v)} type="number" /></Field>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Generate My Permits button */}
-      <button
-        onClick={runScreening}
-        disabled={running}
-        className={`w-full py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2
-          ${running ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' : 'bg-zinc-100 text-zinc-900 hover:bg-white'}`}
-      >
-        {running ? (
-          <>
-            <CircleNotch weight="duotone" size={18} className="animate-spin" />
-            Generating Permits...
-          </>
-        ) : (
-          <>
-            <Lightning weight="duotone" size={18} />
-            Generate My Permits
-          </>
-        )}
-      </button>
-
-      {done && (
-        <div className="rounded-2xl border border-emerald-900/50 bg-emerald-950/10 p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <Check weight="duotone" size={18} className="text-emerald-400" />
-            <p className="text-emerald-400 font-semibold text-sm">Screening Complete</p>
-          </div>
-          <p className="text-xs text-zinc-500">Permit pathways, PTE, and document packages generated. Navigate to the relevant tabs to view results.</p>
-          <div className="flex flex-wrap gap-2 mt-1">
-            {resultsNavItems.map(b => (
-              <button key={b.tab} onClick={() => setActiveTab(b.tab)}
-                className="inline-flex items-center gap-1.5 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 text-xs rounded-lg py-2 px-3 transition-colors whitespace-nowrap">
-                <ArrowRight weight="duotone" size={12} className="text-zinc-500" />
-                {b.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        </Card>
       )}
 
-      {/* Scenario Analyzer */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5">
-        <div className="flex items-center justify-between mb-4 gap-3">
-          <h3 className="text-sm font-semibold text-zinc-300">Scenario Analyzer</h3>
-          <div className="flex gap-1 flex-wrap">
-            {['greenfield', 'expansion', 'upsized', 'colocated'].map(s => (
-              <button
-                key={s}
-                onClick={() => setScenario(s)}
-                className={`text-xs px-2.5 py-1 rounded-lg border transition-all capitalize
-                  ${scenario === s
-                    ? 'bg-zinc-800 border-zinc-700 text-zinc-200'
-                    : 'border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'}`}
-              >
-                {s}
-              </button>
-            ))}
+      {/* Building-Specific Parameters */}
+      {permitTypes.includes('building') && (
+        <Card>
+          <SectionHeading icon={Buildings} label="Building Permitting Parameters" count={5} />
+          <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
+            <Field label="Building Footprint (sqft)"><Input value={inputs.buildingSqFt} onChange={v => update('buildingSqFt', v)} type="number" /></Field>
+            <Field label="Stories"><Input value={inputs.stories} onChange={v => update('stories', v)} type="number" /></Field>
+            <Field label="Occupancy Type">
+              <Select value={inputs.occupancyType} onChange={v => update('occupancyType', v)}
+                options={['Business (B)', 'Industrial (F-1)', 'Storage (S-1)', 'Mixed (B/S-1)']} />
+            </Field>
+            <Field label="Fire Suppression">
+              <Select value={inputs.fireSuppression} onChange={v => update('fireSuppression', v)}
+                options={['Pre-action sprinkler', 'Wet pipe sprinkler', 'Dry pipe sprinkler', 'Clean agent (FM-200/Novec)', 'Hybrid (pre-action + clean agent)']} />
+            </Field>
+            <Field label="Emergency Power Config">
+              <Select value={inputs.emergencyPowerConfig} onChange={v => update('emergencyPowerConfig', v)}
+                options={['N', 'N+1', '2N', '2N+1']} />
+            </Field>
           </div>
-        </div>
-        {scenarioLoading ? (
-          <div className="text-center py-6 text-xs text-zinc-500">Analyzing scenario...</div>
-        ) : scenarioAnalysis ? (
-          <div className="grid md:grid-cols-2 gap-4 text-xs">
-            <div>
-              <p className="text-zinc-400 mb-3">{scenarioAnalysis.description}</p>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-zinc-500">Complexity:</span>
-                <span className={`font-semibold ${scenarioAnalysis.complexity === 'high' ? 'text-red-400' : scenarioAnalysis.complexity === 'moderate' ? 'text-amber-400' : 'text-emerald-400'}`}>
-                  {scenarioAnalysis.complexity}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-zinc-500">Timeline:</span>
-                <span className="font-semibold text-zinc-200">{scenarioAnalysis.timelineMonths?.min}{'\u2013'}{scenarioAnalysis.timelineMonths?.max} months</span>
-              </div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-zinc-500">Permit types ({scenarioAnalysis.permitTypes?.length || 0}):</span>
-              </div>
-              <div className="flex flex-wrap gap-1 mb-3">
-                {scenarioAnalysis.permitTypes?.map((p, i) => (
-                  <span key={i} className="bg-zinc-800 text-zinc-400 rounded px-1.5 py-0.5">{p}</span>
-                ))}
-              </div>
-              {scenarioAnalysis.specialConsiderations?.length > 0 && (
-                <div className="space-y-1">
-                  <span className="text-zinc-500">Special considerations:</span>
-                  {scenarioAnalysis.specialConsiderations.map((c, i) => (
-                    <div key={i} className="text-amber-300 bg-amber-950/20 rounded px-2 py-1">{c}</div>
-                  ))}
-                </div>
-              )}
+        </Card>
+      )}
+
+      {/* Power/Interconnection Parameters */}
+      {permitTypes.includes('power') && (
+        <Card>
+          <SectionHeading icon={Lightning} label="Power / Interconnection Parameters" count={6} />
+          <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
+            <Field label="Power Source Type">
+              <Select value={inputs.powerSourceType} onChange={v => update('powerSourceType', v)}
+                options={['Grid-only', 'On-site Generation', 'Hybrid (Grid + On-site)', 'Microgrid']} />
+            </Field>
+            <Field label="Interconnection Voltage (kV)"><InputMono value={inputs.interconnectionVoltage} onChange={v => update('interconnectionVoltage', v)} type="number" /></Field>
+            <Field label="Transformer Capacity (MVA)"><InputMono value={inputs.transformerCapacity} onChange={v => update('transformerCapacity', v)} type="number" /></Field>
+          </div>
+
+          <div className="mt-5 pt-5 border-t border-border">
+            <div className="text-[11.5px] font-medium text-muted-foreground mb-4">Backup / Emergency Generators</div>
+            <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
+              <Field label="Genset Fuel Type">
+                <Select value={inputs.gensetFuelType || 'Diesel'} onChange={v => update('gensetFuelType', v)}
+                  options={['Diesel', 'Natural Gas']} />
+              </Field>
+              <div />
+              <Field label="Number of Gensets"><InputMono value={inputs.gensetCount} onChange={v => update('gensetCount', v)} type="number" /></Field>
+              <Field label="HP Each"><InputMono value={inputs.gensetHP} onChange={v => update('gensetHP', v)} type="number" /></Field>
+              <Field label="Operating Hours / Year" hint="<=100 = emergency"><InputMono value={inputs.gensetHours} onChange={v => update('gensetHours', v)} type="number" /></Field>
             </div>
-            <div>
-              <span className="text-zinc-500 block mb-2">Milestones</span>
-              <div className="space-y-2">
-                {scenarioAnalysis.milestones?.map((m, i) => (
-                  <div key={i} className="bg-zinc-800/40 rounded-lg p-2.5">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold text-zinc-200">{m.phase}</span>
-                      <span className="text-zinc-500 text-xs">{m.durationWeeks?.join('\u2013')} wks</span>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+
+  // ─── STEP 3: Review ───────────────────────────────────────────────────────
+  const renderStep3 = () => {
+    const totalMW = inputs.turbines * inputs.mwPerTurbine;
+    const pathway = results?.pathway || {};
+    const comparison = computeTimelineComparison(inputs, results);
+
+    const timelinePhases = [
+      { label: 'Site Intake & Screening', weeks: '1-4', color: '#4ade80', status: 'complete' },
+      { label: 'Technical Analysis & Modeling', weeks: '4-10', color: '#3b82f6', status: 'upcoming' },
+      { label: 'Document Generation & Assembly', weeks: '6-12', color: '#e0a95c', status: 'upcoming' },
+      { label: 'Agency Submission & Review', weeks: '10-40', color: '#f87171', status: 'upcoming' },
+      { label: 'Permit Issuance', weeks: '16-60', color: '#a1a1aa', status: 'upcoming' },
+    ];
+
+    return (
+      <div className="space-y-5">
+        {/* 1. Site Summary */}
+        <Card>
+          <div className="flex items-center flex-wrap gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <MapPin weight="duotone" size={18} className="text-muted-foreground flex-shrink-0" />
+              <span className="text-[15px] font-bold text-foreground truncate">{inputs.siteName || 'BigWatt AI Campus'}</span>
+            </div>
+            <span className="text-[13px] text-muted-foreground">/</span>
+            <span className="text-[13px] text-muted-foreground">{inputs.county || inputs.state}, {inputs.state}</span>
+            <span className="text-[13px] text-muted-foreground">/</span>
+            <Badge>{PROJECT_TYPE_CONFIG[projectScenario]?.label || 'Greenfield Development'}</Badge>
+            {permitTypes.map(key => {
+              const def = PERMIT_TYPE_CONFIG.find(p => p.key === key);
+              if (!def) return null;
+              const Icon = def.icon;
+              return (
+                <Badge key={key}>
+                  <Icon weight="duotone" size={12} className="text-muted-foreground" />
+                  {def.label}
+                </Badge>
+              );
+            })}
+          </div>
+        </Card>
+
+        {/* 2. Headline Metric */}
+        <Card>
+          <SectionHeading icon={ChartBar} label="Permitting Timeline Comparison" />
+          {results ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-card  p-6 border border-border">
+                <div className="text-[11.5px] font-medium text-muted-foreground mb-2">Traditional Pathway</div>
+                <div className="text-[32px] font-bold text-muted-foreground tracking-[-0.02em]">
+                  ~{comparison.traditional.totalMonths} <span className="text-[16px] font-medium">months</span>
+                </div>
+                <div className="text-[12px] text-muted-foreground mt-1">
+                  {comparison.traditional.pathwayLabel} — baseline emissions
+                </div>
+                {comparison.traditional.totalMonths > comparison.brickAccel.totalMonths && (
+                  <div className="mt-3 text-xs text-muted-foreground bg-background  px-3 py-2 border border-border">
+                    Without Brick optimization, this project faces full PSD review duration
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-card  p-6 border border-border relative overflow-hidden">
+                <div className="text-[11.5px] font-medium text-muted-foreground mb-2">Brick-Accelerated</div>
+                <div className="text-[32px] font-bold text-primary tracking-[-0.02em]">
+                  ~{comparison.brickAccel.totalMonths} <span className="text-[16px] font-medium text-muted-foreground">months</span>
+                </div>
+                <div className="text-[12px] text-muted-foreground mt-1">
+                  {comparison.brickAccel.pathwayLabel} — Brick-optimized
+                </div>
+                {comparison.monthsSaved > 0 && (
+                  <div className="mt-3 inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5  border border-primary/20">
+                    <Timer weight="duotone" size={14} />
+                    {comparison.monthsSaved} months saved ({comparison.pctFaster}% faster)
+                  </div>
+                )}
+                <div className="absolute top-0 right-0 w-16 h-16">
+                  <div className="absolute top-3 right-3 text-[#3b82f6]/20 text-xs font-bold tracking-wider uppercase" style={{ transform: 'rotate(45deg)' }}>Brick</div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-[13px] text-muted-foreground py-4">
+              Complete the screening to see the timeline comparison. Timeline data is computed from your actual site emissions and pathway determination.
+            </div>
+          )}
+        </Card>
+
+        {/* 3. Permit-by-Permit Breakdown */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {permitTypes.includes('air') && (
+            <Card>
+              <div className="flex items-center gap-2.5 mb-4">
+                <Wind weight="duotone" size={18} className="text-muted-foreground" />
+                <h3 className="text-[15px] font-bold text-foreground">Air Permit</h3>
+              </div>
+              {results ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-card  p-3">
+                      <div className="text-xs text-muted-foreground">Baseline NOx</div>
+                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.baseline?.nox?.toFixed(1) || '—'} tpy</div>
                     </div>
-                    <div className="text-zinc-600">
-                      {m.activities?.slice(0, 2).map((a, j) => (
-                        <div key={j}>{'\u2022'} {a}</div>
-                      ))}
-                      {m.activities?.length > 2 && <div className="text-zinc-700">+{m.activities.length - 2} more</div>}
+                    <div className="bg-card  p-3">
+                      <div className="text-xs text-muted-foreground">Controlled NOx</div>
+                      <div className="text-[13px] font-semibold text-primary font-['IBM_Plex_Mono']">{results.controlled?.nox?.toFixed(1) || '—'} tpy</div>
+                    </div>
+                    <div className="bg-card  p-3">
+                      <div className="text-xs text-muted-foreground">Baseline CO</div>
+                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.baseline?.co?.toFixed(1) || '—'} tpy</div>
+                    </div>
+                    <div className="bg-card  p-3">
+                      <div className="text-xs text-muted-foreground">Controlled CO</div>
+                      <div className="text-[13px] font-semibold text-primary font-['IBM_Plex_Mono']">{results.controlled?.co?.toFixed(1) || '—'} tpy</div>
                     </div>
                   </div>
-                ))}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-muted-foreground">Pathway:</span>
+                    {pathway.requiresPSD ? (
+                      pathway.syntheticMinorViable ? (
+                        <Badge color="text-primary"><Check weight="duotone" size={12} /> Synthetic Minor</Badge>
+                      ) : (
+                        <Badge color="text-[#e0a95c]">PSD Major Source</Badge>
+                      )
+                    ) : (
+                      <Badge color="text-primary"><Check weight="duotone" size={12} /> True Minor Source</Badge>
+                    )}
+                    {pathway.requiresTitleV && <Badge color="text-[#e0a95c]">Title V</Badge>}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-[13px] text-muted-foreground">Run screening to see air permit metrics</div>
+              )}
+            </Card>
+          )}
+
+          {permitTypes.includes('water') && (
+            <Card>
+              <div className="flex items-center gap-2.5 mb-4">
+                <Drop weight="duotone" size={18} className="text-muted-foreground" />
+                <h3 className="text-[15px] font-bold text-foreground">Water Permit</h3>
+              </div>
+              {results ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-card  p-3">
+                      <div className="text-xs text-muted-foreground">Annual Water Use</div>
+                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.water?.annualWaterMG?.toFixed(0) || '—'} MG/yr</div>
+                    </div>
+                    <div className="bg-card  p-3">
+                      <div className="text-xs text-muted-foreground">Brick-Optimized</div>
+                      <div className="text-[13px] font-semibold text-primary font-['IBM_Plex_Mono']">{results.water?.optimizedWater?.toFixed(0) || '—'} MG/yr</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-muted-foreground">Discharge:</span>
+                    <Badge>{inputs.dischargePathway || 'Not specified'}</Badge>
+                    <span className="text-xs text-muted-foreground">NPDES:</span>
+                    <Badge color={inputs.dischargePathway === 'Surface Water Discharge' ? 'text-[#e0a95c]' : 'text-primary'}>
+                      {inputs.dischargePathway === 'Surface Water Discharge' ? 'Individual Permit Likely' : 'General Permit / POTW'}
+                    </Badge>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-[13px] text-muted-foreground">Run screening to see water permit metrics</div>
+              )}
+            </Card>
+          )}
+
+          {permitTypes.includes('building') && (
+            <Card>
+              <div className="flex items-center gap-2.5 mb-4">
+                <Buildings weight="duotone" size={18} className="text-muted-foreground" />
+                <h3 className="text-[15px] font-bold text-foreground">Building Permit</h3>
+              </div>
+              {results ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-card  p-3">
+                      <div className="text-xs text-muted-foreground">IBC Class</div>
+                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.building?.ibcClass || '—'}</div>
+                    </div>
+                    <div className="bg-card  p-3">
+                      <div className="text-xs text-muted-foreground">Occupancy</div>
+                      <div className="text-[13px] font-semibold text-foreground">{results.building?.occupancy || '—'}</div>
+                    </div>
+                    <div className="bg-card  p-3">
+                      <div className="text-xs text-muted-foreground">Stories</div>
+                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.building?.stories || '—'}</div>
+                    </div>
+                    <div className="bg-card  p-3">
+                      <div className="text-xs text-muted-foreground">Fire Suppression</div>
+                      <div className="text-[13px] font-semibold text-foreground">{results.building?.fireSuppression || '—'}</div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-[13px] text-muted-foreground">Run screening to see building permit metrics</div>
+              )}
+            </Card>
+          )}
+
+          {permitTypes.includes('power') && (
+            <Card>
+              <div className="flex items-center gap-2.5 mb-4">
+                <Lightning weight="duotone" size={18} className="text-muted-foreground" />
+                <h3 className="text-[15px] font-bold text-foreground">Power / Interconnection</h3>
+              </div>
+              {results ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-card  p-3">
+                      <div className="text-xs text-muted-foreground">Total Capacity</div>
+                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.totalMW?.toFixed(0) || totalMW} MW</div>
+                    </div>
+                    <div className="bg-card  p-3">
+                      <div className="text-xs text-muted-foreground">Interconnection</div>
+                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.interconnectionVoltage || '—'} kV</div>
+                    </div>
+                    <div className="bg-card  p-3">
+                      <div className="text-xs text-muted-foreground">Power Source</div>
+                      <div className="text-[13px] font-semibold text-foreground">{results.power?.powerSource || '—'}</div>
+                    </div>
+                    <div className="bg-card  p-3">
+                      <div className="text-xs text-muted-foreground">Genset Total</div>
+                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.gensetTotalMW?.toFixed(1) || '—'} MW</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-muted-foreground">FERC:</span>
+                    <Badge color={totalMW > 20 ? 'text-[#e0a95c]' : 'text-primary'}>
+                      {totalMW > 20 ? 'LGIA Required' : 'SGIP Eligible'}
+                    </Badge>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-[13px] text-muted-foreground">Run screening to see power/interconnection metrics</div>
+              )}
+            </Card>
+          )}
+        </div>
+
+        {/* 4. Compact Milestone Timeline Preview */}
+        <Card>
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2.5">
+              <Timer weight="duotone" size={18} className="text-muted-foreground" />
+              <h3 className="text-[15px] font-bold text-foreground">Permitting Phases Overview</h3>
+            </div>
+            <button
+              onClick={() => setActiveTab('milestones')}
+              className="inline-flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              View full timeline
+              <CaretRight weight="duotone" size={12} />
+            </button>
+          </div>
+          <div className="space-y-0 relative">
+            <div className="absolute left-[15px] top-3 bottom-3 w-[2px] bg-[#27272a]" />
+            {timelinePhases.map((phase, i) => (
+              <div key={i} className="flex items-start gap-4 relative pb-5 last:pb-0">
+                <div
+                  className="w-[12px] h-[12px]  border-2 border-[#111113] mt-0.5 z-10 flex-shrink-0"
+                  style={{ backgroundColor: phase.color }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13px] font-semibold text-foreground">{phase.label}</span>
+                    <span className="text-xs text-muted-foreground font-['IBM_Plex_Mono']">{phase.weeks}</span>
+                  </div>
+                  <div className="w-full h-1.5  bg-card mt-1.5 overflow-hidden">
+                    <div
+                      className="h-full  transition-all"
+                      style={{
+                        width: phase.status === 'complete' ? '100%' : '30%',
+                        backgroundColor: phase.color,
+                        opacity: phase.status === 'complete' ? 1 : 0.4,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* 5. Generate Button */}
+        <div className="pt-2">
+          <PrimaryButton onClick={runScreening} disabled={running} icon={running ? CircleNotch : Lightning} fullWidth>
+            {running ? (
+              <>Generating Permits...</>
+            ) : (
+              <>Generate My Permits</>
+            )}
+          </PrimaryButton>
+          {done && (
+            <div className="mt-4 bg-card border border-border  p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Check weight="duotone" size={16} className="text-primary" />
+                <span className="text-[13px] font-semibold text-primary">Screening Complete</span>
+              </div>
+              <p className="text-[12px] text-muted-foreground mb-3">Permit pathways, PTE, and document packages generated. Navigate to the relevant tabs to view results.</p>
+              <div className="flex flex-wrap gap-2">
+                {permitTypes.includes('air') && <ResultNavButton label="Air Permit AI" tab="air" setActiveTab={setActiveTab} />}
+                {permitTypes.includes('water') && <ResultNavButton label="Water Permit AI" tab="water" setActiveTab={setActiveTab} />}
+                {permitTypes.includes('building') && <ResultNavButton label="Building Permitting" tab="building" setActiveTab={setActiveTab} />}
+                {permitTypes.includes('power') && <ResultNavButton label="Power Permitting" tab="power" setActiveTab={setActiveTab} />}
+                <ResultNavButton label="Milestone Timeline" tab="milestones" setActiveTab={setActiveTab} />
+                <ResultNavButton label="Document Factory" tab="docs" setActiveTab={setActiveTab} />
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="text-center py-6 text-xs text-zinc-600">Enter site data above to see scenario analysis</div>
-        )}
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // ─── Render ────────────────────────────────────────────────────────────────
+  const stepValid = () => {
+    if (step === 1) {
+      const hasPermit = (inputs.permitTypesNeeded || ['air', 'water', 'building', 'power']).length > 0;
+      const hasProject = !!inputs.projectScenario;
+      return hasPermit && hasProject;
+    }
+    if (step === 2) return true;
+    return true;
+  };
+
+  return (
+    <div className="px-[40px] py-[36px_40px_48px] max-w-[1180px] mx-auto space-y-6">
+      <div>
+        <h1 className="text-[22px] font-bold text-foreground tracking-[-0.02em]">Site Intake & Data Collection</h1>
+        <p className="text-[13px] text-muted-foreground mt-1">
+          {step === 1 && 'Configure your project scope — permit types and development scenario.'}
+          {step === 2 && 'Enter site, equipment, and operational parameters.'}
+          {step === 3 && 'Review your inputs, compare timelines, and generate permits.'}
+        </p>
+      </div>
+
+      <Stepper currentStep={step} />
+
+      {step === 1 && renderStep1()}
+      {step === 2 && renderStep2()}
+      {step === 3 && renderStep3()}
+
+      <div className="flex items-center justify-between pt-2">
+        <div>
+          {step > 1 && (
+            <GhostButton onClick={() => setStep(s => s - 1)} icon={ArrowLeft}>
+              Back
+            </GhostButton>
+          )}
+        </div>
+        <div>
+          {step < 3 && (
+            <SecondaryButton onClick={() => setStep(s => s + 1)} disabled={!stepValid()} icon={ArrowRight}>
+              Continue
+            </SecondaryButton>
+          )}
+        </div>
       </div>
     </div>
+  );
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function ResultNavButton({ label, tab, setActiveTab }) {
+  return (
+    <button
+      onClick={() => setActiveTab(tab)}
+      className="inline-flex items-center gap-1.5 bg-card hover:bg-[#27272a] text-muted-foreground text-[12px]  py-2 px-3 border border-border transition-colors"
+    >
+      <ArrowRight weight="duotone" size={12} className="text-muted-foreground" />
+      {label}
+    </button>
   );
 }

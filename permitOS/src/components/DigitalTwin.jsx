@@ -51,14 +51,14 @@ function MiniChart({ data, keyBaseline, keyOptimized, color, label, unit }) {
   }, [data, keyBaseline, keyOptimized, color]);
 
   return (
-    <div className="bg-gray-900/40 border border-gray-700/40 rounded-xl p-4">
-      <div className="text-xs text-gray-400 mb-2 font-medium">{label}</div>
+    <div className="bg-card/40 border border-border/40  p-4">
+      <div className="text-xs text-muted-foreground mb-2 font-medium">{label}</div>
       <canvas ref={canvasRef} width={220} height={80} className="w-full" />
       <div className="flex gap-3 mt-2">
-        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <div className="w-3 h-0.5 bg-red-400/60"></div> Baseline
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <div className="w-3 h-0.5" style={{ backgroundColor: color }}></div> Brick-Optimized
         </div>
       </div>
@@ -90,38 +90,38 @@ export default function DigitalTwin({ results, inputs }) {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="rounded-xl border border-amber-700/30 bg-amber-950/20 p-5">
+      <div className=" border border-amber-700/30 bg-amber-950/20 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-base font-semibold text-white">Permit-Linked Digital Twin Simulator</h2>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Real-time simulation of turbine dispatch, cooling load, water use, and emissions — all within permit compliance envelopes.
               This is not a BAS dashboard. Every output is linked to a permit condition.
             </p>
           </div>
           <button onClick={run} disabled={!results}
-            className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2
-              ${!results ? 'bg-amber-800/40 text-amber-400/50 cursor-not-allowed' : 'bg-amber-600 hover:bg-amber-500 text-white'}`}>
+            className={`px-5 py-2.5  text-sm font-semibold transition-all flex items-center gap-2
+              ${!results ? 'bg-amber-800/40 text-destructive/50 cursor-not-allowed' : 'bg-amber-600 hover:bg-amber-500 text-white'}`}>
             ▶ Run 24-Hour Simulation
           </button>
         </div>
       </div>
 
       {!results && (
-        <div className="text-center py-16 text-gray-600">
+        <div className="text-center py-16 text-muted-foreground/70">
           <div className="text-4xl mb-3">⚡</div>
           <p>Run Site Intake screening first to enable simulation.</p>
         </div>
       )}
 
       {results && !simData && (
-        <div className="text-center py-16 border border-gray-800/40 rounded-xl bg-gray-900/20">
+        <div className="text-center py-16 border border-border/40  bg-card/20">
           <div className="text-4xl mb-3">⚡</div>
-          <p className="text-gray-500 text-sm mb-4">Click "Run 24-Hour Simulation" to see the permit-linked digital twin in action.</p>
-          <div className="grid grid-cols-3 gap-4 max-w-md mx-auto text-xs text-gray-600">
-            <div className="bg-gray-800/40 rounded-lg p-3">Turbine dispatch profile</div>
-            <div className="bg-gray-800/40 rounded-lg p-3">NOx/CO hourly emissions</div>
-            <div className="bg-gray-800/40 rounded-lg p-3">Water use / blowdown</div>
+          <p className="text-muted-foreground text-sm mb-4">Click "Run 24-Hour Simulation" to see the permit-linked digital twin in action.</p>
+          <div className="grid grid-cols-3 gap-4 max-w-md mx-auto text-xs text-muted-foreground/70">
+            <div className="bg-muted/40  p-3">Turbine dispatch profile</div>
+            <div className="bg-muted/40  p-3">NOx/CO hourly emissions</div>
+            <div className="bg-muted/40  p-3">Water use / blowdown</div>
           </div>
         </div>
       )}
@@ -129,30 +129,30 @@ export default function DigitalTwin({ results, inputs }) {
       {simData && (
         <>
           {/* Hour scrubber */}
-          <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
+          <div className=" border border-border/40 bg-card/40 p-5">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-300">Hour-by-Hour Permit Compliance View</h3>
-              <span className="text-indigo-400 font-bold text-sm">{String(hour).padStart(2,'0')}:00</span>
+              <h3 className="text-sm font-semibold text-foreground/80">Hour-by-Hour Permit Compliance View</h3>
+              <span className="text-primary font-bold text-sm">{String(hour).padStart(2,'0')}:00</span>
             </div>
             <input
               type="range" min={0} max={23} step={1} value={hour}
               onChange={e => setHour(parseInt(e.target.value))}
-              className="w-full accent-indigo-500 mb-4"
+              className="w-full accent-primary mb-4"
             />
             {current && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {[
-                  { label: 'Turbine Output (Baseline)', value: `${current.baseline_mw} MW`, color: 'text-red-400' },
-                  { label: 'Turbine Output (Brick)', value: `${current.optimized_mw} MW`, color: 'text-indigo-400' },
-                  { label: 'NOx Emissions (Baseline)', value: `${current.baseline_nox} lb/hr`, color: 'text-red-400' },
-                  { label: 'NOx Emissions (Brick)', value: `${current.optimized_nox} lb/hr`, color: 'text-green-400' },
+                  { label: 'Turbine Output (Baseline)', value: `${current.baseline_mw} MW`, color: 'text-destructive' },
+                  { label: 'Turbine Output (Brick)', value: `${current.optimized_mw} MW`, color: 'text-primary' },
+                  { label: 'NOx Emissions (Baseline)', value: `${current.baseline_nox} lb/hr`, color: 'text-destructive' },
+                  { label: 'NOx Emissions (Brick)', value: `${current.optimized_nox} lb/hr`, color: 'text-primary' },
                   { label: 'Cooling Load (Baseline)', value: `${current.cooling_mw} MW`, color: 'text-orange-400' },
                   { label: 'Cooling Load (Brick)', value: `${current.cooling_optimized} MW`, color: 'text-blue-400' },
                   { label: 'Water Use (Baseline)', value: `${current.water_gpm} GPM`, color: 'text-blue-400' },
-                  { label: 'Water Use (Brick)', value: `${current.water_optimized} GPM`, color: 'text-green-400' },
+                  { label: 'Water Use (Brick)', value: `${current.water_optimized} GPM`, color: 'text-primary' },
                 ].map(m => (
-                  <div key={m.label} className="bg-gray-800/40 rounded-xl p-3">
-                    <div className="text-xs text-gray-500">{m.label}</div>
+                  <div key={m.label} className="bg-muted/40  p-3">
+                    <div className="text-xs text-muted-foreground">{m.label}</div>
                     <div className={`text-lg font-bold mt-0.5 ${m.color}`}>{m.value}</div>
                   </div>
                 ))}
@@ -161,8 +161,8 @@ export default function DigitalTwin({ results, inputs }) {
           </div>
 
           {/* Recharts main views */}
-          <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
-            <h3 className="text-sm font-semibold text-gray-300 mb-4">24-Hour Turbine Load & Emissions Profile</h3>
+          <div className=" border border-border/40 bg-card/40 p-5">
+            <h3 className="text-sm font-semibold text-foreground/80 mb-4">24-Hour Turbine Load & Emissions Profile</h3>
             <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={simData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                 <defs>
@@ -193,8 +193,8 @@ export default function DigitalTwin({ results, inputs }) {
 
           <div className="grid md:grid-cols-2 gap-4">
             {/* NOx Emissions */}
-            <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
-              <h3 className="text-sm font-semibold text-gray-300 mb-4">Hourly NOx Emissions — Permit Compliance</h3>
+            <div className=" border border-border/40 bg-card/40 p-5">
+              <h3 className="text-sm font-semibold text-foreground/80 mb-4">Hourly NOx Emissions — Permit Compliance</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={simData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
@@ -208,8 +208,8 @@ export default function DigitalTwin({ results, inputs }) {
             </div>
 
             {/* Water Use */}
-            <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
-              <h3 className="text-sm font-semibold text-gray-300 mb-4">Hourly Water Use — Cooling Tower</h3>
+            <div className=" border border-border/40 bg-card/40 p-5">
+              <h3 className="text-sm font-semibold text-foreground/80 mb-4">Hourly Water Use — Cooling Tower</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={simData.filter((_, i) => i % 2 === 0)} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
@@ -236,13 +236,13 @@ export default function DigitalTwin({ results, inputs }) {
           </div>
 
           {/* Model disclaimer */}
-          <p className="text-xs text-gray-500 italic text-center">
+          <p className="text-xs text-muted-foreground italic text-center">
             Modeled from typical data center/turbine operating patterns and site parameters — not live equipment telemetry.
           </p>
 
           {/* Permit compliance envelope */}
-          <div className="rounded-xl border border-gray-700/40 bg-gray-900/40 p-5">
-            <h3 className="text-sm font-semibold text-gray-300 mb-4">Permit Compliance Envelope — Live Status</h3>
+          <div className=" border border-border/40 bg-card/40 p-5">
+            <h3 className="text-sm font-semibold text-foreground/80 mb-4">Permit Compliance Envelope — Live Status</h3>
             <div className="space-y-3">
               {[
                 {
@@ -280,30 +280,30 @@ export default function DigitalTwin({ results, inputs }) {
               ].map(item => {
                 const pct = (item.controlled / item.limit) * 100;
                 return (
-                  <div key={item.label} className="bg-gray-800/30 rounded-xl p-4">
+                  <div key={item.label} className="bg-muted/30  p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-300">{item.label}</span>
+                      <span className="text-sm font-medium text-foreground/80">{item.label}</span>
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-gray-500">
-                          Baseline: <span className="text-red-400">{item.baseline.toFixed(1)} {item.unit}</span>
+                        <span className="text-xs text-muted-foreground">
+                          Baseline: <span className="text-destructive">{item.baseline.toFixed(1)} {item.unit}</span>
                         </span>
-                        <span className="text-xs text-gray-500">
-                          Controlled: <span className="text-indigo-400">{item.controlled.toFixed(1)} {item.unit}</span>
+                        <span className="text-xs text-muted-foreground">
+                          Controlled: <span className="text-primary">{item.controlled.toFixed(1)} {item.unit}</span>
                         </span>
-                        <span className={`text-xs px-2.5 py-0.5 rounded-full border ${item.compliance ? 'bg-green-900/30 border-green-700/40 text-green-400' : 'bg-red-900/30 border-red-700/40 text-red-400'}`}>
+                        <span className={`text-xs px-2.5 py-0.5  border ${item.compliance ? 'bg-primary/10 border-green-700/40 text-primary' : 'bg-destructive/10 border-red-700/40 text-destructive'}`}>
                           {item.compliance ? '✓ Compliant' : '⚠ Exceeds'}
                         </span>
                       </div>
                     </div>
-                    <div className="bg-gray-700/40 rounded-full h-2">
+                    <div className="bg-muted/40  h-2">
                       <div
-                        className={`h-2 rounded-full transition-all ${pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-indigo-500'}`}
+                        className={`h-2  transition-all ${pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-primary'}`}
                         style={{ width: `${Math.min(100, pct)}%` }}
                       />
                     </div>
                     <div className="flex justify-between mt-1">
-                      <span className="text-xs text-gray-600">0</span>
-                      <span className="text-xs text-gray-600">{pct.toFixed(0)}% of {item.limit.toLocaleString()} {item.unit} limit</span>
+                      <span className="text-xs text-muted-foreground/70">0</span>
+                      <span className="text-xs text-muted-foreground/70">{pct.toFixed(0)}% of {item.limit.toLocaleString()} {item.unit} limit</span>
                     </div>
                   </div>
                 );
@@ -312,29 +312,29 @@ export default function DigitalTwin({ results, inputs }) {
           </div>
 
           {/* Battery dispatch */}
-          <div className="rounded-xl border border-indigo-700/30 bg-indigo-950/20 p-5">
-            <h3 className="text-sm font-semibold text-indigo-300 mb-3">Battery / Thermal Storage Dispatch — Permit Value</h3>
+          <div className=" border border-primary/30 bg-primary/10 p-5">
+            <h3 className="text-sm font-semibold text-primary mb-3">Battery / Thermal Storage Dispatch — Permit Value</h3>
             <div className="grid md:grid-cols-3 gap-4 text-sm">
-              <div className="bg-gray-900/40 rounded-xl p-4">
-                <div className="text-xs text-gray-500 mb-2">Peak Battery Dispatch</div>
-                <div className="text-2xl font-bold text-indigo-400">
+              <div className="bg-card/40  p-4">
+                <div className="text-xs text-muted-foreground mb-2">Peak Battery Dispatch</div>
+                <div className="text-2xl font-bold text-primary">
                   {Math.max(...simData.map(d => d.battery_dispatch)).toFixed(1)} MW
                 </div>
-                <div className="text-xs text-gray-600 mt-1">Smooths turbine starts → reduces SSM emissions</div>
+                <div className="text-xs text-muted-foreground/70 mt-1">Smooths turbine starts → reduces SSM emissions</div>
               </div>
-              <div className="bg-gray-900/40 rounded-xl p-4">
-                <div className="text-xs text-gray-500 mb-2">Startup Events Avoided</div>
-                <div className="text-2xl font-bold text-green-400">
+              <div className="bg-card/40  p-4">
+                <div className="text-xs text-muted-foreground mb-2">Startup Events Avoided</div>
+                <div className="text-2xl font-bold text-primary">
                   {Math.floor(inputs.brickSavings * 0.8)} events/yr
                 </div>
-                <div className="text-xs text-gray-600 mt-1">Lower SSM emissions → stronger permit record</div>
+                <div className="text-xs text-muted-foreground/70 mt-1">Lower SSM emissions → stronger permit record</div>
               </div>
-              <div className="bg-gray-900/40 rounded-xl p-4">
-                <div className="text-xs text-gray-500 mb-2">NOx Saved (Brick vs. Baseline)</div>
-                <div className="text-2xl font-bold text-green-400">
+              <div className="bg-card/40  p-4">
+                <div className="text-xs text-muted-foreground mb-2">NOx Saved (Brick vs. Baseline)</div>
+                <div className="text-2xl font-bold text-primary">
                   {results.avoided.nox.toFixed(1)} tpy
                 </div>
-                <div className="text-xs text-gray-600 mt-1">Creates buffer below permit NOx cap</div>
+                <div className="text-xs text-muted-foreground/70 mt-1">Creates buffer below permit NOx cap</div>
               </div>
             </div>
           </div>
