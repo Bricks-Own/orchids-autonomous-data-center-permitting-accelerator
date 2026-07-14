@@ -55,7 +55,7 @@ export default function PowerPermitAI({ inputs, results, setActiveTab }) {
           <div key={m.label} className="bg-card/40 border border-border/40  p-3">
             <div className="text-xs text-muted-foreground mb-1">{m.label}</div>
             <div className={`text-sm font-bold ${m.color}`}>{m.value}</div>
-            <div className="text-[10px] text-muted-foreground/70 mt-0.5">{m.sub}</div>
+            <div className="text-xs text-muted-foreground/70 mt-0.5">{m.sub}</div>
           </div>
         ))}
       </div>
@@ -67,7 +67,7 @@ export default function PowerPermitAI({ inputs, results, setActiveTab }) {
             <div key={item.label} className="bg-muted/40  p-3">
               <div className="text-xs font-medium text-foreground/80 mb-1">{item.label}</div>
               <div className="text-xs text-primary font-medium">{item.status}</div>
-              <div className="text-[10px] text-muted-foreground/70 mt-0.5">{item.detail}</div>
+              <div className="text-xs text-muted-foreground/70 mt-0.5">{item.detail}</div>
             </div>
           ))}
         </div>
@@ -82,8 +82,8 @@ export default function PowerPermitAI({ inputs, results, setActiveTab }) {
                 className="w-full text-left p-4 hover:bg-muted/40 transition-colors flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] bg-yellow-900/30 text-yellow-400 px-1.5 py-0.5 rounded border border-yellow-800/30">{mod.category}</span>
-                    <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded">{mod.id.toUpperCase()}</span>
+                    <span className="text-xs bg-yellow-900/30 text-yellow-400 px-1.5 py-0.5 rounded border border-yellow-800/30">{mod.category}</span>
+                    <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded">{mod.id.toUpperCase()}</span>
                   </div>
                   <h4 className="text-sm font-semibold text-foreground">{mod.title}</h4>
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{mod.description}</p>
@@ -109,11 +109,11 @@ export default function PowerPermitAI({ inputs, results, setActiveTab }) {
                     </ul>
                   </div>
                   <div className="bg-muted/40  p-2.5">
-                    <p className="text-[10px] text-muted-foreground italic mb-2">Cross-ref: AIR-001 (Gen details), AIR-008 (Turbine compliance), Milestones (interconnection ~52w), Building (NFPA 110)</p>
+                    <p className="text-xs text-muted-foreground italic mb-2">Cross-ref: AIR-001 (Gen details), AIR-008 (Turbine compliance), Milestones (interconnection ~52w), Building (NFPA 110)</p>
                     <div className="flex flex-wrap gap-1.5">
                       {['intake','air','milestones','building'].map(tab => (
                         <button key={tab} onClick={() => setActiveTab && setActiveTab(tab)}
-                          className="text-[10px] bg-yellow-900/30 hover:bg-yellow-800/40 text-yellow-400 px-2 py-0.5 rounded border border-yellow-800/30 transition-colors">
+                          className="text-xs bg-yellow-900/30 hover:bg-yellow-800/40 text-yellow-400 px-2 py-0.5 rounded border border-yellow-800/30 transition-colors">
                           {tab === 'intake' ? '📋 Intake' : tab === 'air' ? '💨 Air' : tab === 'milestones' ? '📅 Milestones' : '🏗️ Building'}
                         </button>
                       ))}

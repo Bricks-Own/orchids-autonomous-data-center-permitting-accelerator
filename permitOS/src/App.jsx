@@ -33,11 +33,12 @@ import {
   SidebarSeparator,
   SidebarInset,
   SidebarTrigger,
+  useSidebar,
 } from './components/ui/sidebar';
 import {
   Compass, ChartBar, MapPin, Clipboard, Wind, Drop, Building, Lightning,
   CalendarCheck, FileText, Cube, ShieldCheck, Robot, Books, Wrench,
-  SignOut, ShieldCheck as ShieldLogo
+  SignOut, ShieldCheck as ShieldLogo, SidebarIcon as PanelLeft
 } from '@phosphor-icons/react';
 
 export const defaultInputs = {
@@ -164,7 +165,7 @@ function App() {
       <SidebarMenuItem key={tabId}>
         <SidebarMenuButton isActive={isActive} onClick={() => { setActiveTab(tabId); onPress?.(); }}>
           {Icon && <Icon weight={isActive ? "fill" : "duotone"} />}
-          <span>{label}</span>
+          <span className="truncate">{label}</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
     );
@@ -218,9 +219,9 @@ function App() {
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-svh w-full">
         <Sidebar collapsible="icon" variant="sidebar">
-          <SidebarHeader className="group-data-[collapsible=icon]:p-0">
-            <div className="flex items-center gap-3 px-2 py-1 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:h-full">
-              <div className="w-8 h-8 bg-primary flex items-center justify-center shrink-0">
+          <SidebarHeader className="group-data-[collapsible=icon]:px-0">
+            <div className="flex items-center gap-3 px-2 py-1 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
+              <div className="w-9 h-9 bg-primary flex items-center justify-center shrink-0">
                 <ShieldLogo className="w-5 h-5 text-primary-foreground" weight="duotone" />
               </div>
               <div className="group-data-[collapsible=icon]:hidden flex-1">
@@ -259,14 +260,7 @@ function App() {
           </SidebarContent>
           <SidebarSeparator />
           <SidebarFooter>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleLogout} variant="outline">
-                  <SignOut weight="duotone" />
-                  <span>Sign Out</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
+            <SidebarFooterContent onLogout={handleLogout} />
           </SidebarFooter>
         </Sidebar>
         <SidebarInset>
@@ -278,6 +272,26 @@ function App() {
         </SidebarInset>
       </div>
     </SidebarProvider>
+  );
+}
+
+function SidebarFooterContent({ onLogout }) {
+  const { toggleSidebar } = useSidebar();
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <SidebarMenuButton onClick={toggleSidebar} variant="outline">
+          <PanelLeft weight="duotone" />
+          <span>Collapse</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton onClick={onLogout} variant="outline">
+          <SignOut weight="duotone" />
+          <span>Sign Out</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 }
 

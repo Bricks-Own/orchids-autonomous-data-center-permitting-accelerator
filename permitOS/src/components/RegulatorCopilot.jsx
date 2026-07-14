@@ -393,7 +393,7 @@ export default function RegulatorCopilot({ results, inputs }) {
                     : 'bg-muted/60 border border-border/40 text-foreground/80'}`}>
                   {msg.sourceType === 'fallback' && (
                     <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-amber-800/40">
-                      <span className="text-[10px] bg-amber-900/60 text-amber-300 rounded px-1.5 py-0.5 border border-amber-700/50 font-semibold">
+                      <span className="text-xs bg-amber-900/60 text-amber-300 rounded px-1.5 py-0.5 border border-amber-700/50 font-semibold">
                         Limited mode — AI not connected
                       </span>
                     </div>

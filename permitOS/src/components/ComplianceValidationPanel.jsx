@@ -609,7 +609,7 @@ function Gauge({ score }) {
         <span className={`text-3xl font-bold ${score >= 80 ? 'text-primary' : score >= 50 ? 'text-destructive' : 'text-destructive'}`}>
           {score}%
         </span>
-        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Compliant</span>
+        <span className="text-xs text-muted-foreground uppercase tracking-wider">Compliant</span>
       </div>
     </div>
   );
@@ -652,26 +652,26 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
 
           {/* Stats */}
           <div className="flex-1 min-w-[200px]">
-            <h3 className="text-sm font-semibold text-white mb-1">Document Compliance Validation</h3>
+            <h3 className="text-base font-semibold text-white mb-1">Document Compliance Validation</h3>
             <p className="text-xs text-muted-foreground mb-4">
               Each of the 26 permit documents is validated against applicable CFR regulations, emission thresholds, and operational limits. Results indicate regulatory readiness for agency submission.
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="bg-card/60  p-3 border border-green-700/30">
                 <div className="text-lg font-bold text-primary">{validation.passed}</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Passed</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Passed</div>
               </div>
               <div className="bg-card/60  p-3 border border-amber-700/30">
                 <div className="text-lg font-bold text-destructive">{validation.warnings}</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Warnings</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Warnings</div>
               </div>
               <div className="bg-card/60  p-3 border border-red-700/30">
                 <div className="text-lg font-bold text-destructive">{validation.failed}</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Failed</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Failed</div>
               </div>
               <div className="bg-card/60  p-3 border border-primary/30">
                 <div className="text-lg font-bold text-primary">{validation.total}</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Checks</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Total Checks</div>
               </div>
             </div>
           </div>
@@ -717,7 +717,7 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider">Sort</span>
+          <span className="text-xs text-muted-foreground/70 uppercase tracking-wider">Sort</span>
           <select
             value={sortBy}
             onChange={e => setSortBy(e.target.value)}
@@ -756,18 +756,18 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                   </span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded ${isAir ? 'bg-orange-900/30 text-orange-400' : 'bg-blue-900/30 text-blue-400'}`}>
+                      <span className={`font-mono text-xs px-1.5 py-0.5 rounded ${isAir ? 'bg-orange-900/30 text-orange-400' : 'bg-blue-900/30 text-blue-400'}`}>
                         {doc.key.toUpperCase()}
                       </span>
                       <span className="text-xs font-medium text-foreground/80 truncate">{doc.title}</span>
                     </div>
-                    <div className="text-[10px] text-muted-foreground/70 mt-0.5">
+                    <div className="text-xs text-muted-foreground/70 mt-0.5">
                       {doc.checks} validation checks · {doc.passed} passed · {doc.failed} failed · {doc.warnings} warnings · <span className="text-primary">RAG: {doc.ragMatchScore}%</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className={`text-[10px] px-2 py-0.5  border font-medium ${STATUS_COLORS[doc.overallStatus]}`}>
+                  <span className={`text-xs px-2 py-0.5  border font-medium ${STATUS_COLORS[doc.overallStatus]}`}>
                     {doc.overallStatus === 'pass' ? 'COMPLIANT' : doc.overallStatus === 'fail' ? 'NON-COMPLIANT' : 'NEEDS REVIEW'}
                   </span>
                   <span className="text-muted-foreground/70 text-xs">{expandedDoc === doc.key ? '▲' : '▼'}</span>
@@ -788,7 +788,7 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                         }`} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+                            <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${
                               v.status === 'pass' ? 'text-primary bg-green-900/20'
                               : v.status === 'fail' ? 'text-destructive bg-red-900/20'
                               : 'text-destructive bg-amber-900/20'
@@ -797,16 +797,16 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                             </span>
                             <span className="text-xs font-mono text-primary">{v.regulation}</span>
                             {v.required && (
-                              <span className="text-[9px] text-muted-foreground/70 bg-muted/60 px-1.5 py-0.5 rounded uppercase tracking-wider">Required</span>
+                              <span className="text-xs text-muted-foreground/70 bg-muted/60 px-1.5 py-0.5 rounded uppercase tracking-wider">Required</span>
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{v.description}</p>
                           {v.ragSnippet && (
-                            <p className="text-[10px] text-muted-foreground/70 mt-1 italic leading-relaxed line-clamp-2">{v.ragSnippet}</p>
+                            <p className="text-xs text-muted-foreground/70 mt-1 italic leading-relaxed line-clamp-2">{v.ragSnippet}</p>
                           )}
                           <div className="flex items-center gap-2 mt-1.5">
                             {v.ragMatchScore > 0 && (
-                              <span className="text-[9px] text-muted-foreground/70">
+                              <span className="text-xs text-muted-foreground/70">
                                 RAG match: {v.ragMatchScore}%
                               </span>
                             )}
@@ -821,7 +821,7 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                     <div className="border-t border-amber-800/30 bg-amber-950/10 p-4">
                       <div className="flex items-center gap-2 mb-3">
                         <span className="text-xs font-semibold text-destructive uppercase tracking-wider">Resolution & Remediation Roadmap</span>
-                        <span className="text-[10px] text-destructive bg-amber-900/20 px-2 py-0.5  border border-amber-700/30">
+                        <span className="text-xs text-destructive bg-amber-900/20 px-2 py-0.5  border border-amber-700/30">
                           {doc.resolution.estimatedTimeline}
                         </span>
                       </div>
@@ -835,21 +835,21 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                       <div className="space-y-2 mb-4">
                         {doc.resolution.steps.map((step, si) => (
                           <div key={si} className="flex items-start gap-2.5 bg-card/30 border border-border/40  p-2.5">
-                            <span className="w-5 h-5  bg-amber-900/40 border border-amber-700/30 flex items-center justify-center text-[10px] text-destructive font-bold flex-shrink-0 mt-0.5">
+                            <span className="w-5 h-5  bg-amber-900/40 border border-amber-700/30 flex items-center justify-center text-xs text-destructive font-bold flex-shrink-0 mt-0.5">
                               {si + 1}
                             </span>
                             <div className="flex-1 min-w-0">
                               <div className="text-xs text-foreground/80 leading-relaxed">{step.action}</div>
                               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                <span className="text-[9px] text-destructive bg-amber-900/20 px-1.5 py-0.5 rounded">{step.effort}</span>
-                                <span className={`text-[9px] px-1.5 py-0.5 rounded ${
+                                <span className="text-xs text-destructive bg-amber-900/20 px-1.5 py-0.5 rounded">{step.effort}</span>
+                                <span className={`text-xs px-1.5 py-0.5 rounded ${
                                   step.priority === 'Critical' ? 'text-destructive bg-red-900/20'
                                   : step.priority === 'High' ? 'text-destructive bg-amber-900/20'
                                   : 'text-blue-400 bg-blue-900/20'
                                 }`}>
                                   {step.priority}
                                 </span>
-                                <span className="text-[9px] text-muted-foreground/70">{step.responsible}</span>
+                                <span className="text-xs text-muted-foreground/70">{step.responsible}</span>
                               </div>
                             </div>
                           </div>
@@ -859,11 +859,11 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                       {/* Roadmap + cost */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div className="bg-card/40 border border-border/40  p-3">
-                          <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Recommended Path</div>
+                          <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Recommended Path</div>
                           <p className="text-xs text-muted-foreground leading-relaxed">{doc.resolution.roadmap}</p>
                         </div>
                         <div className="bg-card/40 border border-border/40  p-3">
-                          <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Estimated Cost</div>
+                          <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Estimated Cost</div>
                           <p className="text-xs text-muted-foreground leading-relaxed">{doc.resolution.costEstimate}</p>
                         </div>
                       </div>
@@ -900,11 +900,11 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
           <div className="flex items-center justify-between px-4 py-3 border-b border-amber-700/30 bg-amber-950/10">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-destructive">Consolidated Remediation Plan</span>
-              <span className="text-[10px] text-destructive bg-amber-900/20 px-2 py-0.5  border border-amber-700/30">
+              <span className="text-xs text-destructive bg-amber-900/20 px-2 py-0.5  border border-amber-700/30">
                 {validation.documents.filter(d => d.failed > 0 || d.warnings > 0).length} documents
               </span>
             </div>
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {validation.documents.filter(d => d.failed > 0 || d.warnings > 0).reduce((sum, d) => sum + (d.resolution?.steps?.length || 0), 0)} action items
             </span>
           </div>
@@ -915,17 +915,17 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                 <div key={doc.key} className="p-4 hover:bg-muted/20 transition-colors">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
-                      <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded ${isAir ? 'bg-orange-900/30 text-orange-400' : 'bg-blue-900/30 text-blue-400'}`}>
+                      <span className={`font-mono text-xs px-1.5 py-0.5 rounded ${isAir ? 'bg-orange-900/30 text-orange-400' : 'bg-blue-900/30 text-blue-400'}`}>
                         {doc.key.toUpperCase()}
                       </span>
                       <span className="text-xs text-foreground/80 font-medium">{doc.title}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-muted-foreground/70">{doc.resolution?.estimatedTimeline}</span>
+                      <span className="text-xs text-muted-foreground/70">{doc.resolution?.estimatedTimeline}</span>
                       {onNavigateDoc && (
                         <button
                           onClick={() => onNavigateDoc(doc.key)}
-                          className="text-[9px] bg-primary/30 hover:bg-primary/50 text-primary rounded px-2 py-1 transition-colors border border-primary/40"
+                          className="text-xs bg-primary/30 hover:bg-primary/50 text-primary rounded px-2 py-1 transition-colors border border-primary/40"
                         >
                           Open Doc
                         </button>
@@ -936,14 +936,14 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                   {doc.resolution?.steps && (
                     <div className="flex flex-wrap gap-1.5">
                       {doc.resolution.steps.map((step, si) => (
-                        <span key={si} className="text-[9px] bg-muted/60 text-muted-foreground  px-2 py-0.5 border border-border/30">
+                        <span key={si} className="text-xs bg-muted/60 text-muted-foreground  px-2 py-0.5 border border-border/30">
                           {si + 1}. {step.action.substring(0, 50)}…
                         </span>
                       ))}
                     </div>
                   )}
                   {doc.resolution?.costEstimate && (
-                    <div className="text-[9px] text-muted-foreground/70 mt-1.5">
+                    <div className="text-xs text-muted-foreground/70 mt-1.5">
                       Cost: {doc.resolution.costEstimate.substring(0, 60)}…
                     </div>
                   )}
@@ -952,7 +952,7 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
             })}
           </div>
           <div className="px-4 py-2.5 border-t border-amber-700/20 bg-amber-950/5">
-            <p className="text-[10px] text-destructive">
+            <p className="text-xs text-destructive">
               Total estimated remediation: multiple overlapping workstreams — critical path is PSD/BACT pathway at 12-18 months.
               Agency coordination should begin immediately.
             </p>
@@ -969,21 +969,21 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
           <table className="w-full">
             <thead>
               <tr className="border-b border-border/40">
-                <th className="py-2 px-3 text-left text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Doc</th>
-                <th className="py-2 px-3 text-left text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Title</th>
-                <th className="py-2 px-3 text-center text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Checks</th>
-                <th className="py-2 px-3 text-center text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Pass</th>
-                <th className="py-2 px-3 text-center text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Fail</th>
-                <th className="py-2 px-3 text-center text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Warn</th>
-                <th className="py-2 px-3 text-center text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Status</th>
-                <th className="py-2 px-3 text-center text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wider">Action</th>
+                <th className="py-2 px-3 text-left text-xs text-muted-foreground/70 font-medium uppercase tracking-wider">Doc</th>
+                <th className="py-2 px-3 text-left text-xs text-muted-foreground/70 font-medium uppercase tracking-wider">Title</th>
+                <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium uppercase tracking-wider">Checks</th>
+                <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium uppercase tracking-wider">Pass</th>
+                <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium uppercase tracking-wider">Fail</th>
+                <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium uppercase tracking-wider">Warn</th>
+                <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium uppercase tracking-wider">Status</th>
+                <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium uppercase tracking-wider">Action</th>
               </tr>
             </thead>
             <tbody>
               {validation.documents.map(doc => (
                 <tr key={doc.key} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
                   <td className="py-2 px-3">
-                    <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded ${
+                    <span className={`font-mono text-xs px-1.5 py-0.5 rounded ${
                       doc.key.startsWith('air') ? 'bg-orange-900/20 text-orange-400' : 'bg-blue-900/20 text-blue-400'
                     }`}>
                       {doc.key.toUpperCase()}
@@ -997,7 +997,7 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                   <td className="py-2 px-3 text-center text-xs text-destructive">{doc.failed}</td>
                   <td className="py-2 px-3 text-center text-xs text-destructive">{doc.warnings}</td>
                   <td className="py-2 px-3 text-center">
-                    <span className={`text-[10px] px-2 py-0.5  border font-medium ${STATUS_COLORS[doc.overallStatus]}`}>
+                    <span className={`text-xs px-2 py-0.5  border font-medium ${STATUS_COLORS[doc.overallStatus]}`}>
                       {doc.overallStatus === 'pass' ? 'PASS' : doc.overallStatus === 'fail' ? 'FAIL' : 'WARN'}
                     </span>
                   </td>
@@ -1005,12 +1005,12 @@ export default function ComplianceValidationPanel({ inputs, results, onNavigateD
                     {onNavigateDoc ? (
                       <button
                         onClick={() => onNavigateDoc(doc.key)}
-                        className="text-[9px] bg-muted hover:bg-primary text-muted-foreground hover:text-white rounded px-2 py-1 transition-colors border border-border hover:border-primary"
+                        className="text-xs bg-muted hover:bg-primary text-muted-foreground hover:text-white rounded px-2 py-1 transition-colors border border-border hover:border-primary"
                       >
                         Open
                       </button>
                     ) : (
-                      <span className="text-[9px] text-muted-foreground/70">—</span>
+                      <span className="text-xs text-muted-foreground/70">—</span>
                     )}
                   </td>
                 </tr>

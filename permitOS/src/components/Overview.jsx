@@ -146,7 +146,7 @@ export default function Overview({ setActiveTab }) {
               <span className="w-1.5 h-1.5  bg-indigo-400 animate-pulse"></span>
               Brick PermitOS — Permitting Intelligence Platform
             </div>
-            <h1 className="text-3xl font-bold text-white mb-3 leading-tight">
+            <h1 className="text-4xl font-bold text-white mb-3 leading-tight">
               Autonomous Data Center<br/>Permitting & Compliance Platform
             </h1>
             <p className="text-muted-foreground text-sm leading-relaxed">
@@ -170,7 +170,7 @@ export default function Overview({ setActiveTab }) {
       {/* Positioning vs Scout */}
       <div className="grid md:grid-cols-2 gap-4">
         <div className=" border border-border/40 bg-card/40 p-5">
-          <h3 className="text-sm font-semibold text-foreground/80 mb-3">Why BigWatt Needs This Now</h3>
+          <h3 className="text-base font-semibold text-foreground/80 mb-3">Why BigWatt Needs This Now</h3>
           <ul className="space-y-2">
             {[
               'Upsized gas AI campuses trigger PSD major source thresholds (≥100 tpy NOx) — full BACT review required',
@@ -188,7 +188,7 @@ export default function Overview({ setActiveTab }) {
           </ul>
         </div>
         <div className=" border border-primary/30 bg-primary/10 p-5">
-          <h3 className="text-sm font-semibold text-primary mb-3">Brick's Unfair Advantage Over Consultants</h3>
+          <h3 className="text-base font-semibold text-primary mb-3">Brick's Unfair Advantage Over Consultants</h3>
           <ul className="space-y-2">
             {[
               'Permit packages prepared in hours, not weeks — and linked to actual site telemetry',
@@ -209,13 +209,13 @@ export default function Overview({ setActiveTab }) {
 
       {/* Tool Suite */}
       <div>
-        <h2 className="text-sm font-semibold text-foreground/80 mb-4">Full Tool Suite</h2>
+        <h2 className="text-base font-semibold text-foreground/80 mb-4">Full Tool Suite</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {tools.map(t => (
             <div key={t.name} className={` border p-5 ${t.color}`}>
               <div className="flex items-start gap-3 mb-3">
                 <span className="text-2xl">{t.icon}</span>
-                <h3 className="text-sm font-semibold text-white leading-snug">{t.name}</h3>
+                <h3 className="text-base font-semibold text-white leading-snug">{t.name}</h3>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed mb-3">{t.desc}</p>
               <div className="bg-black/20  p-2.5 text-xs text-muted-foreground italic">
@@ -229,7 +229,7 @@ export default function Overview({ setActiveTab }) {
 
       {/* Regulatory Foundation */}
       <div className=" border border-border/40 bg-card/40 p-5">
-        <h3 className="text-sm font-semibold text-foreground/80 mb-4">Regulatory Foundation — Federal Citations</h3>
+        <h3 className="text-base font-semibold text-foreground/80 mb-4">Regulatory Foundation — Federal Citations</h3>
         <div className="grid md:grid-cols-3 gap-4 text-xs">
           <div>
             <p className="text-primary font-semibold mb-2">Clean Air Act / Air Rules</p>
@@ -279,7 +279,7 @@ export default function Overview({ setActiveTab }) {
 
       {/* Workflow Steps */}
       <div>
-        <h2 className="text-sm font-semibold text-foreground/80 mb-4">How It Works — 6-Step AI Workflow</h2>
+        <h2 className="text-base font-semibold text-foreground/80 mb-4">How It Works — 6-Step AI Workflow</h2>
         <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-3">
           {WORKFLOW_STEPS.map((s, i) => (
             <div key={s.step} className={` border p-4 relative ${s.color}`}>
@@ -299,7 +299,7 @@ export default function Overview({ setActiveTab }) {
       {/* Comparison Table */}
       <div className=" border border-border/40 bg-card/40 overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
-          <h3 className="text-sm font-semibold text-foreground/80">Brick PermitOS vs. Traditional Consulting vs. Scout AI</h3>
+          <h3 className="text-base font-semibold text-foreground/80">Brick PermitOS vs. Traditional Consulting vs. Scout AI</h3>
           <button onClick={() => setShowCompare(!showCompare)}
             className="text-xs text-primary hover:text-primary transition-colors">
             {showCompare ? 'Collapse ▲' : 'Expand ▼'}

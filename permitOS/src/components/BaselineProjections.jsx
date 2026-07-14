@@ -223,31 +223,31 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
           </h3>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] text-muted-foreground">Original Budget / BAC ($)</label>
+              <label className="text-xs text-muted-foreground">Original Budget / BAC ($)</label>
               <input type="number" value={baseline.originalBudget} onChange={e => updateBaseline('originalBudget', parseFloat(e.target.value) || 0)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Contingency Budget ($)</label>
+              <label className="text-xs text-muted-foreground">Contingency Budget ($)</label>
               <input type="number" value={baseline.contingencyBudget} onChange={e => updateBaseline('contingencyBudget', parseFloat(e.target.value) || 0)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Baseline Start Date</label>
+              <label className="text-xs text-muted-foreground">Baseline Start Date</label>
               <input type="date" value={baseline.baselineStartDate} onChange={e => updateBaseline('baselineStartDate', e.target.value)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Baseline Finish Date</label>
+              <label className="text-xs text-muted-foreground">Baseline Finish Date</label>
               <input type="date" value={baseline.baselineFinishDate} onChange={e => updateBaseline('baselineFinishDate', e.target.value)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Customer Need Date</label>
+              <label className="text-xs text-muted-foreground">Customer Need Date</label>
               <input type="date" value={baseline.customerNeedDate} onChange={e => updateBaseline('customerNeedDate', e.target.value)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Planned Headcount</label>
+              <label className="text-xs text-muted-foreground">Planned Headcount</label>
               <input type="number" value={baseline.plannedHeadcount} onChange={e => updateBaseline('plannedHeadcount', parseInt(e.target.value) || 0)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Planned Margin (%)</label>
+              <label className="text-xs text-muted-foreground">Planned Margin (%)</label>
               <input type="number" step="0.1" value={baseline.plannedMargin * 100} onChange={e => updateBaseline('plannedMargin', (parseFloat(e.target.value) || 0) / 100)} className={inputStyle} />
             </div>
           </div>
@@ -260,51 +260,51 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
           </h3>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="text-[10px] text-muted-foreground">Actual Cost ($)</label>
+              <label className="text-xs text-muted-foreground">Actual Cost ($)</label>
               <input type="number" value={actuals.actualCost} onChange={e => updateActuals('actualCost', parseFloat(e.target.value) || 0)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">% Complete</label>
+              <label className="text-xs text-muted-foreground">% Complete</label>
               <input type="number" step="0.1" min="0" max="100" value={actuals.percentComplete} onChange={e => updateActuals('percentComplete', parseFloat(e.target.value) || 0)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Planned %</label>
+              <label className="text-xs text-muted-foreground">Planned %</label>
               <input type="number" step="0.1" min="0" max="100" value={actuals.plannedPctComplete} onChange={e => updateActuals('plannedPctComplete', parseFloat(e.target.value) || 0)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Cash Received ($)</label>
+              <label className="text-xs text-muted-foreground">Cash Received ($)</label>
               <input type="number" value={actuals.cashReceived} onChange={e => updateActuals('cashReceived', parseFloat(e.target.value) || 0)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Billed to Date ($)</label>
+              <label className="text-xs text-muted-foreground">Billed to Date ($)</label>
               <input type="number" value={actuals.billedToDate} onChange={e => updateActuals('billedToDate', parseFloat(e.target.value) || 0)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Contingency Used ($)</label>
+              <label className="text-xs text-muted-foreground">Contingency Used ($)</label>
               <input type="number" value={actuals.contingencyUsed} onChange={e => updateActuals('contingencyUsed', parseFloat(e.target.value) || 0)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Work Hours</label>
+              <label className="text-xs text-muted-foreground">Work Hours</label>
               <input type="number" value={actuals.totalWorkHours} onChange={e => updateActuals('totalWorkHours', parseFloat(e.target.value) || 0)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Recordable Incidents</label>
+              <label className="text-xs text-muted-foreground">Recordable Incidents</label>
               <input type="number" value={actuals.recordableIncidents} onChange={e => updateActuals('recordableIncidents', parseFloat(e.target.value) || 0)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Lost Time Incidents</label>
+              <label className="text-xs text-muted-foreground">Lost Time Incidents</label>
               <input type="number" value={actuals.lostTimeIncidents} onChange={e => updateActuals('lostTimeIncidents', parseFloat(e.target.value) || 0)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Total RFIs</label>
+              <label className="text-xs text-muted-foreground">Total RFIs</label>
               <input type="number" value={actuals.rfiTotal} onChange={e => updateActuals('rfiTotal', parseFloat(e.target.value) || 0)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Rework Cost ($)</label>
+              <label className="text-xs text-muted-foreground">Rework Cost ($)</label>
               <input type="number" value={actuals.reworkCost} onChange={e => updateActuals('reworkCost', parseFloat(e.target.value) || 0)} className={inputStyle} />
             </div>
             <div>
-              <label className="text-[10px] text-muted-foreground">Cash Position ($)</label>
+              <label className="text-xs text-muted-foreground">Cash Position ($)</label>
               <input type="number" value={actuals.cashPosition} onChange={e => updateActuals('cashPosition', parseFloat(e.target.value) || 0)} className={inputStyle} />
             </div>
           </div>
@@ -322,7 +322,7 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
           {saved ? 'Saved!' : dirty ? 'Save & Persist' : 'No changes'}
         </button>
         {dirty && !saved && (
-          <span className="text-[10px] text-destructive">Projections update live — save to persist</span>
+          <span className="text-xs text-destructive">Projections update live — save to persist</span>
         )}
       </div>
 
@@ -333,54 +333,54 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           <div className="bg-card/60  p-3 border border-border/30">
-            <div className="text-[10px] text-muted-foreground">EAC (BAC/CPI Method)</div>
+            <div className="text-xs text-muted-foreground">EAC (BAC/CPI Method)</div>
             <div className="text-sm font-bold text-primary">{fmtCurr(projections.EAC_BAC_CPI)}</div>
-            <div className="text-[10px] text-muted-foreground/70">Projected — EAC method: BAC / CPI</div>
+            <div className="text-xs text-muted-foreground/70">Projected — EAC method: BAC / CPI</div>
           </div>
           <div className="bg-card/60  p-3 border border-border/30">
-            <div className="text-[10px] text-muted-foreground">EAC (AC + Remaining Method)</div>
+            <div className="text-xs text-muted-foreground">EAC (AC + Remaining Method)</div>
             <div className="text-sm font-bold text-cyan-300">{fmtCurr(projections.EAC_AC_EV)}</div>
-            <div className="text-[10px] text-muted-foreground/70">Projected — EAC method: AC + (BAC − EV)</div>
+            <div className="text-xs text-muted-foreground/70">Projected — EAC method: AC + (BAC − EV)</div>
           </div>
           <div className="bg-card/60  p-3 border border-border/30">
-            <div className="text-[10px] text-muted-foreground">VAC vs Baseline</div>
+            <div className="text-xs text-muted-foreground">VAC vs Baseline</div>
             <div className={`text-sm font-bold ${projections.VAC >= 0 ? 'text-primary' : 'text-destructive'}`}>
               {fmtCurr(projections.VAC)}
             </div>
-            <div className="text-[10px] text-muted-foreground/70">Variance at Completion</div>
+            <div className="text-xs text-muted-foreground/70">Variance at Completion</div>
           </div>
           <div className="bg-card/60  p-3 border border-border/30">
-            <div className="text-[10px] text-muted-foreground">Forecast Margin</div>
+            <div className="text-xs text-muted-foreground">Forecast Margin</div>
             <div className={`text-sm font-bold ${projections.forecastMargin >= (baseline.plannedMargin * 100) ? 'text-primary' : 'text-destructive'}`}>
               {projections.forecastMargin}%
             </div>
-            <div className="text-[10px] text-muted-foreground/70">Planned: {(baseline.plannedMargin * 100).toFixed(1)}%</div>
+            <div className="text-xs text-muted-foreground/70">Planned: {(baseline.plannedMargin * 100).toFixed(1)}%</div>
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-card/60  p-3 border border-border/30">
-            <div className="text-[10px] text-muted-foreground">Forecast Finish</div>
+            <div className="text-xs text-muted-foreground">Forecast Finish</div>
             <div className="text-sm font-bold text-foreground">{projections.forecastFinish}</div>
-            <div className={`text-[10px] ${projections.varianceDays > 0 ? 'text-destructive' : 'text-primary'}`}>
+            <div className={`text-xs ${projections.varianceDays > 0 ? 'text-destructive' : 'text-primary'}`}>
               {projections.varianceDays > 0 ? `${projections.varianceDays}d past customer need` : `${Math.abs(projections.varianceDays)}d ahead of customer need`}
             </div>
           </div>
           <div className="bg-card/60  p-3 border border-border/30">
-            <div className="text-[10px] text-muted-foreground">Schedule Slip (SPI-based)</div>
+            <div className="text-xs text-muted-foreground">Schedule Slip (SPI-based)</div>
             <div className="text-sm font-bold text-foreground">{projections.scheduleSlipDays}d</div>
-            <div className="text-[10px] text-muted-foreground/70">SPI = {projections.SPI.toFixed(3)}</div>
+            <div className="text-xs text-muted-foreground/70">SPI = {projections.SPI.toFixed(3)}</div>
           </div>
           <div className="bg-card/60  p-3 border border-border/30">
-            <div className="text-[10px] text-muted-foreground">Contingency Runway</div>
+            <div className="text-xs text-muted-foreground">Contingency Runway</div>
             <div className="text-sm font-bold text-amber-300">{projections.contZeroPct}%</div>
-            <div className="text-[10px] text-muted-foreground/70">Projected % complete at zero contingency</div>
+            <div className="text-xs text-muted-foreground/70">Projected % complete at zero contingency</div>
           </div>
           <div className="bg-card/60  p-3 border border-border/30">
-            <div className="text-[10px] text-muted-foreground">Contingency Burn Ratio</div>
+            <div className="text-xs text-muted-foreground">Contingency Burn Ratio</div>
             <div className={`text-sm font-bold ${projections.burnRatio <= 0.8 ? 'text-primary' : projections.burnRatio <= 1.0 ? 'text-destructive' : 'text-destructive'}`}>
               {projections.burnRatio.toFixed(2)}x
             </div>
-            <div className="text-[10px] text-muted-foreground/70">{projections.contUtilPct}% used vs {actuals.percentComplete}% complete</div>
+            <div className="text-xs text-muted-foreground/70">{projections.contUtilPct}% used vs {actuals.percentComplete}% complete</div>
           </div>
         </div>
       </div>
@@ -402,7 +402,7 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
               <Line type="monotone" dataKey="projected" stroke="#f59e0b" strokeWidth={2} strokeDasharray="6 3" dot={false} name="Projected" />
             </LineChart>
           </ResponsiveContainer>
-          <div className="text-[10px] text-muted-foreground/70 mt-1">Projected series shown dashed — based on current CPI/SPI trend</div>
+          <div className="text-xs text-muted-foreground/70 mt-1">Projected series shown dashed — based on current CPI/SPI trend</div>
         </div>
 
         {/* Contingency Drawdown */}
@@ -419,7 +419,7 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
               <Line type="monotone" dataKey="physicalProgress" stroke="#22c55e" strokeWidth={2} dot={false} name="Physical Progress %" />
             </LineChart>
           </ResponsiveContainer>
-          <div className="text-[10px] text-muted-foreground/70 mt-1">Contingency reaches zero at ~{projections.contZeroPct}% physical progress (current burn rate)</div>
+          <div className="text-xs text-muted-foreground/70 mt-1">Contingency reaches zero at ~{projections.contZeroPct}% physical progress (current burn rate)</div>
         </div>
 
         {/* Cash Flow Projection */}
@@ -437,7 +437,7 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
               <Area type="monotone" dataKey="projectedReceived" stroke="#22c55e" fill="#22c55e" fillOpacity={0.1} strokeWidth={2} name="Projected Received" />
             </AreaChart>
           </ResponsiveContainer>
-          <div className="text-[10px] text-muted-foreground/70 mt-1">Projected — based on current billing and collection rates</div>
+          <div className="text-xs text-muted-foreground/70 mt-1">Projected — based on current billing and collection rates</div>
         </div>
 
         {/* Milestone Variance */}
@@ -456,7 +456,7 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-          <div className="text-[10px] text-muted-foreground/70 mt-1">Red bars = critical path delay; green = ahead of schedule</div>
+          <div className="text-xs text-muted-foreground/70 mt-1">Red bars = critical path delay; green = ahead of schedule</div>
         </div>
       </div>
     </div>

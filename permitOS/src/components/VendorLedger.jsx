@@ -344,7 +344,7 @@ export default function VendorLedger({ data, onSave, savedVendors }) {
         </table>
       </div>
 
-      <p className="text-[10px] text-muted-foreground/70">Current Commitment = Original + Approved COs (computed). Editable cells: click to edit, Enter to confirm, Esc to cancel.</p>
+      <p className="text-xs text-muted-foreground/70">Current Commitment = Original + Approved COs (computed). Editable cells: click to edit, Enter to confirm, Esc to cancel.</p>
     </div>
   );
 }

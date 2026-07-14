@@ -376,7 +376,7 @@ export default function AirPermitAI({ results, inputs, setActiveTab }) {
       {breaches && breaches.length > 0 && (
         <div className=" border border-red-700/30 bg-card/40 p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-foreground/80">Threshold Breach Analysis & Remediation</h3>
+            <h3 className="text-base font-semibold text-foreground/80">Threshold Breach Analysis & Remediation</h3>
             <div className="flex gap-2 text-xs">
               <span className="px-2 py-0.5 rounded bg-destructive/10 text-destructive">{breachedItems.length} Breached</span>
               <span className="px-2 py-0.5 rounded bg-amber-900/30 text-destructive">{mitigatedItems.length} Mitigated</span>
@@ -396,7 +396,7 @@ export default function AirPermitAI({ results, inputs, setActiveTab }) {
         <div className=" border border-green-700/30 bg-green-950/20 p-5">
           <div className="flex items-center gap-2 mb-2">
             <span className="w-6 h-6  bg-green-900/40 text-primary flex items-center justify-center text-xs font-bold">V</span>
-            <h3 className="text-sm font-semibold text-primary">All Thresholds Clear</h3>
+            <h3 className="text-base font-semibold text-primary">All Thresholds Clear</h3>
           </div>
           <p className="text-xs text-muted-foreground">All pollutant emissions are below applicable PSD, Title V, and regulatory thresholds. No breaches detected.</p>
         </div>
@@ -405,7 +405,7 @@ export default function AirPermitAI({ results, inputs, setActiveTab }) {
       {/* ─── PER-POLLUTANT MAJOR SOURCE DETERMINATION ─── */}
       {thresholdAnalysis && (
         <div className=" border border-border/40 bg-card/40 p-5">
-          <h3 className="text-sm font-semibold text-foreground/80 mb-4">Per-Pollutant Major Source Determination</h3>
+          <h3 className="text-base font-semibold text-foreground/80 mb-4">Per-Pollutant Major Source Determination</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-xs border-collapse">
               <thead>
@@ -465,7 +465,7 @@ export default function AirPermitAI({ results, inputs, setActiveTab }) {
       {/* ─── REMEDIATION MATRIX ─── */}
       {breaches && breachedItems.length > 0 && (
         <div className=" border border-amber-700/30 bg-card/40 p-5">
-          <h3 className="text-sm font-semibold text-foreground/80 mb-4">Remediation Action Matrix</h3>
+          <h3 className="text-base font-semibold text-foreground/80 mb-4">Remediation Action Matrix</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-xs border-collapse">
               <thead>
@@ -514,7 +514,7 @@ export default function AirPermitAI({ results, inputs, setActiveTab }) {
 
       {/* PTE comparison grid */}
       <div>
-        <h3 className="text-sm font-semibold text-foreground/80 mb-3">Potential to Emit (PTE) — Baseline vs. Brick-Controlled</h3>
+        <h3 className="text-base font-semibold text-foreground/80 mb-3">Potential to Emit (PTE) — Baseline vs. Brick-Controlled</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
@@ -560,7 +560,7 @@ export default function AirPermitAI({ results, inputs, setActiveTab }) {
       {/* Permit Pathway */}
       <div className="grid md:grid-cols-2 gap-4">
         <div className=" border border-border/40 bg-card/40 p-5">
-          <h3 className="text-sm font-semibold text-foreground/80 mb-3">Permit Pathway Determination</h3>
+          <h3 className="text-base font-semibold text-foreground/80 mb-3">Permit Pathway Determination</h3>
           <div className="space-y-3 text-xs">
             {[
               {
@@ -630,7 +630,7 @@ export default function AirPermitAI({ results, inputs, setActiveTab }) {
 
         {/* CFR Modules */}
         <div className=" border border-border/40 bg-card/40 p-5">
-          <h3 className="text-sm font-semibold text-foreground/80 mb-3">Air Permit Modules — Deliverables</h3>
+          <h3 className="text-base font-semibold text-foreground/80 mb-3">Air Permit Modules — Deliverables</h3>
           <div className="space-y-3">
             {AIR_MODULES.map(mod => (
               <div key={mod.id} className="border border-border/40  overflow-hidden">
@@ -680,7 +680,7 @@ export default function AirPermitAI({ results, inputs, setActiveTab }) {
 
       {/* BACT Strategies */}
       <div className=" border border-border/40 bg-card/40 p-5">
-        <h3 className="text-sm font-semibold text-foreground/80 mb-3">BACT Strategy — AI Recommendation (Top-Down Analysis)</h3>
+        <h3 className="text-base font-semibold text-foreground/80 mb-3">BACT Strategy — AI Recommendation (Top-Down Analysis)</h3>
         <div className="grid md:grid-cols-3 gap-4 text-xs">
           {[
             {

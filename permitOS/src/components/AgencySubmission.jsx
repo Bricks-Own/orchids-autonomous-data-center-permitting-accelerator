@@ -162,7 +162,7 @@ export default function AgencySubmission({ inputs, results, siteId, onNotify }) 
               key={p.url} className="flex flex-col bg-blue-900/20 border border-blue-800/30  p-3 hover:bg-blue-900/30 hover:border-blue-700/50 transition-colors group">
               <span className="text-xs font-medium text-blue-300 group-hover:text-blue-200 transition-colors">{p.name}</span>
               <span className="text-xs text-blue-600/60 group-hover:text-blue-500/80 mt-0.5">{p.url.replace('https://','')}</span>
-              <span className="text-[10px] text-muted-foreground mt-1">{p.desc}</span>
+              <span className="text-xs text-muted-foreground mt-1">{p.desc}</span>
             </a>
           ))}
         </div>

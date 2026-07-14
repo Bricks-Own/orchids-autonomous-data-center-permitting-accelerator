@@ -42,7 +42,7 @@ function Building({ position, size, color, label, hovered, onHover, onClick }) {
       </mesh>
       {/* Label sprite */}
       <Html position={[0, size[1] / 2 + 0.6, 0]} center style={{ pointerEvents: 'none' }}>
-        <div className="text-[9px] font-medium text-muted-foreground bg-background/80 px-1.5 py-0.5 rounded whitespace-nowrap border border-border/50">
+        <div className="text-xs font-medium text-muted-foreground bg-background/80 px-1.5 py-0.5 rounded whitespace-nowrap border border-border/50">
           {label}
         </div>
       </Html>
@@ -63,7 +63,7 @@ function CoolingTower({ position, height, radius, color, label, hovered, onHover
         <meshStandardMaterial color={color} roughness={0.9} />
       </mesh>
       <Html position={[0, height + 0.5, 0]} center style={{ pointerEvents: 'none' }}>
-        <div className="text-[9px] font-medium text-muted-foreground bg-background/80 px-1.5 py-0.5 rounded whitespace-nowrap border border-border/50">
+        <div className="text-xs font-medium text-muted-foreground bg-background/80 px-1.5 py-0.5 rounded whitespace-nowrap border border-border/50">
           {label}
         </div>
       </Html>
@@ -88,7 +88,7 @@ function SubstationGear({ position, color, label, hovered, onHover, onClick }) {
         </mesh>
       ))}
       <Html position={[0, 0.8, 0]} center style={{ pointerEvents: 'none' }}>
-        <div className="text-[9px] font-medium text-muted-foreground bg-background/80 px-1.5 py-0.5 rounded whitespace-nowrap border border-border/50">
+        <div className="text-xs font-medium text-muted-foreground bg-background/80 px-1.5 py-0.5 rounded whitespace-nowrap border border-border/50">
           {label}
         </div>
       </Html>
@@ -364,7 +364,7 @@ function SiteView3D({ data }) {
             onChange={(e) => setProgressPct(parseInt(e.target.value))}
             className="w-full h-1.5 bg-muted  appearance-none cursor-pointer accent-primary"
           />
-          <div className="flex justify-between text-[10px] text-muted-foreground/70 mt-1">
+          <div className="flex justify-between text-xs text-muted-foreground/70 mt-1">
             <span>Start</span>
             <span>Today</span>
             <span>COD</span>
@@ -440,8 +440,8 @@ function SiteView3D({ data }) {
                   onClick={() => setSelectedPhase(m.name)}
                 >
                   <span className="w-2 h-2  flex-shrink-0" style={{ backgroundColor: color }} />
-                  <span className="text-[10px] text-muted-foreground flex-1 truncate">{m.name}</span>
-                  <span className="text-[10px] font-medium text-muted-foreground">{displayM.displayPct}%</span>
+                  <span className="text-xs text-muted-foreground flex-1 truncate">{m.name}</span>
+                  <span className="text-xs font-medium text-muted-foreground">{displayM.displayPct}%</span>
                 </div>
               );
             })}

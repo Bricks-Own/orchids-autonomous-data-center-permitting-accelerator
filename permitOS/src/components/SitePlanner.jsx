@@ -519,7 +519,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
           {/* Scenario Test Panel */}
           {showScenario && (
             <div className=" border border-primary/30 bg-violet-950/20 p-5">
-              <h3 className="text-sm font-semibold text-violet-300 mb-4">Quick Scenario Test</h3>
+              <h3 className="text-base font-semibold text-violet-300 mb-4">Quick Scenario Test</h3>
               <p className="text-xs text-muted-foreground mb-4">Adjust sliders to see instant PTE and pathway changes. Apply to sync with Site Intake.</p>
               <ScenarioTest inputs={inputs} onApply={handleApplyScenario} onNavigateToIntake={() => setActiveTab('intake')} />
             </div>
@@ -532,7 +532,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
           <div className=" border border-primary/30 bg-primary/10 p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-sm font-semibold text-primary">Scenario Explorer</h3>
+                <h3 className="text-base font-semibold text-primary">Scenario Explorer</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">Click any scenario to instantly see emissions, pathway, and compliance impact</p>
               </div>
               <button
@@ -624,35 +624,35 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                       <span className="text-lg">{scenario.icon}</span>
                       <div>
                         <h4 className="text-sm font-semibold text-foreground">{scenario.title}</h4>
-                        <p className="text-[10px] text-muted-foreground">{scenario.desc}</p>
+                        <p className="text-xs text-muted-foreground">{scenario.desc}</p>
                       </div>
                     </div>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded border ${scenario.badgeColor}`}>{scenario.badge}</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded border ${scenario.badgeColor}`}>{scenario.badge}</span>
                   </div>
 
                   {/* Metric badges */}
                   <div className="grid grid-cols-4 gap-1.5 mb-2">
                     <div className="bg-muted/60  p-1.5 text-center">
-                      <div className="text-[10px] text-muted-foreground">Capacity</div>
+                      <div className="text-xs text-muted-foreground">Capacity</div>
                       <div className="text-xs font-bold text-foreground">{scenario.metrics.mw} MW</div>
                     </div>
                     <div className="bg-muted/60  p-1.5 text-center">
-                      <div className="text-[10px] text-muted-foreground">NOx</div>
+                      <div className="text-xs text-muted-foreground">NOx</div>
                       <div className="text-xs font-bold text-foreground">{scenario.metrics.nox} tpy</div>
                     </div>
                     <div className="bg-muted/60  p-1.5 text-center">
-                      <div className="text-[10px] text-muted-foreground">PSD</div>
+                      <div className="text-xs text-muted-foreground">PSD</div>
                       <div className={`text-xs font-bold ${scenario.metrics.psd === 'Yes' ? 'text-destructive' : 'text-primary'}`}>{scenario.metrics.psd}</div>
                     </div>
                     <div className="bg-muted/60  p-1.5 text-center">
-                      <div className="text-[10px] text-muted-foreground">Title V</div>
+                      <div className="text-xs text-muted-foreground">Title V</div>
                       <div className={`text-xs font-bold ${scenario.metrics.title5 === 'Yes' ? 'text-destructive' : 'text-primary'}`}>{scenario.metrics.title5}</div>
                     </div>
                   </div>
 
                   {/* Highlight & action */}
                   <div className="flex items-center justify-between">
-                    <span className={`text-[10px] font-medium ${scenario.highlightColor}`}>{scenario.highlight}</span>
+                    <span className={`text-xs font-medium ${scenario.highlightColor}`}>{scenario.highlight}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -675,7 +675,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                         }
                         setActiveTab('intake');
                       }}
-                      className="text-[10px] bg-primary hover:bg-primary text-white px-2 py-1  font-medium transition-all"
+                      className="text-xs bg-primary hover:bg-primary text-white px-2 py-1  font-medium transition-all"
                     >
                       Apply → Intake
                     </button>
@@ -686,7 +686,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
 
             {/* Scenario summary note */}
             <div className="mt-3 text-center">
-              <span className="text-[10px] text-muted-foreground/70">
+              <span className="text-xs text-muted-foreground/70">
                 Click any card to preview its impact on the map and metrics. 
                 <span className="text-primary"> Apply &rarr; Intake</span> to run full screening.
               </span>
@@ -696,7 +696,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
           {/* Custom Scenario Sliders (togglable) */}
           {showScenario && (
             <div className=" border border-primary/30 bg-violet-950/20 p-5">
-              <h3 className="text-sm font-semibold text-violet-300 mb-4">Custom Scenario Builder</h3>
+              <h3 className="text-base font-semibold text-violet-300 mb-4">Custom Scenario Builder</h3>
               <p className="text-xs text-muted-foreground mb-4">Fine-tune parameters manually and see instant PTE results. Apply to sync with Site Intake.</p>
               <ScenarioTest inputs={inputs} onApply={handleApplyScenario} onNavigateToIntake={() => setActiveTab('intake')} />
             </div>
@@ -706,7 +706,7 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
           <div className=" border border-border/40 bg-card/40 p-4">
             <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
               <span>Quick Reference</span>
-              <span className="text-[10px] text-muted-foreground/70 font-normal">Map controls &amp; site info</span>
+              <span className="text-xs text-muted-foreground/70 font-normal">Map controls &amp; site info</span>
             </h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="bg-muted/40  p-2 flex items-center gap-2">
@@ -722,11 +722,11 @@ export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
                 <span className="text-muted-foreground">Toggle Street / Satellite (top-right)</span>
               </div>
               <div className="bg-muted/40  p-2 flex items-center gap-2">
-                <span className="text-muted-foreground font-mono text-[10px]">+/-</span>
+                <span className="text-muted-foreground font-mono text-xs">+/-</span>
                 <span className="text-muted-foreground">Zoom controls &amp; mouse wheel</span>
               </div>
             </div>
-            <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground/70">
+            <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground/70">
               <span>Current: <span className="text-muted-foreground font-medium">{inputs.turbines}&times;{inputs.mwPerTurbine}MW</span></span>
               <span className="text-muted-foreground/50">|</span>
               <span>State: <span className="text-muted-foreground">{selectedState}</span></span>

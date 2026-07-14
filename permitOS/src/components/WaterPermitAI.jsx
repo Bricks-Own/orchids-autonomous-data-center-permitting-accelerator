@@ -52,7 +52,7 @@ export default function WaterPermitAI({ results, inputs }) {
       <div className="grid md:grid-cols-2 gap-6">
         {/* Permit pathway */}
         <div className=" border border-border/40 bg-card/40 p-5">
-          <h3 className="text-sm font-semibold text-foreground/80 mb-3">Water Permit Pathway Determination</h3>
+          <h3 className="text-base font-semibold text-foreground/80 mb-3">Water Permit Pathway Determination</h3>
           <div className="space-y-3 text-xs">
             {[
               {
@@ -140,7 +140,7 @@ export default function WaterPermitAI({ results, inputs }) {
 
         {/* Water Modules */}
         <div className=" border border-border/40 bg-card/40 p-5">
-          <h3 className="text-sm font-semibold text-foreground/80 mb-3">Water Permit Modules — Deliverables</h3>
+          <h3 className="text-base font-semibold text-foreground/80 mb-3">Water Permit Modules — Deliverables</h3>
           <div className="space-y-3">
             {WATER_MODULES.map(mod => (
               <div key={mod.id} className="border border-border/40  overflow-hidden">
@@ -181,7 +181,7 @@ export default function WaterPermitAI({ results, inputs }) {
 
       {/* Cooling Tower Water Balance */}
       <div className=" border border-border/40 bg-card/40 p-5">
-        <h3 className="text-sm font-semibold text-foreground/80 mb-4">Cooling Tower Water Balance — AI-Modeled</h3>
+        <h3 className="text-base font-semibold text-foreground/80 mb-4">Cooling Tower Water Balance — AI-Modeled</h3>
         <div className="grid md:grid-cols-4 gap-4 text-sm">
           {[
             { label: 'Makeup Water', value: `${water.makeupMG.toFixed(1)} MG/yr`, formula: 'Evaporation + Blowdown + Drift', color: 'text-blue-400' },

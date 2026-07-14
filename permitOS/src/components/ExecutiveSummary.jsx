@@ -131,7 +131,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
               <span className="w-1.5 h-1.5  bg-primary animate-pulse"></span>
               Executive Summary — {inputs.siteName}
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2 leading-tight">
+            <h1 className="text-4xl font-bold text-white mb-2 leading-tight">
               Permit Pathway for {inputs.client}
             </h1>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xl">
@@ -207,7 +207,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
       <div className="grid md:grid-cols-2 gap-4">
         {/* Permit Pathway */}
         <div className=" border border-border/40 bg-card/40 p-5">
-          <h3 className="text-sm font-semibold text-foreground/80 mb-4">Permit Pathway Summary</h3>
+          <h3 className="text-base font-semibold text-foreground/80 mb-4">Permit Pathway Summary</h3>
           <div className="space-y-3 text-xs">
             <div className="flex items-center justify-between bg-muted/40  p-3">
               <span className="text-muted-foreground">Permit Type Required</span>
@@ -235,7 +235,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
 
         {/* Timeline Acceleration */}
         <div className=" border border-border/40 bg-card/40 p-5">
-          <h3 className="text-sm font-semibold text-foreground/80 mb-4">Timeline Acceleration — Brick vs. Traditional</h3>
+          <h3 className="text-base font-semibold text-foreground/80 mb-4">Timeline Acceleration — Brick vs. Traditional</h3>
           <div className="space-y-2">
             {Object.entries(timeline.breakdown).map(([key, item]) => {
               const saved = item.base - item.brick;
@@ -273,7 +273,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
 
       {/* Emissions Summary */}
       <div className=" border border-border/40 bg-card/40 p-5">
-        <h3 className="text-sm font-semibold text-foreground/80 mb-4">Emission Summary — Baseline vs. Brick-Controlled</h3>
+        <h3 className="text-base font-semibold text-foreground/80 mb-4">Emission Summary — Baseline vs. Brick-Controlled</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-xs border-collapse">
             <thead>
@@ -321,7 +321,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
 
       {/* Win Deck Points */}
       <div>
-        <h3 className="text-sm font-semibold text-foreground/80 mb-4">Why Brick Wins This Deal</h3>
+        <h3 className="text-base font-semibold text-foreground/80 mb-4">Why Brick Wins This Deal</h3>
         <div className="grid md:grid-cols-2 gap-4">
           {winPoints.map(w => (
             <div key={w.title} className={` border p-5 ${w.color}`}>
@@ -339,7 +339,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
       {permitScore && (
         <div className=" border border-primary/30 bg-primary/10 p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-primary">Permit Success Scorecard</h3>
+            <h3 className="text-base font-semibold text-primary">Permit Success Scorecard</h3>
             {scoreLoading && <span className="text-xs text-muted-foreground">Updating...</span>}
           </div>
           <div className="grid md:grid-cols-2 gap-4">
@@ -404,7 +404,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
       {/* Scenario Selector + Analysis */}
       <div className=" border border-border/40 bg-card/40 p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-foreground/80">Scenario Pathway Analysis</h3>
+          <h3 className="text-base font-semibold text-foreground/80">Scenario Pathway Analysis</h3>
           <div className="flex gap-1">
             {['greenfield', 'expansion', 'upsized', 'colocated'].map(s => (
               <button
@@ -497,7 +497,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
 
       {/* Risk Factors */}
       <div className=" border border-border/40 bg-card/40 p-5">
-        <h3 className="text-sm font-semibold text-foreground/80 mb-4">Permit Risk Register</h3>
+        <h3 className="text-base font-semibold text-foreground/80 mb-4">Permit Risk Register</h3>
         <div className="space-y-2">
           {riskResult.factors.map((f, i) => (
             <div key={i} className={`flex items-center justify-between  px-3 py-2.5 text-xs
@@ -534,7 +534,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
         <div className=" border border-red-700/30 bg-red-950/10 p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <h3 className="text-sm font-semibold text-foreground/80">Threshold Breach & Remediation Summary</h3>
+              <h3 className="text-base font-semibold text-foreground/80">Threshold Breach & Remediation Summary</h3>
               <span className="text-xs px-2 py-0.5 rounded bg-destructive/10 text-destructive">{results.breaches.filter(b => b.status === 'BREACHED').length} Active</span>
               <span className="text-xs px-2 py-0.5 rounded bg-amber-900/30 text-destructive">{results.breaches.filter(b => b.status === 'MITIGATED').length} Mitigated</span>
             </div>
@@ -583,7 +583,7 @@ export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
 
       {/* CTA buttons */}
       <div className=" border border-primary/30 bg-primary/10 p-5">
-        <h3 className="text-sm font-semibold text-primary mb-3">Next Steps — What BigWatt Gets on Day 1</h3>
+        <h3 className="text-base font-semibold text-primary mb-3">Next Steps — What BigWatt Gets on Day 1</h3>
         <div className="grid md:grid-cols-3 gap-3">
           {[
             { label: 'Air Permit Deep-Dive', icon: '💨', tab: 'air', desc: 'Full PTE, BACT, AERMOD, and CFR compliance analysis' },

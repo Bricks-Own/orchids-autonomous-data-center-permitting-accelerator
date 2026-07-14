@@ -131,7 +131,7 @@ export default function DigitalTwin({ results, inputs }) {
           {/* Hour scrubber */}
           <div className=" border border-border/40 bg-card/40 p-5">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-foreground/80">Hour-by-Hour Permit Compliance View</h3>
+              <h3 className="text-base font-semibold text-foreground/80">Hour-by-Hour Permit Compliance View</h3>
               <span className="text-primary font-bold text-sm">{String(hour).padStart(2,'0')}:00</span>
             </div>
             <input
@@ -162,7 +162,7 @@ export default function DigitalTwin({ results, inputs }) {
 
           {/* Recharts main views */}
           <div className=" border border-border/40 bg-card/40 p-5">
-            <h3 className="text-sm font-semibold text-foreground/80 mb-4">24-Hour Turbine Load & Emissions Profile</h3>
+            <h3 className="text-base font-semibold text-foreground/80 mb-4">24-Hour Turbine Load & Emissions Profile</h3>
             <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={simData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                 <defs>
@@ -194,7 +194,7 @@ export default function DigitalTwin({ results, inputs }) {
           <div className="grid md:grid-cols-2 gap-4">
             {/* NOx Emissions */}
             <div className=" border border-border/40 bg-card/40 p-5">
-              <h3 className="text-sm font-semibold text-foreground/80 mb-4">Hourly NOx Emissions — Permit Compliance</h3>
+              <h3 className="text-base font-semibold text-foreground/80 mb-4">Hourly NOx Emissions — Permit Compliance</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={simData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
@@ -209,7 +209,7 @@ export default function DigitalTwin({ results, inputs }) {
 
             {/* Water Use */}
             <div className=" border border-border/40 bg-card/40 p-5">
-              <h3 className="text-sm font-semibold text-foreground/80 mb-4">Hourly Water Use — Cooling Tower</h3>
+              <h3 className="text-base font-semibold text-foreground/80 mb-4">Hourly Water Use — Cooling Tower</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={simData.filter((_, i) => i % 2 === 0)} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
@@ -242,7 +242,7 @@ export default function DigitalTwin({ results, inputs }) {
 
           {/* Permit compliance envelope */}
           <div className=" border border-border/40 bg-card/40 p-5">
-            <h3 className="text-sm font-semibold text-foreground/80 mb-4">Permit Compliance Envelope — Live Status</h3>
+            <h3 className="text-base font-semibold text-foreground/80 mb-4">Permit Compliance Envelope — Live Status</h3>
             <div className="space-y-3">
               {[
                 {
@@ -313,7 +313,7 @@ export default function DigitalTwin({ results, inputs }) {
 
           {/* Battery dispatch */}
           <div className=" border border-primary/30 bg-primary/10 p-5">
-            <h3 className="text-sm font-semibold text-primary mb-3">Battery / Thermal Storage Dispatch — Permit Value</h3>
+            <h3 className="text-base font-semibold text-primary mb-3">Battery / Thermal Storage Dispatch — Permit Value</h3>
             <div className="grid md:grid-cols-3 gap-4 text-sm">
               <div className="bg-card/40  p-4">
                 <div className="text-xs text-muted-foreground mb-2">Peak Battery Dispatch</div>

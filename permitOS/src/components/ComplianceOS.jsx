@@ -520,7 +520,7 @@ export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
 
           {/* Regulator QA Copilot */}
           <div className=" border border-primary/30 bg-primary/10 p-5">
-            <h3 className="text-sm font-semibold text-primary mb-3">Regulator QA Copilot — RAI & Deficiency Response Engine</h3>
+            <h3 className="text-base font-semibold text-primary mb-3">Regulator QA Copilot — RAI & Deficiency Response Engine</h3>
             <div className="grid md:grid-cols-2 gap-4 text-xs">
               {[
                 { type: 'RAI Response', icon: '📝', desc: 'Agency Request for Additional Information auto-responded from indexed permit record. Average response time: 2 days vs. 3–6 weeks.' },
@@ -557,7 +557,7 @@ export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
           <div className="bg-card border border-border  w-full max-w-2xl max-h-[80vh] overflow-y-auto " onClick={e => e.stopPropagation()}>
             <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-white">Compliance Report</h3>
+                <h3 className="text-base font-semibold text-white">Compliance Report</h3>
                 <p className="text-xs text-muted-foreground">{reportModal.report.title}</p>
               </div>
               <button onClick={() => setReportModal(null)} className="text-muted-foreground hover:text-white text-lg">&times;</button>

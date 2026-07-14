@@ -162,7 +162,7 @@ export default function MilestoneTimeline({ results, inputs }) {
 
       {/* Phase cards */}
       <div>
-        <h3 className="text-sm font-semibold text-foreground/80 mb-4">Permit Phases — What Gets Done and When</h3>
+        <h3 className="text-base font-semibold text-foreground/80 mb-4">Permit Phases — What Gets Done and When</h3>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {MILESTONE_PHASES.map(phase => (
             <div key={phase.phase} className=" border border-border/40 bg-card/40 overflow-hidden">
@@ -190,7 +190,7 @@ export default function MilestoneTimeline({ results, inputs }) {
 
       {/* Gantt Chart */}
       <div className=" border border-border/40 bg-card/40 p-5">
-        <h3 className="text-sm font-semibold text-foreground/80 mb-4">Gantt View — Permit Track Timeline</h3>
+        <h3 className="text-base font-semibold text-foreground/80 mb-4">Gantt View — Permit Track Timeline</h3>
 
         {/* Week markers */}
         <div className="relative mb-1">
@@ -252,7 +252,7 @@ export default function MilestoneTimeline({ results, inputs }) {
 
       {/* Other permits table */}
       <div className=" border border-border/40 bg-card/40 p-5">
-        <h3 className="text-sm font-semibold text-foreground/80 mb-3">Additional Permit Requirements</h3>
+        <h3 className="text-base font-semibold text-foreground/80 mb-3">Additional Permit Requirements</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-xs border-collapse">
             <thead>

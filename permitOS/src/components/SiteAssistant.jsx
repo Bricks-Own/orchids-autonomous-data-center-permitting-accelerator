@@ -292,7 +292,7 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {chatHistory.map((msg, i) => (
               <div key={i} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                <div className={`w-5 h-5  flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5
+                <div className={`w-5 h-5  flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5
                   ${msg.role === 'user' ? 'bg-primary text-white' : 'bg-violet-700 text-white'}`}>
                   {msg.role === 'user' ? 'U' : 'AI'}
                 </div>
@@ -304,37 +304,37 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
                   {msg.role === 'assistant' && msg.sourceType && msg.sourceType !== 'system' && (
                     <div className="flex flex-wrap items-center gap-1.5 mb-1.5 pb-1.5 border-b border-border/30">
                       {msg.sourceType === 'llm' && (
-                        <span className="text-[10px] bg-green-900/40 text-primary rounded px-1.5 py-0.5 border border-green-800/30">
+                        <span className="text-xs bg-green-900/40 text-primary rounded px-1.5 py-0.5 border border-green-800/30">
                           Claude AI
                         </span>
                       )}
                       {msg.sourceType === 'rag' && (
-                        <span className="text-[10px] bg-amber-900/60 text-amber-300 rounded px-1.5 py-0.5 border border-amber-700/50 font-semibold">
+                        <span className="text-xs bg-amber-900/60 text-amber-300 rounded px-1.5 py-0.5 border border-amber-700/50 font-semibold">
                           Limited mode — AI not connected
                         </span>
                       )}
                       {msg.sourceType === 'web' && (
-                        <span className="text-[10px] bg-blue-900/40 text-blue-300 rounded px-1.5 py-0.5 border border-blue-800/30">
+                        <span className="text-xs bg-blue-900/40 text-blue-300 rounded px-1.5 py-0.5 border border-blue-800/30">
                           Internet + AI
                         </span>
                       )}
                       {msg.sourceType === 'scenario' && (
-                        <span className="text-[10px] bg-primary/30 text-primary rounded px-1.5 py-0.5 border border-primary/30">
+                        <span className="text-xs bg-primary/30 text-primary rounded px-1.5 py-0.5 border border-primary/30">
                           Scenario Engine
                         </span>
                       )}
                       {msg.sourceType === 'fallback' && (
-                        <span className="text-[10px] bg-red-900/60 text-destructive rounded px-1.5 py-0.5 border border-red-700/50 font-semibold">
+                        <span className="text-xs bg-red-900/60 text-destructive rounded px-1.5 py-0.5 border border-red-700/50 font-semibold">
                           AI unavailable — limited results
                         </span>
                       )}
                       {(msg.sourceCount > 0) && (
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-xs text-muted-foreground">
                           {msg.sourceCount} source{msg.sourceCount > 1 ? 's' : ''}
                         </span>
                       )}
                       {msg.webSource && (
-                        <span className="text-[10px] text-muted-foreground max-w-[120px] truncate" title={msg.webSource}>
+                        <span className="text-xs text-muted-foreground max-w-[120px] truncate" title={msg.webSource}>
                           EPA data
                         </span>
                       )}
@@ -388,7 +388,7 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
 
             {thinking && (
               <div className="flex gap-2">
-                <div className="w-5 h-5  bg-violet-700 flex items-center justify-center text-[10px] text-white font-bold flex-shrink-0">AI</div>
+                <div className="w-5 h-5  bg-violet-700 flex items-center justify-center text-xs text-white font-bold flex-shrink-0">AI</div>
                 <div className="bg-muted/60 border border-border/40  px-3 py-2">
                   <div className="flex gap-1">
                     <span className="w-1.5 h-1.5  bg-violet-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
@@ -409,7 +409,7 @@ Navigate to the relevant tab for detailed analysis: Air Permit AI, Water Permit 
                   key={t.id}
                   onClick={() => handleQuickPrompt(t.id)}
                   disabled={thinking}
-                  className="text-[10px] text-muted-foreground/70 hover:text-muted-foreground bg-muted/40  px-2 py-0.5 border border-border/40 transition-colors disabled:opacity-40"
+                  className="text-xs text-muted-foreground/70 hover:text-muted-foreground bg-muted/40  px-2 py-0.5 border border-border/40 transition-colors disabled:opacity-40"
                 >
                   {t.label}
                 </button>

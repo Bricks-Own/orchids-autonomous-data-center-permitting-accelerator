@@ -867,7 +867,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
   return (
     <div className="px-10 py-8 max-w-[1180px] mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-[-0.02em]">Site Intake & Data Collection</h1>
+        <h1 className="text-4xl font-bold text-foreground tracking-[-0.02em]">Site Intake & Data Collection</h1>
         <p className="text-sm text-muted-foreground mt-1">
           {step === 1 && 'Configure your project scope — permit types and development scenario.'}
           {step === 2 && 'Enter site, equipment, and operational parameters.'}

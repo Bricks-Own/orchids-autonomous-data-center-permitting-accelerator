@@ -391,7 +391,7 @@ export default function KnowledgeHub({ inputs, results }) {
         <div className=" border border-primary/30 bg-primary/10 p-5">
           <div className="flex items-center gap-2 mb-3">
             <span className="w-5 h-5 rounded bg-primary flex items-center justify-center text-xs text-white font-bold">AI</span>
-            <h3 className="text-sm font-semibold text-primary">AI-Powered Analysis</h3>
+            <h3 className="text-base font-semibold text-primary">AI-Powered Analysis</h3>
             {aiResponse.type === 'llm' && (
               <span className="text-xs bg-green-900/40 text-primary  px-2 py-0.5 ml-auto">Claude</span>
             )}
@@ -419,7 +419,7 @@ export default function KnowledgeHub({ inputs, results }) {
       {!showAi && searched && !searching && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-foreground/80">
+            <h3 className="text-base font-semibold text-foreground/80">
               {resultsList.length > 0
                 ? `Found ${resultsList.length} result${resultsList.length > 1 ? 's' : ''}`
                 : 'No results found'}

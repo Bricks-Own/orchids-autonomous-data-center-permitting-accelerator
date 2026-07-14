@@ -54,7 +54,7 @@ export default function BuildingPermitAI({ inputs, results, setActiveTab }) {
           <div key={m.label} className="bg-card/40 border border-border/40  p-3">
             <div className="text-xs text-muted-foreground mb-1">{m.label}</div>
             <div className={`text-sm font-bold ${m.color}`}>{m.value}</div>
-            <div className="text-[10px] text-muted-foreground/70 mt-0.5">{m.sub}</div>
+            <div className="text-xs text-muted-foreground/70 mt-0.5">{m.sub}</div>
           </div>
         ))}
       </div>
@@ -72,7 +72,7 @@ export default function BuildingPermitAI({ inputs, results, setActiveTab }) {
             <div key={item.label} className="bg-muted/40  p-3">
               <div className="text-xs font-medium text-foreground/80 mb-1">{item.label}</div>
               <div className="text-xs text-primary font-medium">{item.status}</div>
-              <div className="text-[10px] text-muted-foreground/70 mt-0.5">{item.detail}</div>
+              <div className="text-xs text-muted-foreground/70 mt-0.5">{item.detail}</div>
             </div>
           ))}
         </div>
@@ -90,8 +90,8 @@ export default function BuildingPermitAI({ inputs, results, setActiveTab }) {
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded border border-primary/30">{mod.category}</span>
-                    <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded">{mod.id.toUpperCase()}</span>
+                    <span className="text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded border border-primary/30">{mod.category}</span>
+                    <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded">{mod.id.toUpperCase()}</span>
                   </div>
                   <h4 className="text-sm font-semibold text-foreground">{mod.title}</h4>
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{mod.description}</p>
@@ -117,14 +117,14 @@ export default function BuildingPermitAI({ inputs, results, setActiveTab }) {
                     </ul>
                   </div>
                   <div className="bg-muted/40  p-2.5">
-                    <p className="text-[10px] text-muted-foreground italic mb-2">
+                    <p className="text-xs text-muted-foreground italic mb-2">
                       Cross-reference: AIR-015 (Monitoring/Recordkeeping), AIR-007 (BACT noise analysis), Water-001 (Cooling tower structural loads), Milestones tab (building permit timeline)
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {['intake','air','water','milestones'].map(tab => (
                         <button key={tab}
                           onClick={() => setActiveTab && setActiveTab(tab)}
-                          className="text-[10px] bg-primary/20 hover:bg-primary/30 text-primary px-2 py-0.5 rounded border border-primary/30 transition-colors"
+                          className="text-xs bg-primary/20 hover:bg-primary/30 text-primary px-2 py-0.5 rounded border border-primary/30 transition-colors"
                         >
                           {tab === 'intake' ? '📋 Site Intake' : tab === 'air' ? '💨 Air' : tab === 'water' ? '💧 Water' : '📅 Milestones'}
                         </button>

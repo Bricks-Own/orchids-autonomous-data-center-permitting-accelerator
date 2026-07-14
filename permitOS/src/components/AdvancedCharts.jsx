@@ -72,7 +72,7 @@ export function BudgetWaterfall({ data }) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      <div className="text-[10px] text-muted-foreground/70 mt-1">BAC → Approved COs → Pending Exposure → Performance Variance → EAC</div>
+      <div className="text-xs text-muted-foreground/70 mt-1">BAC → Approved COs → Pending Exposure → Performance Variance → EAC</div>
     </div>
   );
 }
@@ -123,7 +123,7 @@ export function ContingencyDrawdown({ projections }) {
           <Line type="monotone" dataKey="physicalProgress" stroke="#22c55e" strokeWidth={2} dot={false} name="Physical Progress %" />
         </LineChart>
       </ResponsiveContainer>
-      <div className="text-[10px] text-muted-foreground/70 mt-1">
+      <div className="text-xs text-muted-foreground/70 mt-1">
         Contingency zero-crossing projected at ~{zeroCrossPct}% physical progress
         {zeroCrossIdx > 0 && zeroCrossIdx < data.length ? ` (between ${data[Math.max(0, zeroCrossIdx - 1)]?.period} and ${data[zeroCrossIdx]?.period})` : ''}
       </div>
@@ -163,7 +163,7 @@ export function MilestoneVarianceChart({ data }) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      <div className="text-[10px] text-muted-foreground/70 mt-1">Red = critical path delay (&gt;15d); amber = at risk; green = ahead of schedule</div>
+      <div className="text-xs text-muted-foreground/70 mt-1">Red = critical path delay (&gt;15d); amber = at risk; green = ahead of schedule</div>
     </div>
   );
 }

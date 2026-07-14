@@ -198,14 +198,14 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
               <button
                 onClick={() => setShowSource(!showSource)}
                 onBlur={() => setTimeout(() => setShowSource(false), 200)}
-                className={`text-[9px] px-1.5 py-0.5  font-semibold tracking-wider cursor-pointer hover:opacity-80 transition-opacity ${docSource.badgeColor}`}
+                className={`text-xs px-1.5 py-0.5  font-semibold tracking-wider cursor-pointer hover:opacity-80 transition-opacity ${docSource.badgeColor}`}
               >
                 {docSource.badge}
               </button>
               {showSource && validationInfo && (
                 <div className="absolute z-50 top-full left-0 mt-1 w-72 bg-muted border border-border  p-3 ">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className={`text-[10px] px-1.5 py-0.5  font-semibold ${docSource.badgeColor}`}>
+                    <span className={`text-xs px-1.5 py-0.5  font-semibold ${docSource.badgeColor}`}>
                       {docSource.badge}
                     </span>
                     <span className="text-xs text-muted-foreground font-medium">Methodology Validated</span>
@@ -219,7 +219,7 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
                   </p>
                   {validationInfo.validatedSections.length > 0 && (
                     <div className="bg-card/60  px-2 py-1.5 border border-border/40 mb-1.5">
-                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Sections Validated</span>
+                      <span className="text-xs text-muted-foreground uppercase tracking-wider">Sections Validated</span>
                       <ul className="text-xs text-primary mt-0.5 list-disc list-inside">
                         {validationInfo.validatedSections.map((s, i) => (
                           <li key={i} className="font-mono">{s}</li>
@@ -228,7 +228,7 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
                     </div>
                   )}
                   <div className="bg-card/60  px-2 py-1.5 border border-border/40">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Reference Deliverable</span>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider">Reference Deliverable</span>
                     <p className="text-xs text-primary mt-0.5 font-mono">{validationInfo.projectName}</p>
                   </div>
                 </div>
@@ -258,24 +258,24 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
           {showCompliance && (
             <div className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-1 w-80 bg-card border border-border  p-3.5  text-left">
               <div className="flex items-center gap-2 mb-2">
-                <span className={`text-[10px] px-1.5 py-0.5  font-semibold ${statusBg} ${statusIcon}`}>
+                <span className={`text-xs px-1.5 py-0.5  font-semibold ${statusBg} ${statusIcon}`}>
                   {statusLabel}
                 </span>
               </div>
               <p className="text-xs text-foreground leading-relaxed mb-2">{compObj.reason}</p>
               {compObj.trigger && (
                 <div className="bg-amber-950/30 border border-amber-800/30  px-2.5 py-2 mb-2">
-                  <span className="text-[10px] text-destructive font-semibold uppercase tracking-wider">Trigger</span>
+                  <span className="text-xs text-destructive font-semibold uppercase tracking-wider">Trigger</span>
                   <p className="text-xs text-amber-300/80 mt-0.5">{compObj.trigger}</p>
                 </div>
               )}
               <div className="bg-primary/10 border border-primary/30  px-2.5 py-2 mb-2">
-                <span className="text-[10px] text-primary font-semibold uppercase tracking-wider">Recommendation</span>
+                <span className="text-xs text-primary font-semibold uppercase tracking-wider">Recommendation</span>
                 <p className="text-xs text-primary/80 mt-0.5">{compObj.recommendation}</p>
               </div>
               {compObj.aiHelp && (
                 <div className="bg-emerald-950/30 border border-emerald-800/30  px-2.5 py-2">
-                  <span className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">AI Assistance</span>
+                  <span className="text-xs text-emerald-400 font-semibold uppercase tracking-wider">AI Assistance</span>
                   <p className="text-xs text-emerald-300/80 mt-0.5">{compObj.aiHelp}</p>
                 </div>
               )}
@@ -753,7 +753,7 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
               </p>
               {/* State format badge */}
               {getStateFormat(selectedState).airAgency !== DEFAULT_STATE_FORMAT.airAgency && (
-                <span className="text-[10px] bg-primary/30 border border-primary/40 text-primary px-2 py-0.5  flex-shrink-0">
+                <span className="text-xs bg-primary/30 border border-primary/40 text-primary px-2 py-0.5  flex-shrink-0">
                   {getStateFormat(selectedState).airAgencyAbbr}
                 </span>
               )}
@@ -817,7 +817,7 @@ export default function DocumentFactory({ results, inputs, selectedDocKey, onCle
                   </button>
                   {/* State selector */}
                   <div className="flex items-center gap-2 pl-3 border-l border-border/40">
-                    <label className="text-[10px] text-muted-foreground uppercase tracking-wider">State</label>
+                    <label className="text-xs text-muted-foreground uppercase tracking-wider">State</label>
                     <select
                       value={selectedState}
                       onChange={(e) => setSelectedState(e.target.value)}
