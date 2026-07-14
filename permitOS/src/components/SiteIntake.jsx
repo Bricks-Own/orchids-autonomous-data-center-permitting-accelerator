@@ -290,9 +290,9 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               <div className="mt-3 pt-3 border-t border-zinc-700/40 space-y-1.5">
                 <div className="text-xs text-zinc-500 mb-1 font-medium">Per-Pollutant Nonattainment (override for county-specific SIP)</div>
                 {[
-                  { key: 'nonAttainNOx', label: 'NO\u2093 (Ozone Precursor)' },
+                  { key: 'nonAttainNOx', label: 'NOₓ (Ozone Precursor)' },
                   { key: 'nonAttainOzone', label: 'Ozone (VOC)' },
-                  { key: 'nonAttainPM25', label: 'PM\u2082.\u2085 (Direct)' },
+                  { key: 'nonAttainPM25', label: 'PM₂.₅ (Direct)' },
                 ].map(p => (
                   <label key={p.key} className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer hover:text-zinc-300">
                     <input
@@ -304,7 +304,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                     {p.label}
                   </label>
                 ))}
-                <p className="text-xs text-zinc-600 mt-1 italic">Checking these applies Severe nonattainment thresholds (25 tpy NO\u2093/VOC, 30 tpy PM\u2082.\u2085)</p>
+                <p className="text-xs text-zinc-600 mt-1 italic">Checking these applies Severe nonattainment thresholds (25 tpy NOₓ/VOC, 30 tpy PM₂.₅)</p>
               </div>
             )}
           </div>
@@ -359,7 +359,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               <Select value={inputs.turbineType} onChange={handleTurbineType} options={turbineTypes} />
             </Field>
             <Field label="Heat Rate (MMBtu/MWh)"><Input value={inputs.heatRate} onChange={v => update('heatRate', v)} type="number" step="0.1" /></Field>
-            <Field label="NO\u2093 Emission Factor (lb/MMBtu)"><Input value={inputs.noxFactor} onChange={v => update('noxFactor', v)} type="number" step="0.001" /></Field>
+            <Field label="NOₓ Emission Factor (lb/MMBtu)"><Input value={inputs.noxFactor} onChange={v => update('noxFactor', v)} type="number" step="0.001" /></Field>
             <Field label="CO Emission Factor (lb/MMBtu)"><Input value={inputs.coFactor} onChange={v => update('coFactor', v)} type="number" step="0.001" /></Field>
             <Field label="Stack Height (ft)"><Input value={inputs.stackHeight} onChange={v => update('stackHeight', v)} type="number" /></Field>
             <Field label="Nearest Receptor (ft)" hint="For AERMOD modeling scope"><Input value={inputs.nearestReceptorFt} onChange={v => update('nearestReceptorFt', v)} type="number" /></Field>
