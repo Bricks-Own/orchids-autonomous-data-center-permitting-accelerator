@@ -333,7 +333,10 @@ function SidebarSeparator({
     <Separator
       data-slot="sidebar-separator"
       data-sidebar="separator"
-      className={cn("mx-2 w-auto bg-sidebar-border", className)}
+      className={cn(
+        "mx-2 data-horizontal:w-auto! bg-sidebar-border group-data-[collapsible=icon]:mx-1.5",
+        className
+      )}
       {...props} />
   );
 }
@@ -362,7 +365,10 @@ function SidebarGroup({
     <div
       data-slot="sidebar-group"
       data-sidebar="group"
-      className={cn("relative flex w-full min-w-0 flex-col p-2", className)}
+      className={cn(
+        "relative flex w-full min-w-0 flex-col p-2 group-data-[collapsible=icon]:px-1.5",
+        className
+      )}
       {...props} />
   );
 }

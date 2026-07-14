@@ -270,7 +270,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               </SelectTrigger>
               <SelectContent>
                 {US_STATES.map(s => (
-                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

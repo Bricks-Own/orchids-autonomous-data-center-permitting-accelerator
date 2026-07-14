@@ -280,13 +280,13 @@ function SidebarFooterContent({ onLogout }) {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <SidebarMenuButton onClick={toggleSidebar} variant="outline">
+        <SidebarMenuButton onClick={toggleSidebar}>
           <PanelLeft weight="duotone" />
           <span>Collapse</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem>
-        <SidebarMenuButton onClick={onLogout} variant="outline">
+        <SidebarMenuButton onClick={onLogout}>
           <SignOut weight="duotone" />
           <span>Sign Out</span>
         </SidebarMenuButton>

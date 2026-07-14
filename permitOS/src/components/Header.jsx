@@ -11,7 +11,7 @@ export default function Header({ activeTab, results, onLogout }) {
   return (
     <div className="bg-background border-b border-border sticky top-0 z-50">
       {/* Top bar */}
-      <div className="flex items-center justify-end px-4 md:px-6 py-3 border-b border-border/60">
+      <div className="flex h-[60px] items-center justify-end px-4 md:px-6 border-b border-border/60">
         <div className="flex items-center gap-2 flex-wrap">
           {hasResults && (
             <Badge variant="secondary" className="gap-1.5">
