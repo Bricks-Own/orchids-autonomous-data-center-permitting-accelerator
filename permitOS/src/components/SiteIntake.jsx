@@ -367,7 +367,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
             <div className="space-y-2 pt-2">
               <Slider
                 value={[inputs.brickSavings || 0]}
-                onValueChange={([v]) => update('brickSavings', v)}
+                onValueChange={(v) => update('brickSavings', v)}
                 min={0}
                 max={30}
                 step={1}
