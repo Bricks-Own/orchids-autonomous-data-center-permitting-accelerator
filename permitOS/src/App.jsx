@@ -218,8 +218,8 @@ function App() {
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-svh w-full">
         <Sidebar collapsible="icon" variant="sidebar">
-          <SidebarHeader>
-            <div className="flex items-center gap-3 px-2 py-1">
+          <SidebarHeader className="group-data-[collapsible=icon]:p-0">
+            <div className="flex items-center gap-3 px-2 py-1 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:h-full">
               <div className="w-8 h-8 bg-primary flex items-center justify-center shrink-0">
                 <ShieldLogo className="w-5 h-5 text-primary-foreground" weight="duotone" />
               </div>
