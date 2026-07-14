@@ -27,7 +27,7 @@ const turbineTypes = ['Gas Turbine (DLN, modern)', 'Gas Turbine (standard combus
 function Field({ label, children, hint }) {
   return (
     <div>
-      <Label className="mb-[7px] block text-[11.5px] font-medium text-muted-foreground normal-case tracking-normal">{label}</Label>
+      <Label className="mb-[7px] block text-xs font-medium text-muted-foreground normal-case tracking-normal">{label}</Label>
       {children}
       {hint && <p className="text-xs text-muted-foreground mt-1.5">{hint}</p>}
     </div>
@@ -38,8 +38,8 @@ function SectionHeading({ icon: Icon, label, count }) {
   return (
     <div className="flex items-center justify-between mb-5">
       <div className="flex items-center gap-2.5">
-        {Icon && <Icon weight="duotone" size={18} className="text-muted-foreground" />}
-        <h3 className="text-[15px] font-bold text-foreground">{label}</h3>
+        {Icon && <Icon weight="duotone" size={20} className="text-muted-foreground" />}
+        <h3 className="text-lg font-bold text-foreground">{label}</h3>
       </div>
       {count !== undefined && (
         <span className="text-xs text-muted-foreground bg-card px-[10px] py-[4px]">{count} fields</span>
@@ -162,7 +162,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
     <div className="space-y-6">
       <Card>
         <SectionHeading icon={SealCheck} label="Permit Types Needed" />
-        <p className="text-[13px] text-muted-foreground mb-5">
+        <p className="text-sm text-muted-foreground mb-5">
           Select the permits you're pursuing — the intake form will only show relevant fields.
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -184,8 +184,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                     <Check weight="bold" size={12} className="text-background" />
                   </span>
                 )}
-                <Icon weight="duotone" size={22} className="text-muted-foreground" />
-                <span className="text-[13px] font-semibold text-foreground">{p.label}</span>
+                <Icon weight="duotone" size={24} className="text-muted-foreground" />
+                <span className="text-sm font-semibold text-foreground">{p.label}</span>
                 <span className="text-xs text-muted-foreground leading-tight">{p.desc}</span>
               </button>
             );
@@ -195,7 +195,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
 
       <Card>
         <SectionHeading icon={MapPin} label="Project Type" />
-        <p className="text-[13px] text-muted-foreground mb-5">
+        <p className="text-sm text-muted-foreground mb-5">
           What type of development is this? This affects permit pathway complexity and timeline.
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -217,8 +217,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                     <Check weight="bold" size={12} className="text-background" />
                   </span>
                 )}
-                <Icon weight="duotone" size={22} className="text-muted-foreground" />
-                <span className="text-[13px] font-semibold text-foreground">{config.label}</span>
+                <Icon weight="duotone" size={24} className="text-muted-foreground" />
+                <span className="text-sm font-semibold text-foreground">{config.label}</span>
                 <span className="text-xs text-muted-foreground leading-tight">{config.desc}</span>
               </button>
             );
@@ -278,7 +278,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           <div className="bg-card p-4 flex items-start gap-3">
             <div className="flex-1 min-w-0">
               <div className="text-xs font-medium text-muted-foreground mb-1">Air Quality Area Status</div>
-              <div className={`text-[13px] font-semibold ${
+              <div className={`text-sm font-semibold ${
                 attainmentStatus.includes('Nonattainment') ? 'text-[#e0a95c]' :
                 attainmentStatus.includes('Mixed') ? 'text-[#e0a95c]' : 'text-primary'
               }`}>
@@ -291,14 +291,14 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
 
         {permitTypes.includes('air') && attainmentStatus.includes('Nonattainment') && (
           <div className="mt-5 pt-5 border-t border-border">
-            <div className="text-[11.5px] font-medium text-muted-foreground mb-3">Per-Pollutant Nonattainment Overrides</div>
+            <div className="text-xs font-medium text-muted-foreground mb-3">Per-Pollutant Nonattainment Overrides</div>
             <div className="flex flex-wrap gap-4">
               {[
                 { key: 'nonAttainNOx', label: 'NOx (Ozone Precursor)' },
                 { key: 'nonAttainOzone', label: 'Ozone (VOC)' },
                 { key: 'nonAttainPM25', label: 'PM2.5 (Direct)' },
               ].map(p => (
-                <label key={p.key} className="flex items-center gap-2 text-[12px] text-muted-foreground cursor-pointer hover:text-foreground/80">
+                <label key={p.key} className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground/80">
                   <input
                     type="checkbox"
                     checked={inputs[p.key]}
@@ -373,7 +373,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                 <span className="text-xs text-muted-foreground">0%</span>
                 <span className="text-xs text-muted-foreground">30%</span>
               </div>
-              <div className="text-right text-[13px] font-semibold text-foreground mt-1">{inputs.brickSavings || 0}% reduction</div>
+              <div className="text-right text-sm font-semibold text-foreground mt-1">{inputs.brickSavings || 0}% reduction</div>
             </div>
           </Field>
         </div>
@@ -500,7 +500,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           </div>
 
           <div className="mt-5 pt-5 border-t border-border">
-            <div className="text-[11.5px] font-medium text-muted-foreground mb-4">Backup / Emergency Generators</div>
+            <div className="text-xs font-medium text-muted-foreground mb-4">Backup / Emergency Generators</div>
             <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
               <Field label="Genset Fuel Type">
                 <Select value={inputs.gensetFuelType || 'Diesel'} onValueChange={v => update('gensetFuelType', v)}>
@@ -546,11 +546,11 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           <div className="flex items-center flex-wrap gap-3">
             <div className="flex items-center gap-2 min-w-0">
               <MapPin weight="duotone" size={18} className="text-muted-foreground flex-shrink-0" />
-              <span className="text-[15px] font-bold text-foreground truncate">{inputs.siteName || 'BigWatt AI Campus'}</span>
+              <span className="text-base font-bold text-foreground truncate">{inputs.siteName || 'BigWatt AI Campus'}</span>
             </div>
-            <span className="text-[13px] text-muted-foreground">/</span>
-            <span className="text-[13px] text-muted-foreground">{inputs.county || inputs.state}, {inputs.state}</span>
-            <span className="text-[13px] text-muted-foreground">/</span>
+            <span className="text-sm text-muted-foreground">/</span>
+            <span className="text-sm text-muted-foreground">{inputs.county || inputs.state}, {inputs.state}</span>
+            <span className="text-sm text-muted-foreground">/</span>
             <Badge variant="secondary">{PROJECT_TYPE_CONFIG[projectScenario]?.label || 'Greenfield Development'}</Badge>
             {permitTypes.map(key => {
               const def = PERMIT_TYPE_CONFIG.find(p => p.key === key);
@@ -572,11 +572,11 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           {results ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-card p-6 border border-border">
-                <div className="text-[11.5px] font-medium text-muted-foreground mb-2">Traditional Pathway</div>
+                <div className="text-xs font-medium text-muted-foreground mb-2">Traditional Pathway</div>
                 <div className="text-[32px] font-bold text-muted-foreground tracking-[-0.02em]">
                   ~{comparison.traditional.totalMonths} <span className="text-[16px] font-medium">months</span>
                 </div>
-                <div className="text-[12px] text-muted-foreground mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {comparison.traditional.pathwayLabel} — baseline emissions
                 </div>
                 {comparison.traditional.totalMonths > comparison.brickAccel.totalMonths && (
@@ -587,11 +587,11 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               </div>
 
               <div className="bg-card  p-6 border border-border relative overflow-hidden">
-                <div className="text-[11.5px] font-medium text-muted-foreground mb-2">Brick-Accelerated</div>
+                <div className="text-xs font-medium text-muted-foreground mb-2">Brick-Accelerated</div>
                 <div className="text-[32px] font-bold text-primary tracking-[-0.02em]">
                   ~{comparison.brickAccel.totalMonths} <span className="text-[16px] font-medium text-muted-foreground">months</span>
                 </div>
-                <div className="text-[12px] text-muted-foreground mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {comparison.brickAccel.pathwayLabel} — Brick-optimized
                 </div>
                 {comparison.monthsSaved > 0 && (
@@ -606,7 +606,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               </div>
             </div>
           ) : (
-            <div className="text-[13px] text-muted-foreground py-4">
+            <div className="text-sm text-muted-foreground py-4">
               Complete the screening to see the timeline comparison. Timeline data is computed from your actual site emissions and pathway determination.
             </div>
           )}
@@ -618,26 +618,26 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
             <Card>
               <div className="flex items-center gap-2.5 mb-4">
                 <Wind weight="duotone" size={18} className="text-muted-foreground" />
-                <h3 className="text-[15px] font-bold text-foreground">Air Permit</h3>
+                <h3 className="text-base font-bold text-foreground">Air Permit</h3>
               </div>
               {results ? (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Baseline NOx</div>
-                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.baseline?.nox?.toFixed(1) || '—'} tpy</div>
+                      <div className="text-sm font-semibold text-foreground font-['IBM_Plex_Mono']">{results.baseline?.nox?.toFixed(1) || '—'} tpy</div>
                     </div>
                     <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Controlled NOx</div>
-                      <div className="text-[13px] font-semibold text-primary font-['IBM_Plex_Mono']">{results.controlled?.nox?.toFixed(1) || '—'} tpy</div>
+                      <div className="text-sm font-semibold text-primary font-['IBM_Plex_Mono']">{results.controlled?.nox?.toFixed(1) || '—'} tpy</div>
                     </div>
                     <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Baseline CO</div>
-                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.baseline?.co?.toFixed(1) || '—'} tpy</div>
+                      <div className="text-sm font-semibold text-foreground font-['IBM_Plex_Mono']">{results.baseline?.co?.toFixed(1) || '—'} tpy</div>
                     </div>
                     <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Controlled CO</div>
-                      <div className="text-[13px] font-semibold text-primary font-['IBM_Plex_Mono']">{results.controlled?.co?.toFixed(1) || '—'} tpy</div>
+                      <div className="text-sm font-semibold text-primary font-['IBM_Plex_Mono']">{results.controlled?.co?.toFixed(1) || '—'} tpy</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -655,7 +655,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                   </div>
                 </div>
               ) : (
-                <div className="text-[13px] text-muted-foreground">Run screening to see air permit metrics</div>
+                <div className="text-sm text-muted-foreground">Run screening to see air permit metrics</div>
               )}
             </Card>
           )}
@@ -664,18 +664,18 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
             <Card>
               <div className="flex items-center gap-2.5 mb-4">
                 <Drop weight="duotone" size={18} className="text-muted-foreground" />
-                <h3 className="text-[15px] font-bold text-foreground">Water Permit</h3>
+                <h3 className="text-base font-bold text-foreground">Water Permit</h3>
               </div>
               {results ? (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Annual Water Use</div>
-                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.water?.annualWaterMG?.toFixed(0) || '—'} MG/yr</div>
+                      <div className="text-sm font-semibold text-foreground font-['IBM_Plex_Mono']">{results.water?.annualWaterMG?.toFixed(0) || '—'} MG/yr</div>
                     </div>
                     <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Brick-Optimized</div>
-                      <div className="text-[13px] font-semibold text-primary font-['IBM_Plex_Mono']">{results.water?.optimizedWater?.toFixed(0) || '—'} MG/yr</div>
+                      <div className="text-sm font-semibold text-primary font-['IBM_Plex_Mono']">{results.water?.optimizedWater?.toFixed(0) || '—'} MG/yr</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -688,7 +688,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                   </div>
                 </div>
               ) : (
-                <div className="text-[13px] text-muted-foreground">Run screening to see water permit metrics</div>
+                <div className="text-sm text-muted-foreground">Run screening to see water permit metrics</div>
               )}
             </Card>
           )}
@@ -704,24 +704,24 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">IBC Class</div>
-                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.building?.ibcClass || '—'}</div>
+                      <div className="text-sm font-semibold text-foreground font-['IBM_Plex_Mono']">{results.building?.ibcClass || '—'}</div>
                     </div>
                     <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Occupancy</div>
-                      <div className="text-[13px] font-semibold text-foreground">{results.building?.occupancy || '—'}</div>
+                      <div className="text-sm font-semibold text-foreground">{results.building?.occupancy || '—'}</div>
                     </div>
                     <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Stories</div>
-                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.building?.stories || '—'}</div>
+                      <div className="text-sm font-semibold text-foreground font-['IBM_Plex_Mono']">{results.building?.stories || '—'}</div>
                     </div>
                     <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Fire Suppression</div>
-                      <div className="text-[13px] font-semibold text-foreground">{results.building?.fireSuppression || '—'}</div>
+                      <div className="text-sm font-semibold text-foreground">{results.building?.fireSuppression || '—'}</div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-[13px] text-muted-foreground">Run screening to see building permit metrics</div>
+                <div className="text-sm text-muted-foreground">Run screening to see building permit metrics</div>
               )}
             </Card>
           )}
@@ -737,19 +737,19 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Total Capacity</div>
-                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.totalMW?.toFixed(0) || totalMW} MW</div>
+                      <div className="text-sm font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.totalMW?.toFixed(0) || totalMW} MW</div>
                     </div>
                     <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Interconnection</div>
-                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.interconnectionVoltage || '—'} kV</div>
+                      <div className="text-sm font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.interconnectionVoltage || '—'} kV</div>
                     </div>
                     <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Power Source</div>
-                      <div className="text-[13px] font-semibold text-foreground">{results.power?.powerSource || '—'}</div>
+                      <div className="text-sm font-semibold text-foreground">{results.power?.powerSource || '—'}</div>
                     </div>
                     <div className="bg-card p-3">
                       <div className="text-xs text-muted-foreground">Genset Total</div>
-                      <div className="text-[13px] font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.gensetTotalMW?.toFixed(1) || '—'} MW</div>
+                      <div className="text-sm font-semibold text-foreground font-['IBM_Plex_Mono']">{results.power?.gensetTotalMW?.toFixed(1) || '—'} MW</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -760,7 +760,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                   </div>
                 </div>
               ) : (
-                <div className="text-[13px] text-muted-foreground">Run screening to see power/interconnection metrics</div>
+                <div className="text-sm text-muted-foreground">Run screening to see power/interconnection metrics</div>
               )}
             </Card>
           )}
@@ -855,8 +855,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
   return (
     <div className="px-[40px] py-[36px_40px_48px] max-w-[1180px] mx-auto space-y-6">
       <div>
-        <h1 className="text-[22px] font-bold text-foreground tracking-[-0.02em]">Site Intake & Data Collection</h1>
-        <p className="text-[13px] text-muted-foreground mt-1">
+        <h1 className="text-2xl font-bold text-foreground tracking-[-0.02em]">Site Intake & Data Collection</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           {step === 1 && 'Configure your project scope — permit types and development scenario.'}
           {step === 2 && 'Enter site, equipment, and operational parameters.'}
           {step === 3 && 'Review your inputs, compare timelines, and generate permits.'}

@@ -32,6 +32,7 @@ import {
   SidebarMenuButton,
   SidebarSeparator,
   SidebarInset,
+  SidebarTrigger,
 } from './components/ui/sidebar';
 import {
   Compass, ChartBar, MapPin, Clipboard, Wind, Drop, Building, Lightning,
@@ -214,7 +215,7 @@ function App() {
   };
 
   return (
-    <SidebarProvider defaultOpen={false}>
+    <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-svh w-full">
         <Sidebar collapsible="icon" variant="sidebar">
           <SidebarHeader>
@@ -222,8 +223,11 @@ function App() {
               <div className="w-8 h-8 bg-primary flex items-center justify-center shrink-0">
                 <ShieldLogo className="w-4 h-4 text-primary-foreground" weight="duotone" />
               </div>
-              <div className="group-data-[collapsible=icon]:hidden">
+              <div className="group-data-[collapsible=icon]:hidden flex-1">
                 <span className="text-foreground font-semibold text-sm font-heading">Brick PermitOS</span>
+              </div>
+              <div className="group-data-[collapsible=icon]:hidden">
+                <SidebarTrigger />
               </div>
             </div>
           </SidebarHeader>
