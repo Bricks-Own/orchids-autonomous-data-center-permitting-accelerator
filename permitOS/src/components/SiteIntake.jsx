@@ -3,7 +3,7 @@ import {
   MapPin, Gear, HardDrives, Wind, Drop, Buildings, Lightning,
   Check, ArrowRight, CircleNotch, Tree,
   ArrowsOut, Wrench, Factory, Timer, SealCheck, CaretRight,
-  ChartBar, ArrowLeft
+  ChartBar, ArrowLeft, WarningCircle
 } from '@phosphor-icons/react';
 import { US_STATES, STATES_ATTAINMENT, NOX_EMISSION_FACTORS, CO_EMISSION_FACTORS } from '../data/permitData';
 import { STATE_ADDRESS_DEFAULTS } from '../utils/locationUtils';
@@ -74,6 +74,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
   const [scenarioAnalysis, setScenarioAnalysis] = useState(null);
   const [scenarioLoading, setScenarioLoading] = useState(false);
   const [scenarioDefs, setScenarioDefs] = useState([]);
+  const [screeningError, setScreeningError] = useState(null);
   const addressFieldsTouched = useRef(false);
   const markAddressTouched = () => { if (!addressFieldsTouched.current) addressFieldsTouched.current = true; };
 
@@ -105,6 +106,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
 
   const runScreening = async () => {
     setRunning(true);
+    setScreeningError(null);
     try {
       const apiResponse = await apiPTE(inputs);
       const calcResults = apiResponse.results || apiResponse;
@@ -136,12 +138,18 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           gensetTotalMW: ((inputs.gensetCount || 0) * (inputs.gensetHP || 0) * 0.746) / 1000,
         },
       });
-    } catch {
-      await new Promise(r => setTimeout(r, 800));
-      const localResults = calcPTE(inputs);
-      setResults(localResults);
+    } catch (err) {
+      // API failed — try local calculation
+      try {
+        await new Promise(r => setTimeout(r, 800));
+        const localResults = calcPTE(inputs);
+        setResults(localResults);
+      } catch (err2) {
+        setScreeningError(err2.message || 'Screening failed. Please check your inputs and try again.');
+      }
+    } finally {
+      setRunning(false);
     }
-    setRunning(false);
   };
 
   const handleTurbineType = (type) => {
@@ -387,7 +395,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
       {permitTypes.includes('air') && (
         <Card>
           <CardContent>
-            <SectionHeading icon={Wind} label="Air Permit Parameters" count={6} />
+            <SectionHeading icon={Wind} label="Generation Equipment" count={6} />
           <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
             <Field label="Turbine / Engine Type" hint="Sets emission factors automatically">
               <Select value={inputs.turbineType} onValueChange={handleTurbineType}>
@@ -415,7 +423,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
       {permitTypes.includes('water') && (
         <Card>
           <CardContent>
-            <SectionHeading icon={Drop} label="Water Permit Parameters" count={4} />
+            <SectionHeading icon={Drop} label="Data Center & Water Systems" count={4} />
           <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
             <Field label="Cooling Water (MGD)" hint="Evaporation rate only"><Input className="font-mono-num" value={inputs.coolingMGD} onChange={v => update('coolingMGD', v)} type="number" step="0.1" /></Field>
             <Field label="Blowdown (%)" hint="% of circulating water discharged"><Input className="font-mono-num" value={inputs.blowdownPct} onChange={v => update('blowdownPct', v)} type="number" /></Field>
@@ -492,7 +500,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
       {permitTypes.includes('power') && (
         <Card>
           <CardContent>
-            <SectionHeading icon={Lightning} label="Power / Interconnection Parameters" count={6} />
+            <SectionHeading icon={Lightning} label="Power Permitting Parameters" count={6} />
           <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
             <Field label="Power Source Type">
               <Select value={inputs.powerSourceType} onValueChange={v => update('powerSourceType', v)}>
@@ -831,6 +839,12 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               <><Lightning weight="duotone" size={20} /> Generate My Permits</>
             )}
           </Button>
+          {screeningError && (
+            <div className="mt-4 bg-destructive/10 border border-destructive/30 px-4 py-3 text-xs text-destructive flex items-center gap-2">
+              <WarningCircle weight="duotone" size={14} className="shrink-0" />
+              {screeningError}
+            </div>
+          )}
           {done && (
             <div className="mt-4 bg-card border border-border p-4">
               <div className="flex items-center gap-2 mb-2">

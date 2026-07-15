@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { getIntelMarkets, getIntelMarketDetail, getIntelProjects, getIntelHearings, getIntelStats, searchIntel, refreshIntelData, getIntelSources } from '../utils/api';
+// Local stub functions — API endpoints for market intelligence are not yet deployed
+// These stubs return empty data so the component gracefully degrades
+async function getIntelMarkets() { return { markets: [] }; }
+async function getIntelMarketDetail() { return { market: null }; }
+async function getIntelProjects() { return { projects: [] }; }
+async function getIntelHearings() { return { hearings: [] }; }
+async function getIntelStats() { return { stats: null }; }
+async function searchIntel() { return { results: [] }; }
+async function refreshIntelData() { return { status: 'ok' }; }
+async function getIntelSources() { return { sources: [] }; }
 
 export default function PermitIntelligence({ setActiveTab }) {
   const [markets, setMarkets] = useState([]);

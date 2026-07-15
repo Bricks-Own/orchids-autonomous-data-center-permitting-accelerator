@@ -15,7 +15,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === 'production';
 
 const app = express();
-const PORT = process.env.PORT || 5173;
+const PORT = process.env.PORT || 3001;
 
 // Trust proxy headers (set by Vite proxy or reverse proxy)
 app.set('trust proxy', 1);
@@ -99,8 +99,8 @@ app.use((req, res, next) => {
 app.use(errorHandler);
 
 // ─── Start ───────────────────────────────────────────────────────────────
-// Listen on port 5173 for preview/API access
-const PORTS = process.env.PORT ? [parseInt(process.env.PORT)] : [5173];
+// Listen on port 3001 for API access (Vite proxy forwards to 3001)
+const PORTS = process.env.PORT ? [parseInt(process.env.PORT)] : [3001];
 const servers = PORTS.map(p => app.listen(p, () => {
   logger.info(`PermitOS listening on port ${p} (${isProduction ? 'production' : 'development'} mode)`);
 }));

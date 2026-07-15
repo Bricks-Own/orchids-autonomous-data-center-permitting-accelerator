@@ -29,7 +29,7 @@ const PROJECT_SCENARIO_FACTORS = {
  * @param {string} params.projectScenario - 'greenfield' | 'expansion' | 'upsized' | 'colocated'
  * @returns {{ totalWeeks: number, totalMonths: number, pathwayLabel: string, pathwayMul: number }}
  */
-export function computePathwayDuration({ totalMW, isNonAttain, requiresPSD, syntheticMinorViable, projectScenario }) {
+export function computePathwayDuration({ totalMW, isNonAttain, requiresPSD, syntheticMinorViable, projectScenario, emissionsReductionPct = 0 }) {
   const mwFactor = Math.max(0.7, Math.min(1.5, (totalMW || 200) / 200));
   const attainmentMul = isNonAttain ? 1.5 : 1.0;
 
@@ -40,6 +40,12 @@ export function computePathwayDuration({ totalMW, isNonAttain, requiresPSD, synt
   if (isTrueMinor) pathwayMul = 0.4;
   else if (isSyntheticMinor) pathwayMul = 0.55;
   else pathwayMul = 1.0;
+
+  // Even within the same pathway bucket, demonstrably lower controlled emissions
+  // simplify BACT analysis and reduce offset needs — up to 10% faster review,
+  // scaled by the actual emissions reduction (capped at 40% reduction credit).
+  const reductionMul = 1 - Math.min(Math.max(emissionsReductionPct, 0), 0.4) * 0.25;
+  pathwayMul *= reductionMul;
 
   const airReviewMul = Math.min(1.8, mwFactor * attainmentMul * pathwayMul);
 
@@ -86,6 +92,10 @@ export function computeTimelineComparison(inputs, results) {
   const isNonAttain = inputs?.nonAttainment || false;
   const projectScenario = inputs?.projectScenario || 'greenfield';
 
+  const baselineNox = results?.baseline?.nox || 0;
+  const controlledNox = results?.controlled?.nox || 0;
+  const emissionsReductionPct = baselineNox > 0 ? Math.max(0, (baselineNox - controlledNox) / baselineNox) : 0;
+
   // Actual pathway (Brick-accelerated): uses controlled emissions from results
   const actualPathway = results?.pathway || {};
   const brickAccel = computePathwayDuration({
@@ -94,6 +104,7 @@ export function computeTimelineComparison(inputs, results) {
     requiresPSD: actualPathway.requiresPSD,
     syntheticMinorViable: actualPathway.syntheticMinorViable,
     projectScenario,
+    emissionsReductionPct,
   });
 
   // Traditional pathway (no Brick optimization):
@@ -104,6 +115,7 @@ export function computeTimelineComparison(inputs, results) {
     requiresPSD: actualPathway.requiresPSD || false,
     syntheticMinorViable: false, // Without Brick controls, assume no synthetic minor pathway
     projectScenario,
+    emissionsReductionPct: 0,
   });
 
   const monthsSaved = traditional.totalMonths - brickAccel.totalMonths;
