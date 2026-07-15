@@ -45,7 +45,7 @@ export function computePathwayDuration({ totalMW, isNonAttain, requiresPSD, synt
   // only meaningful when PSD applicability is actually in play. True minor
   // sources have no BACT/offset scope to begin with, so no credit there.
   if (!isTrueMinor) {
-    const reductionMul = 1 - Math.min(Math.max(emissionsReductionPct, 0), 0.4) * 0.25;
+    const reductionMul = 1 - Math.min(Math.max(emissionsReductionPct, 0), 0.4) * 1.0;
     pathwayMul *= reductionMul;
   }
 

@@ -250,8 +250,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
         <CardContent>
           <SectionHeading icon={MapPin} label="Site Information" count={9} />
         <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
-          <Field label="Site Name"><Input value={inputs.siteName} onChange={v => update('siteName', v)} /></Field>
-          <Field label="Client / Owner"><Input value={inputs.client} onChange={v => update('client', v)} /></Field>
+          <Field label="Site Name"><Input value={inputs.siteName} onChange={e => update('siteName', e.target.value)} /></Field>
+          <Field label="Client / Owner"><Input value={inputs.client} onChange={e => update('client', e.target.value)} /></Field>
           <Field label="State">
             <Select value={inputs.state} onValueChange={v => {
               update('state', v);
@@ -283,12 +283,12 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               </SelectContent>
             </Select>
           </Field>
-          <Field label="County / Jurisdiction"><Input value={inputs.county} onChange={v => { update('county', v); markAddressTouched(); }} /></Field>
-          <Field label="Site Address"><Input value={inputs.address} onChange={v => { update('address', v); markAddressTouched(); }} /></Field>
-          <Field label="Target COD"><Input value={inputs.codTarget} onChange={v => update('codTarget', v)} /></Field>
-          <Field label="Latitude"><Input className="font-mono-num" value={inputs.lat} onChange={v => { update('lat', v); markAddressTouched(); }} /></Field>
-          <Field label="Longitude"><Input className="font-mono-num" value={inputs.lon} onChange={v => { update('lon', v); markAddressTouched(); }} /></Field>
-          <Field label="Site Acreage"><Input value={inputs.siteAcres} onChange={v => update('siteAcres', v)} type="number" /></Field>
+          <Field label="County / Jurisdiction"><Input value={inputs.county} onChange={e => { update('county', e.target.value); markAddressTouched(); }} /></Field>
+          <Field label="Site Address"><Input value={inputs.address} onChange={e => { update('address', e.target.value); markAddressTouched(); }} /></Field>
+          <Field label="Target COD"><Input value={inputs.codTarget} onChange={e => update('codTarget', e.target.value)} /></Field>
+          <Field label="Latitude"><Input className="font-mono-num" value={inputs.lat} onChange={e => { update('lat', e.target.value); markAddressTouched(); }} /></Field>
+          <Field label="Longitude"><Input className="font-mono-num" value={inputs.lon} onChange={e => { update('lon', e.target.value); markAddressTouched(); }} /></Field>
+          <Field label="Site Acreage"><Input value={inputs.siteAcres} onChange={e => update('siteAcres', parseFloat(e.target.value) || 0)} type="number" /></Field>
 
           <div className="bg-card p-4 flex items-start gap-3">
             <div className="flex-1 min-w-0">
@@ -330,9 +330,9 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
         <CardContent>
           <SectionHeading icon={Gear} label="Generation Overview" count={3} />
         <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
-          <Field label="Gas Turbines (count)"><Input value={inputs.turbines} onChange={v => update('turbines', v)} type="number" /></Field>
-          <Field label="MW per Turbine"><Input value={inputs.mwPerTurbine} onChange={v => update('mwPerTurbine', v)} type="number" /></Field>
-          <Field label="Operating Hours / Year" hint="Max 8,760 for continuous; <500 for limited-use"><Input value={inputs.hours} onChange={v => update('hours', v)} type="number" /></Field>
+          <Field label="Gas Turbines (count)"><Input value={inputs.turbines} onChange={e => update('turbines', parseFloat(e.target.value) || 0)} type="number" /></Field>
+          <Field label="MW per Turbine"><Input value={inputs.mwPerTurbine} onChange={e => update('mwPerTurbine', parseFloat(e.target.value) || 0)} type="number" /></Field>
+          <Field label="Operating Hours / Year" hint="Max 8,760 for continuous; <500 for limited-use"><Input value={inputs.hours} onChange={e => update('hours', parseFloat(e.target.value) || 0)} type="number" /></Field>
         </div>
       </CardContent>
       </Card>
@@ -345,7 +345,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           <Field label="IT Load (MW)">
             <div className="flex gap-2">
               <div className="flex-1">
-                <Input value={inputs.datacenterMW} onChange={v => update('datacenterMW', v)} type="number" />
+                <Input value={inputs.datacenterMW} onChange={e => update('datacenterMW', parseFloat(e.target.value) || 0)} type="number" />
               </div>
               <button
                 onClick={() => {
@@ -360,8 +360,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               </button>
             </div>
           </Field>
-          <Field label="Target PUE"><Input value={inputs.pueTarget} onChange={v => update('pueTarget', v)} type="number" step="0.01" /></Field>
-          <Field label="Build Phases"><Input value={inputs.phases} onChange={v => update('phases', v)} type="number" /></Field>
+          <Field label="Target PUE"><Input value={inputs.pueTarget} onChange={e => update('pueTarget', parseFloat(e.target.value) || 0)} type="number" step="0.01" /></Field>
+          <Field label="Build Phases"><Input value={inputs.phases} onChange={e => update('phases', parseFloat(e.target.value) || 0)} type="number" /></Field>
         </div>
       </CardContent>
       </Card>
@@ -409,11 +409,11 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Heat Rate (MMBtu/MWh)"><Input className="font-mono-num" value={inputs.heatRate} onChange={v => update('heatRate', v)} type="number" step="0.1" /></Field>
-            <Field label="NOx Factor (lb/MMBtu)"><Input className="font-mono-num" value={inputs.noxFactor} onChange={v => update('noxFactor', v)} type="number" step="0.001" /></Field>
-            <Field label="CO Factor (lb/MMBtu)"><Input className="font-mono-num" value={inputs.coFactor} onChange={v => update('coFactor', v)} type="number" step="0.001" /></Field>
-            <Field label="Stack Height (ft)"><Input className="font-mono-num" value={inputs.stackHeight} onChange={v => update('stackHeight', v)} type="number" /></Field>
-            <Field label="Nearest Receptor (ft)" hint="For AERMOD modeling scope"><Input className="font-mono-num" value={inputs.nearestReceptorFt} onChange={v => update('nearestReceptorFt', v)} type="number" /></Field>
+            <Field label="Heat Rate (MMBtu/MWh)"><Input className="font-mono-num" value={inputs.heatRate} onChange={e => update('heatRate', parseFloat(e.target.value) || 0)} type="number" step="0.1" /></Field>
+            <Field label="NOx Factor (lb/MMBtu)"><Input className="font-mono-num" value={inputs.noxFactor} onChange={e => update('noxFactor', parseFloat(e.target.value) || 0)} type="number" step="0.001" /></Field>
+            <Field label="CO Factor (lb/MMBtu)"><Input className="font-mono-num" value={inputs.coFactor} onChange={e => update('coFactor', parseFloat(e.target.value) || 0)} type="number" step="0.001" /></Field>
+            <Field label="Stack Height (ft)"><Input className="font-mono-num" value={inputs.stackHeight} onChange={e => update('stackHeight', parseFloat(e.target.value) || 0)} type="number" /></Field>
+            <Field label="Nearest Receptor (ft)" hint="For AERMOD modeling scope"><Input className="font-mono-num" value={inputs.nearestReceptorFt} onChange={e => update('nearestReceptorFt', parseFloat(e.target.value) || 0)} type="number" /></Field>
           </div>
         </CardContent>
         </Card>
@@ -425,9 +425,9 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           <CardContent>
             <SectionHeading icon={Drop} label="Data Center & Water Systems" count={4} />
           <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
-            <Field label="Cooling Water (MGD)" hint="Evaporation rate only"><Input className="font-mono-num" value={inputs.coolingMGD} onChange={v => update('coolingMGD', v)} type="number" step="0.1" /></Field>
-            <Field label="Blowdown (%)" hint="% of circulating water discharged"><Input className="font-mono-num" value={inputs.blowdownPct} onChange={v => update('blowdownPct', v)} type="number" /></Field>
-            <Field label="Process Water (MGD)"><Input className="font-mono-num" value={inputs.waterMGD} onChange={v => update('waterMGD', v)} type="number" step="0.1" /></Field>
+            <Field label="Cooling Water (MGD)" hint="Evaporation rate only"><Input className="font-mono-num" value={inputs.coolingMGD} onChange={e => update('coolingMGD', parseFloat(e.target.value) || 0)} type="number" step="0.1" /></Field>
+            <Field label="Blowdown (%)" hint="% of circulating water discharged"><Input className="font-mono-num" value={inputs.blowdownPct} onChange={e => update('blowdownPct', parseFloat(e.target.value) || 0)} type="number" /></Field>
+            <Field label="Process Water (MGD)"><Input className="font-mono-num" value={inputs.waterMGD} onChange={e => update('waterMGD', parseFloat(e.target.value) || 0)} type="number" step="0.1" /></Field>
             <Field label="Discharge Pathway">
               <Select
                 value={inputs.dischargePathway || ''}
@@ -453,8 +453,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
           <CardContent>
             <SectionHeading icon={Buildings} label="Building Permitting Parameters" count={5} />
           <div className="grid grid-cols-2 gap-x-[28px] gap-y-5">
-            <Field label="Building Footprint (sqft)"><Input value={inputs.buildingSqFt} onChange={v => update('buildingSqFt', v)} type="number" /></Field>
-            <Field label="Stories"><Input value={inputs.stories} onChange={v => update('stories', v)} type="number" /></Field>
+            <Field label="Building Footprint (sqft)"><Input value={inputs.buildingSqFt} onChange={e => update('buildingSqFt', parseFloat(e.target.value) || 0)} type="number" /></Field>
+            <Field label="Stories"><Input value={inputs.stories} onChange={e => update('stories', parseFloat(e.target.value) || 0)} type="number" /></Field>
             <Field label="Occupancy Type">
               <Select value={inputs.occupancyType} onValueChange={v => update('occupancyType', v)}>
                       <SelectTrigger className="w-full">
@@ -514,8 +514,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                     </SelectContent>
                   </Select>
             </Field>
-            <Field label="Interconnection Voltage (kV)"><Input className="font-mono-num" value={inputs.interconnectionVoltage} onChange={v => update('interconnectionVoltage', v)} type="number" /></Field>
-            <Field label="Transformer Capacity (MVA)"><Input className="font-mono-num" value={inputs.transformerCapacity} onChange={v => update('transformerCapacity', v)} type="number" /></Field>
+            <Field label="Interconnection Voltage (kV)"><Input className="font-mono-num" value={inputs.interconnectionVoltage} onChange={e => update('interconnectionVoltage', parseFloat(e.target.value) || 0)} type="number" /></Field>
+            <Field label="Transformer Capacity (MVA)"><Input className="font-mono-num" value={inputs.transformerCapacity} onChange={e => update('transformerCapacity', parseFloat(e.target.value) || 0)} type="number" /></Field>
           </div>
 
           <div className="mt-5 pt-5 border-t border-border">
@@ -534,9 +534,9 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
                   </Select>
               </Field>
               <div />
-              <Field label="Number of Gensets"><Input className="font-mono-num" value={inputs.gensetCount} onChange={v => update('gensetCount', v)} type="number" /></Field>
-              <Field label="HP Each"><Input className="font-mono-num" value={inputs.gensetHP} onChange={v => update('gensetHP', v)} type="number" /></Field>
-              <Field label="Operating Hours / Year" hint="<=100 = emergency"><Input className="font-mono-num" value={inputs.gensetHours} onChange={v => update('gensetHours', v)} type="number" /></Field>
+              <Field label="Number of Gensets"><Input className="font-mono-num" value={inputs.gensetCount} onChange={e => update('gensetCount', parseFloat(e.target.value) || 0)} type="number" /></Field>
+              <Field label="HP Each"><Input className="font-mono-num" value={inputs.gensetHP} onChange={e => update('gensetHP', parseFloat(e.target.value) || 0)} type="number" /></Field>
+              <Field label="Operating Hours / Year" hint="<=100 = emergency"><Input className="font-mono-num" value={inputs.gensetHours} onChange={e => update('gensetHours', parseFloat(e.target.value) || 0)} type="number" /></Field>
             </div>
           </div>
         </CardContent>
