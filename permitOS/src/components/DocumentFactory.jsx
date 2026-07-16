@@ -6,6 +6,10 @@ import { getDocumentSource, getValidationInfo, registerAsgTemplate } from '../ut
 import asgTemplatePTE from '../data/asgTemplates/air_4_PTE';
 import asgTemplateBACT from '../data/asgTemplates/air_7_BACT';
 import { usePermitData } from '../context/PermitDataContext';
+import { Wind, Drop } from '@phosphor-icons/react';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from './ui/table';
+import { Badge } from './ui/badge';
 
 // ─── Regulation Cross-Reference Map ─────────────────────────────────────────
 // Each document's primary CFR/CWA citations for compliance tracking
@@ -178,20 +182,20 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
   const [showSource, setShowSource] = useState(false);
   const [showCompliance, setShowCompliance] = useState(false);
 
-  const statusIcon = compObj.status === 'pass' ? 'text-primary' : compObj.status === 'fail' ? 'text-destructive' : 'text-yellow-400';
-  const statusBg = compObj.status === 'pass' ? 'bg-green-900/20 border-green-700/40' : compObj.status === 'fail' ? 'bg-red-900/20 border-red-700/40' : 'bg-yellow-900/20 border-yellow-700/40';
   const statusLabel = compObj.label;
+  const statusBadgeVariant = compObj.status === 'pass' ? 'default' : compObj.status === 'fail' ? 'destructive' : 'secondary';
+  const statusBadgeClass = compObj.status === 'pass' ? 'text-green-400' : compObj.status === 'fail' ? '' : 'text-yellow-400';
 
   const validationInfo = docSource.badge !== 'GENERIC'
     ? getValidationInfo(doc.key)
     : null;
 
   return (
-    <tr className="border-b border-border/40 hover:bg-muted/20 transition-colors">
-      <td className="py-2.5 px-3">
+    <TableRow>
+      <TableCell className="py-2.5">
         <span className="font-mono text-xs text-muted-foreground/70">{docType === 'air' ? 'AIR' : 'WAT'}-{String(doc.id).padStart(3,'0')}</span>
-      </td>
-      <td className="py-2.5 px-3">
+      </TableCell>
+      <TableCell className="py-2.5">
         <div className="flex items-center gap-2">
           <span className="text-xs text-foreground/80 font-medium">{doc.name}</span>
           {docSource.badge !== 'GENERIC' && (
@@ -199,14 +203,14 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
               <button
                 onClick={() => setShowSource(!showSource)}
                 onBlur={() => setTimeout(() => setShowSource(false), 200)}
-                className={`text-xs px-1.5 py-0.5  font-semibold tracking-wider cursor-pointer hover:opacity-80 transition-opacity ${docSource.badgeColor}`}
+                className={`text-xs px-1.5 py-0.5 font-semibold tracking-wider cursor-pointer hover:opacity-80 transition-opacity ${docSource.badgeColor}`}
               >
                 {docSource.badge}
               </button>
               {showSource && validationInfo && (
-                <div className="absolute z-50 top-full left-0 mt-1 w-72 bg-muted border border-border  p-3 ">
+                <div className="absolute z-50 top-full left-0 mt-1 w-72 bg-muted border border-border p-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className={`text-xs px-1.5 py-0.5  font-semibold ${docSource.badgeColor}`}>
+                    <span className={`text-xs px-1.5 py-0.5 font-semibold ${docSource.badgeColor}`}>
                       {docSource.badge}
                     </span>
                     <span className="text-xs text-muted-foreground font-medium">Methodology Validated</span>
@@ -219,7 +223,7 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
                     and regulatory logic.
                   </p>
                   {validationInfo.validatedSections.length > 0 && (
-                    <div className="bg-card/60  px-2 py-1.5 border border-border/40 mb-1.5">
+                    <div className="bg-card/60 px-2 py-1.5 border border-border/40 mb-1.5">
                       <span className="text-xs text-muted-foreground uppercase tracking-wider">Sections Validated</span>
                       <ul className="text-xs text-primary mt-0.5 list-disc list-inside">
                         {validationInfo.validatedSections.map((s, i) => (
@@ -228,7 +232,7 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
                       </ul>
                     </div>
                   )}
-                  <div className="bg-card/60  px-2 py-1.5 border border-border/40">
+                  <div className="bg-card/60 px-2 py-1.5 border border-border/40">
                     <span className="text-xs text-muted-foreground uppercase tracking-wider">Reference Deliverable</span>
                     <p className="text-xs text-primary mt-0.5 font-mono">{validationInfo.projectName}</p>
                   </div>
@@ -243,67 +247,74 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
         {regInfo && (
           <div className="text-xs text-muted-foreground/70 mt-0.5">{regInfo.agency}</div>
         )}
-      </td>
-      <td className="py-2.5 px-3 text-center">
+      </TableCell>
+      <TableCell className="py-2.5 text-center">
         <span className="text-xs text-muted-foreground">{doc.pages} pp</span>
-      </td>
-      <td className="py-2.5 px-3 text-center">
+      </TableCell>
+      <TableCell className="py-2.5 text-center">
         <div className="relative">
-          <button
-            onClick={() => setShowCompliance(!showCompliance)}
-            onBlur={() => setTimeout(() => setShowCompliance(false), 200)}
-            className={`text-xs  px-2.5 py-0.5 border cursor-pointer hover:opacity-80 transition-opacity ${isGenerated ? statusBg + ' ' + statusIcon : 'text-muted-foreground/70 bg-muted/40 border-border/40'}`}
-          >
-            {isGenerated ? statusLabel : 'Pending'}
-          </button>
+          {isGenerated ? (
+            <Badge
+              variant={statusBadgeVariant}
+              className={`cursor-pointer hover:opacity-80 transition-opacity ${statusBadgeClass}`}
+              onClick={() => setShowCompliance(!showCompliance)}
+              onBlur={() => setTimeout(() => setShowCompliance(false), 200)}
+            >
+              {compObj.label}
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="text-muted-foreground/70">
+              Pending
+            </Badge>
+          )}
           {showCompliance && (
-            <div className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-1 w-80 bg-card border border-border  p-3.5  text-left">
+            <div className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-1 w-80 bg-card border border-border p-3.5 text-left">
               <div className="flex items-center gap-2 mb-2">
-                <span className={`text-xs px-1.5 py-0.5  font-semibold ${statusBg} ${statusIcon}`}>
+                <Badge variant={statusBadgeVariant} className={statusBadgeClass}>
                   {statusLabel}
-                </span>
+                </Badge>
               </div>
               <p className="text-xs text-foreground leading-relaxed mb-2">{compObj.reason}</p>
               {compObj.trigger && (
-                <div className="bg-amber-950/30 border border-amber-800/30  px-2.5 py-2 mb-2">
-                  <span className="text-xs text-destructive font-semibold uppercase tracking-wider">Trigger</span>
-                  <p className="text-xs text-amber-300/80 mt-0.5">{compObj.trigger}</p>
+                <div className="bg-muted/40 border border-border/60 px-2.5 py-2 mb-2">
+                  <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Trigger</span>
+                  <p className="text-xs text-muted-foreground/80 mt-0.5">{compObj.trigger}</p>
                 </div>
               )}
-              <div className="bg-primary/10 border border-primary/30  px-2.5 py-2 mb-2">
+              <div className="bg-primary/10 border border-primary/30 px-2.5 py-2 mb-2">
                 <span className="text-xs text-primary font-semibold uppercase tracking-wider">Recommendation</span>
                 <p className="text-xs text-primary/80 mt-0.5">{compObj.recommendation}</p>
               </div>
               {compObj.aiHelp && (
-                <div className="bg-emerald-950/30 border border-emerald-800/30  px-2.5 py-2">
-                  <span className="text-xs text-emerald-400 font-semibold uppercase tracking-wider">AI Assistance</span>
-                  <p className="text-xs text-emerald-300/80 mt-0.5">{compObj.aiHelp}</p>
+                <div className="bg-muted/40 border border-border/60 px-2.5 py-2">
+                  <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">AI Assistance</span>
+                  <p className="text-xs text-muted-foreground/80 mt-0.5">{compObj.aiHelp}</p>
                 </div>
               )}
             </div>
           )}
         </div>
-      </td>
-      <td className="py-2.5 px-3 text-right">
+      </TableCell>
+      <TableCell className="py-2.5 text-right">
         <div className="flex items-center justify-end gap-2">
           {isGenerated ? (
             <button
               onClick={() => onPreview(doc.key, docType, doc.id - 1)}
-              className="text-xs bg-primary hover:bg-primary text-white  px-3 py-1.5 transition-colors border border-primary"
+              className="text-xs bg-primary hover:bg-primary text-white px-3 py-1.5 transition-colors border border-primary"
             >
               Preview
             </button>
           ) : (
             <button
               onClick={() => onGenerate(doc.key)}
-              className="text-xs bg-muted hover:bg-muted-foreground/20 text-foreground/80  px-3 py-1.5 transition-colors border border-border"
+              className="text-xs bg-muted hover:bg-muted-foreground/20 text-foreground/80 px-3 py-1.5 transition-colors border border-border"
             >
               Generate
             </button>
           )}
         </div>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -319,6 +330,10 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
   const [compliance, setCompliance] = useState({});
   const [initialNavDone, setInitialNavDone] = useState(false);
   const [selectedState, setSelectedState] = useState(inputs?.state || 'Virginia');
+
+  // Derive which permit categories apply based on site intake answers
+  const showAir = inputs?.hasOnSiteGeneration !== false;
+  const showWater = inputs?.hasWaterUse !== false;
 
   // Register ASG-sourced template content on mount
   useEffect(() => {
@@ -642,8 +657,8 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
   };
 
   const allDocs = [
-    ...AIR_DOCS.map(d => ({ ...d, docType: 'air' })),
-    ...WATER_DOCS.map(d => ({ ...d, docType: 'water' })),
+    ...(showAir ? AIR_DOCS.map(d => ({ ...d, docType: 'air' })) : []),
+    ...(showWater ? WATER_DOCS.map(d => ({ ...d, docType: 'water' })) : []),
   ];
 
   const safeInputs = inputs || {
@@ -738,72 +753,75 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
   const airGenerated = AIR_DOCS.filter(d => generated.has(d.key)).length;
   const waterGenerated = WATER_DOCS.filter(d => generated.has(d.key)).length;
   const totalPermits = UPSIZED_PERMITS.reduce((s, c) => s + c.permits.length, 0);
+  const totalDocCount = allDocs.length;
 
   return (
     <div className="p-4 md:p-6 space-y-6">
       {/* Header */}
-      <div className=" border border-border/40 bg-card/40 p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-          <div>
-            <h2 className="text-base font-semibold text-white">Document Factory</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Site-specific draft permit documents — real regulatory content, real citations, real calculated values.
-            </p>
-            <div className="flex flex-wrap items-center gap-2 mt-2">
-              <p className="text-xs text-destructive font-semibold">
-                ⚠ BigWatt upsizing to {safeInputs.turbines}×{safeInputs.mwPerTurbine} MW triggers {UPSIZED_PERMITS.reduce((s,c) => s+c.permits.length,0)} permit actions across {UPSIZED_PERMITS.length} regulatory domains.
+      <Card className="bg-card/40">
+        <CardContent className="p-5">
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+            <div>
+              <CardTitle className="text-base">Document Factory</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Site-specific draft permit documents — real regulatory content, real citations, real calculated values.
               </p>
-              {/* State format badge */}
-              {getStateFormat(selectedState).airAgency !== DEFAULT_STATE_FORMAT.airAgency && (
-                <span className="text-xs bg-primary/30 border border-primary/40 text-primary px-2 py-0.5  flex-shrink-0">
-                  {getStateFormat(selectedState).airAgencyAbbr}
-                </span>
-              )}
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <p className="text-xs text-destructive font-semibold">
+                  &#9888; BigWatt upsizing to {safeInputs.turbines}&times;{safeInputs.mwPerTurbine} MW triggers {UPSIZED_PERMITS.reduce((s,c) => s+c.permits.length, 0)} permit actions across {UPSIZED_PERMITS.length} regulatory domains.
+                </p>
+                {/* State format badge */}
+                {getStateFormat(selectedState).airAgency !== DEFAULT_STATE_FORMAT.airAgency && (
+                  <span className="text-xs bg-primary/30 border border-primary/40 text-primary px-2 py-0.5 flex-shrink-0">
+                    {getStateFormat(selectedState).airAgencyAbbr}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setActiveView('docs')}
+                className={`text-xs px-4 py-2 border transition-all ${activeView === 'docs' ? 'bg-primary text-white border-primary' : 'bg-muted text-muted-foreground border-border hover:text-foreground'}`}
+              >
+                Documents ({totalDocCount})
+              </button>
+              <button
+                onClick={() => setActiveView('permits')}
+                className={`text-xs px-4 py-2 border transition-all ${activeView === 'permits' ? 'bg-destructive text-white border-amber-600' : 'bg-muted text-muted-foreground border-border hover:text-foreground'}`}
+              >
+                All Permits Required ({totalPermits})
+              </button>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => setActiveView('docs')}
-              className={`text-xs px-4 py-2  border transition-all ${activeView === 'docs' ? 'bg-primary text-white border-primary' : 'bg-muted text-muted-foreground border-border hover:text-foreground'}`}
-            >
-              Documents (26)
-            </button>
-            <button
-              onClick={() => setActiveView('permits')}
-              className={`text-xs px-4 py-2  border transition-all ${activeView === 'permits' ? 'bg-destructive text-white border-amber-600' : 'bg-muted text-muted-foreground border-border hover:text-foreground'}`}
-            >
-              All Permits Required ({totalPermits})
-            </button>
-          </div>
-        </div>
 
-        {/* Stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { label: 'Total Documents', value: `${totalGenerated} / 26`, color: 'text-primary' },
-            { label: 'Air Permits', value: `${airGenerated} / 16`, color: 'text-orange-400' },
-            { label: 'Water Permits', value: `${waterGenerated} / 10`, color: 'text-blue-400' },
-            { label: 'Permit Actions', value: totalPermits, color: 'text-destructive' },
-          ].map(s => (
-            <div key={s.label} className="bg-background/40 border border-border/40  p-3">
-              <div className="text-xs text-muted-foreground">{s.label}</div>
-              <div className={`text-xl font-bold mt-0.5 ${s.color}`}>{s.value}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+          {/* Stats row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: 'Total Documents', value: `${totalGenerated} / ${totalDocCount}`, color: 'text-primary' },
+              ...(showAir ? [{ label: 'Air Permits', value: `${airGenerated} / ${AIR_DOCS.length}`, color: 'text-[var(--color-chart-1)]' }] : []),
+              ...(showWater ? [{ label: 'Water Permits', value: `${waterGenerated} / ${WATER_DOCS.length}`, color: 'text-[var(--color-chart-2)]' }] : []),
+              { label: 'Permit Actions', value: totalPermits, color: 'text-destructive' },
+            ].map(s => (
+              <div key={s.label} className="bg-background/40 border border-border/40 p-3">
+                <div className="text-xs text-muted-foreground">{s.label}</div>
+                <div className={`text-xl font-bold mt-0.5 ${s.color}`}>{s.value}</div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* ── DOCUMENTS VIEW ─────────────────────────────────────────────────────── */}
       {activeView === 'docs' && (
         <>
           {/* Action bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-card/40 border border-border/40  px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-card/40 border border-border/40 px-4 py-3">
             <div className="flex items-center gap-3">
               {generating ? (
                 <div className="flex items-center gap-3">
-                  <div className="w-36 bg-muted  h-2">
+                  <div className="w-36 bg-muted h-2">
                     <div
-                      className="bg-primary h-2  transition-all duration-150"
+                      className="bg-primary h-2 transition-all duration-150"
                       style={{ width: `${generateProgress}%` }}
                     />
                   </div>
@@ -813,9 +831,9 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleGenerateAll}
-                    className="bg-primary hover:bg-primary text-white text-xs  px-5 py-2.5 font-semibold transition-colors border border-primary flex items-center gap-2"
+                    className="bg-primary hover:bg-primary text-white text-xs px-5 py-2.5 font-semibold transition-colors border border-primary flex items-center gap-2"
                   >
-                    ⚡ Generate All 26 Documents
+                    &#9889; Generate All {totalDocCount} Documents
                   </button>
                   {/* State selector */}
                   <div className="flex items-center gap-2 pl-3 border-l border-border/40">
@@ -823,7 +841,7 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
                     <select
                       value={selectedState}
                       onChange={(e) => setSelectedState(e.target.value)}
-                      className="text-xs bg-muted text-foreground/80 border border-border  px-2 py-1.5 w-28"
+                      className="text-xs bg-muted text-foreground/80 border border-border px-2 py-1.5 w-28"
                     >
                       {Object.keys(STATE_FORMATS).concat(['Alaska', 'Hawaii']).sort().map(s => (
                         <option key={s} value={s}>
@@ -840,93 +858,101 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
               {totalGenerated > 0 && (
                 <button
                   onClick={handleDownloadAll}
-                  className="bg-primary hover:bg-primary/80 text-white text-xs  px-4 py-2 transition-colors border border-green-600 flex items-center gap-1.5"
+                  className="bg-primary hover:bg-primary/80 text-white text-xs px-4 py-2 transition-colors border border-green-600 flex items-center gap-1.5"
                 >
-                  ⬇ Download Full Package ({totalGenerated} docs)
+                  &#11015; Download Full Package ({totalGenerated} docs)
                 </button>
               )}
-              <span className="text-xs text-muted-foreground">{totalGenerated} of 26 generated</span>
+              <span className="text-xs text-muted-foreground">{totalGenerated} of {totalDocCount} generated</span>
             </div>
           </div>
 
           {/* AIR Documents Table */}
-          <div className=" border border-orange-900/30 bg-card/20 overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-orange-900/30 bg-orange-950/10">
-              <div className="flex items-center gap-2">
-                <span className="text-orange-400 text-sm">💨</span>
-                <span className="text-sm font-semibold text-white">Air Permit Documents</span>
-                <span className="text-xs text-muted-foreground ml-1">(16 documents)</span>
-              </div>
-              <span className="text-xs text-orange-400">{airGenerated}/16 generated</span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border/60">
-                    <th className="py-2 px-3 text-left text-xs text-muted-foreground/70 font-medium">Doc No.</th>
-                    <th className="py-2 px-3 text-left text-xs text-muted-foreground/70 font-medium">Document</th>
-                    <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium">Pages</th>
-                    <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium">Status</th>
-                    <th className="py-2 px-3 text-right text-xs text-muted-foreground/70 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {AIR_DOCS.map(doc => (
-                    <DocRow
-                      key={doc.key}
-                      doc={doc}
-                      docType="air"
-                      generated={generated}
-                      compliance={compliance}
-                      onPreview={openPreview}
-                      onGenerate={handleGenerateSingle}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {showAir && (
+            <Card>
+              <CardHeader className="border-b border-[var(--color-chart-1)]/30 bg-[var(--color-chart-1)]/5">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    <Wind size={18} weight="duotone" style={{ color: 'var(--color-chart-1)' }} />
+                    <CardTitle className="text-sm" style={{ color: 'var(--color-chart-1)' }}>Air Permit Documents</CardTitle>
+                    <span className="text-xs text-muted-foreground ml-1">({AIR_DOCS.length} documents)</span>
+                  </div>
+                  <span className="text-xs" style={{ color: 'var(--color-chart-1)' }}>{airGenerated}/{AIR_DOCS.length} generated</span>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="py-2 px-3">Doc No.</TableHead>
+                      <TableHead className="py-2 px-3">Document</TableHead>
+                      <TableHead className="py-2 px-3 text-center">Pages</TableHead>
+                      <TableHead className="py-2 px-3 text-center">Status</TableHead>
+                      <TableHead className="py-2 px-3 text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {AIR_DOCS.map(doc => (
+                      <DocRow
+                        key={doc.key}
+                        doc={doc}
+                        docType="air"
+                        generated={generated}
+                        compliance={compliance}
+                        onPreview={openPreview}
+                        onGenerate={handleGenerateSingle}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
 
           {/* WATER Documents Table */}
-          <div className=" border border-blue-900/30 bg-card/20 overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-blue-900/30 bg-blue-950/10">
-              <div className="flex items-center gap-2">
-                <span className="text-blue-400 text-sm">💧</span>
-                <span className="text-sm font-semibold text-white">Water Permit Documents</span>
-                <span className="text-xs text-muted-foreground ml-1">(10 documents)</span>
-              </div>
-              <span className="text-xs text-blue-400">{waterGenerated}/10 generated</span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border/60">
-                    <th className="py-2 px-3 text-left text-xs text-muted-foreground/70 font-medium">Doc No.</th>
-                    <th className="py-2 px-3 text-left text-xs text-muted-foreground/70 font-medium">Document</th>
-                    <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium">Pages</th>
-                    <th className="py-2 px-3 text-center text-xs text-muted-foreground/70 font-medium">Status</th>
-                    <th className="py-2 px-3 text-right text-xs text-muted-foreground/70 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {WATER_DOCS.map(doc => (
-                    <DocRow
-                      key={doc.key}
-                      doc={doc}
-                      docType="water"
-                      generated={generated}
-                      compliance={compliance}
-                      onPreview={openPreview}
-                      onGenerate={handleGenerateSingle}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {showWater && (
+            <Card>
+              <CardHeader className="border-b border-[var(--color-chart-2)]/30 bg-[var(--color-chart-2)]/5">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    <Drop size={18} weight="duotone" style={{ color: 'var(--color-chart-2)' }} />
+                    <CardTitle className="text-sm" style={{ color: 'var(--color-chart-2)' }}>Water Permit Documents</CardTitle>
+                    <span className="text-xs text-muted-foreground ml-1">({WATER_DOCS.length} documents)</span>
+                  </div>
+                  <span className="text-xs" style={{ color: 'var(--color-chart-2)' }}>{waterGenerated}/{WATER_DOCS.length} generated</span>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="py-2 px-3">Doc No.</TableHead>
+                      <TableHead className="py-2 px-3">Document</TableHead>
+                      <TableHead className="py-2 px-3 text-center">Pages</TableHead>
+                      <TableHead className="py-2 px-3 text-center">Status</TableHead>
+                      <TableHead className="py-2 px-3 text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {WATER_DOCS.map(doc => (
+                      <DocRow
+                        key={doc.key}
+                        doc={doc}
+                        docType="water"
+                        generated={generated}
+                        compliance={compliance}
+                        onPreview={openPreview}
+                        onGenerate={handleGenerateSingle}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Disclaimer */}
-          <div className=" border border-amber-800/40 bg-amber-950/10 p-4">
+          <div className="border border-border/60 bg-muted/20 p-4">
             <p className="text-xs text-destructive font-semibold mb-1">DRAFT DOCUMENTS — PE REVIEW REQUIRED BEFORE AGENCY SUBMISSION</p>
             <p className="text-xs text-muted-foreground leading-relaxed">
               All documents are generated from site-specific inputs and live emission calculations. Regulatory citations, emission factors, and calculated values reflect current EPA and state requirements as of the document date.
@@ -940,17 +966,17 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
       {/* ── ALL PERMITS REQUIRED VIEW ───────────────────────────────────────────── */}
       {activeView === 'permits' && (
         <div className="space-y-5">
-          <div className=" border border-amber-700/30 bg-amber-950/10 p-4">
+          <div className="border border-border/60 bg-muted/20 p-4">
             <p className="text-xs text-destructive font-semibold mb-1">BigWatt Upsized Site — Complete Permit Universe</p>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              BigWatt Digital's decision to upsize the campus to <strong className="text-white">{safeInputs.turbines}×{safeInputs.mwPerTurbine} MW = {safeInputs.turbines * safeInputs.mwPerTurbine} MW total generation</strong> triggers a substantially larger permit footprint than a smaller site would require.
+              BigWatt Digital's decision to upsize the campus to <strong className="text-white">{safeInputs.turbines}&times;{safeInputs.mwPerTurbine} MW = {safeInputs.turbines * safeInputs.mwPerTurbine} MW total generation</strong> triggers a substantially larger permit footprint than a smaller site would require.
               The following <strong className="text-white">{totalPermits} permit actions</strong> across <strong className="text-white">{UPSIZED_PERMITS.length} regulatory domains</strong> are required or warrant evaluation.
               Each row identifies the specific upsizing trigger — the reason this permit is required because of the larger site scope.
             </p>
           </div>
 
           {UPSIZED_PERMITS.map(cat => (
-            <div key={cat.category} className={` border overflow-hidden ${CAT_COLOR[cat.color]}`}>
+            <div key={cat.category} className={`border overflow-hidden ${CAT_COLOR[cat.color]}`}>
               <div className={`px-4 py-3 border-b flex items-center justify-between ${CAT_COLOR[cat.color]}`}>
                 <span className="text-sm font-semibold">{cat.category}</span>
                 <span className="text-xs opacity-70">{cat.permits.length} items</span>
@@ -975,7 +1001,7 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
                           <span className="text-xs text-muted-foreground leading-relaxed">{p.trigger}</span>
                         </td>
                         <td className="py-2.5 px-3 text-center">
-                          <span className={`text-xs  px-2.5 py-0.5 border font-medium ${URGENCY_COLOR[p.urgency]}`}>
+                          <span className={`text-xs px-2.5 py-0.5 border font-medium ${URGENCY_COLOR[p.urgency]}`}>
                             {p.urgency}
                           </span>
                         </td>
@@ -990,7 +1016,7 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
             </div>
           ))}
 
-          <div className=" border border-border/40 bg-card/40 p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="border border-border/40 bg-card/40 p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: 'Critical Actions', value: UPSIZED_PERMITS.flatMap(c=>c.permits).filter(p=>p.urgency==='Critical').length, color: 'text-destructive' },
               { label: 'Required Actions', value: UPSIZED_PERMITS.flatMap(c=>c.permits).filter(p=>p.urgency==='Required').length, color: 'text-destructive' },
