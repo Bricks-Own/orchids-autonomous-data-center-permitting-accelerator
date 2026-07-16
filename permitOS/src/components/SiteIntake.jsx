@@ -6,7 +6,7 @@ import {
   ArrowsOut, Wrench, Factory, Timer, SealCheck, CaretRight,
   ChartBar, ArrowLeft, WarningCircle
 } from '@phosphor-icons/react';
-import { US_STATES, STATES_ATTAINMENT, NOX_EMISSION_FACTORS, CO_EMISSION_FACTORS } from '../data/permitData';
+import { US_STATES, STATES_ATTAINMENT, NOX_EMISSION_FACTORS, CO_EMISSION_FACTORS, PROJECT_QUESTIONS } from '../data/permitData';
 import { STATE_ADDRESS_DEFAULTS } from '../utils/locationUtils';
 import { calcPTE } from '../utils/calculations';
 import { calculatePTE as apiPTE, analyzeScenario, listScenarios } from '../utils/api';
@@ -70,13 +70,7 @@ const PERMIT_TYPE_CONFIG = [
   { key: 'power', label: 'Power / Interconnection', icon: Lightning, desc: 'Grid interconnection, transformers, gensets, FERC' },
 ];
 
-// ─── Project Q&A (replaces manual permit type picking) ───────────────────────
-const PROJECT_QUESTIONS = [
-  { key: 'hasOnSiteGeneration', question: 'Will this site include on-site power generation — turbines, generators, or other combustion equipment?', helps: 'air' },
-  { key: 'hasWaterUse', question: 'Will this site use or discharge water — cooling towers, process water, wastewater?', helps: 'water' },
-  { key: 'hasNewConstruction', question: 'Is this new building construction, or a build-out inside an existing structure?', helps: 'building' },
-  { key: 'hasGridInterconnection', question: 'Will this site need a new or upgraded grid interconnection?', helps: 'power' },
-];
+// ─── Project Q&A (imported from permitData.js) ───────────────────────────────
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 export default function SiteIntake({ setActiveTab }) {

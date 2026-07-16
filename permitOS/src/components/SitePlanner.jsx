@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Check } from '@phosphor-icons/react';
 import { calcPTE } from '../utils/calculations';
 import { applyLocation } from '../utils/locationUtils';
-import { US_STATES, STATE_BOUNDING_BOXES, STATES_ATTAINMENT } from '../data/permitData';
+import { US_STATES, STATE_BOUNDING_BOXES, STATES_ATTAINMENT, PROJECT_QUESTIONS } from '../data/permitData';
 import 'leaflet/dist/leaflet.css';
 import { usePermitData } from '../context/PermitDataContext';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
@@ -371,6 +372,16 @@ export default function SitePlanner({ setActiveTab }) {
     setInputs(prev => ({ ...prev, siteAcres: acres }));
   };
 
+  const update = (key, val) => setInputs(prev => ({ ...prev, [key]: val }));
+
+  const permitTypeLabels = [
+    { key: 'air', label: 'Air', active: inputs.hasOnSiteGeneration !== false },
+    { key: 'water', label: 'Water', active: inputs.hasWaterUse !== false },
+    { key: 'building', label: 'Building', active: inputs.hasNewConstruction !== false },
+    { key: 'power', label: 'Power', active: inputs.hasGridInterconnection !== false },
+  ];
+  const activePermitNames = permitTypeLabels.filter(p => p.active).map(p => p.label).join(', ');
+
   const locationPresets = [
     { label: 'BigWatt HQ — Nashville, TN', state: 'Tennessee', lat: '36.1627', lon: '-86.7816', acres: 50 },
     { label: 'Ashburn, VA (Data Center Alley)', state: 'Virginia', lat: '39.0438', lon: '-77.4874', acres: 35 },
@@ -409,7 +420,7 @@ export default function SitePlanner({ setActiveTab }) {
       badge: 'SMALL',
       icon: '📡',
       desc: 'Distributed edge node, minimal footprint',
-      params: { turbines: 4, mwPerTurbine: 15, hours: 4000, brickSavings: 20, gensetCount: 6, gensetHours: 100, datacenterMW: 40, siteAcres: 22, pueTarget: 1.40, stackHeight: 40, buildingSqFt: 5000, stories: 1, occupancyType: 'Business (B)', fireSuppression: 'Pre-action sprinkler', emergencyPowerConfig: '2N', powerSourceType: 'Grid-only', interconnectionVoltage: 69, transformerCapacity: 70 },
+      params: { turbines: 4, mwPerTurbine: 15, hours: 4000, brickSavings: 20, gensetCount: 6, gensetHours: 100, datacenterMW: 40, siteAcres: 22, pueTarget: 1.40, stackHeight: 40, buildingSqFt: 5000, stories: 1, occupancyType: 'Business (B)', fireSuppression: 'Pre-action sprinkler', emergencyPowerConfig: '2N', powerSourceType: 'Grid-only', interconnectionVoltage: 69, transformerCapacity: 70, hasOnSiteGeneration: true, hasWaterUse: false, hasNewConstruction: true, hasGridInterconnection: true },
       highlight: 'Fastest permit path',
       highlightColor: 'text-primary',
       metrics: { mw: 60, nox: '19.8', psd: 'No', title5: 'No' },
@@ -419,7 +430,7 @@ export default function SitePlanner({ setActiveTab }) {
       badge: 'MID',
       icon: '🏢',
       desc: 'Existing campus expansion, moderate scale',
-      params: { turbines: 8, mwPerTurbine: 25, hours: 6000, brickSavings: 15, gensetCount: 12, gensetHours: 150, datacenterMW: 133, siteAcres: 50, pueTarget: 1.35, stackHeight: 55, buildingSqFt: 16000, stories: 2, occupancyType: 'Business (B)', fireSuppression: 'Pre-action sprinkler', emergencyPowerConfig: 'N+1', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 138, transformerCapacity: 230 },
+      params: { turbines: 8, mwPerTurbine: 25, hours: 6000, brickSavings: 15, gensetCount: 12, gensetHours: 150, datacenterMW: 133, siteAcres: 50, pueTarget: 1.35, stackHeight: 55, buildingSqFt: 16000, stories: 2, occupancyType: 'Business (B)', fireSuppression: 'Pre-action sprinkler', emergencyPowerConfig: 'N+1', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 138, transformerCapacity: 230, hasOnSiteGeneration: true, hasWaterUse: true, hasNewConstruction: true, hasGridInterconnection: true },
       highlight: 'Synthetic minor viable',
       highlightColor: 'text-destructive',
       metrics: { mw: 200, nox: '52.8', psd: 'No', title5: 'Yes' },
@@ -429,7 +440,7 @@ export default function SitePlanner({ setActiveTab }) {
       badge: 'LARGE',
       icon: '🏗️',
       desc: 'Full hyperscale buildout, major source',
-      params: { turbines: 16, mwPerTurbine: 50, hours: 7000, brickSavings: 25, gensetCount: 24, gensetHours: 100, datacenterMW: 533, siteAcres: 200, pueTarget: 1.30, stackHeight: 80, buildingSqFt: 65000, stories: 5, occupancyType: 'Business (B)', fireSuppression: 'Hybrid (pre-action + clean agent)', emergencyPowerConfig: '2N', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 345, transformerCapacity: 920 },
+      params: { turbines: 16, mwPerTurbine: 50, hours: 7000, brickSavings: 25, gensetCount: 24, gensetHours: 100, datacenterMW: 533, siteAcres: 200, pueTarget: 1.30, stackHeight: 80, buildingSqFt: 65000, stories: 5, occupancyType: 'Business (B)', fireSuppression: 'Hybrid (pre-action + clean agent)', emergencyPowerConfig: '2N', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 345, transformerCapacity: 920, hasOnSiteGeneration: true, hasWaterUse: true, hasNewConstruction: true, hasGridInterconnection: true },
       highlight: 'PSD major source',
       highlightColor: 'text-destructive',
       metrics: { mw: 800, nox: '186.7', psd: 'Yes', title5: 'Yes' },
@@ -439,7 +450,7 @@ export default function SitePlanner({ setActiveTab }) {
       badge: 'CA',
       icon: '🌴',
       desc: 'California site with NNSR/LAER requirements',
-      params: { turbines: 6, mwPerTurbine: 20, hours: 5000, brickSavings: 30, gensetCount: 8, gensetHours: 80, datacenterMW: 80, siteAcres: 35, pueTarget: 1.38, stackHeight: 50, state: 'California', lat: '37.3861', lon: '-122.0839', nonAttainment: true, nonAttainNOx: true, nonAttainPM25: true, nonAttainOzone: true, buildingSqFt: 10000, stories: 2, occupancyType: 'Business (B)', fireSuppression: 'Clean agent (FM-200/Novec)', emergencyPowerConfig: 'N+1', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 69, transformerCapacity: 138 },
+      params: { turbines: 6, mwPerTurbine: 20, hours: 5000, brickSavings: 30, gensetCount: 8, gensetHours: 80, datacenterMW: 80, siteAcres: 35, pueTarget: 1.38, stackHeight: 50, state: 'California', lat: '37.3861', lon: '-122.0839', nonAttainment: true, nonAttainNOx: true, nonAttainPM25: true, nonAttainOzone: true, buildingSqFt: 10000, stories: 2, occupancyType: 'Business (B)', fireSuppression: 'Clean agent (FM-200/Novec)', emergencyPowerConfig: 'N+1', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 69, transformerCapacity: 138, hasOnSiteGeneration: true, hasWaterUse: true, hasNewConstruction: true, hasGridInterconnection: true },
       highlight: 'LAER + offsets needed',
       highlightColor: 'text-destructive',
       metrics: { mw: 120, nox: '28.3', psd: 'No', title5: 'Yes' },
@@ -559,22 +570,65 @@ export default function SitePlanner({ setActiveTab }) {
             </CardContent>
           </Card>
 
+          {/* Permit Requirements */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Permit Requirements</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">Which permit domains apply to this site?</p>
+              <div className="grid grid-cols-2 gap-3">
+                {PROJECT_QUESTIONS.map(q => {
+                  const val = inputs[q.key] !== false;
+                  return (
+                    <button
+                      key={q.key}
+                      onClick={() => update(q.key, !val)}
+                      className={`relative flex flex-col items-start gap-2 border p-4 text-left transition-all
+                        ${val
+                          ? 'border-border bg-card'
+                          : 'border-border bg-transparent hover:bg-card'
+                        }`}
+                    >
+                      {val && (
+                        <span className="absolute top-3 right-3 w-5 h-5 bg-foreground flex items-center justify-center">
+                          <Check weight="bold" size={14} className="text-background" />
+                        </span>
+                      )}
+                      <span className="text-sm font-semibold text-foreground">{q.question}</span>
+                      <span className="text-xs text-muted-foreground leading-tight">{val ? 'Yes' : 'No'}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Current Site Configuration */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between w-full">
                 <CardTitle>Current Site Configuration</CardTitle>
-                <Button
-                  variant="outline"
-                  size="xs"
-                  onClick={() => {
-                    applyLocation(setInputs, { state: selectedState, lat, lon, acres: siteAcres, presetLabel: selectedLocationLabel, scenarioTitle: selectedLocationLabel });
-                    const summary = `${inputs.turbines} x ${inputs.mwPerTurbine}MW in ${selectedState}`;
-                    navigateToIntake(summary);
-                  }}
-                >
-                  Send to Site Intake
-                </Button>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    {permitTypeLabels.map(p => (
+                      <Badge key={p.key} variant={p.active ? 'default' : 'outline'}>
+                        {p.label}
+                      </Badge>
+                    ))}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    onClick={() => {
+                      applyLocation(setInputs, { state: selectedState, lat, lon, acres: siteAcres, presetLabel: selectedLocationLabel, scenarioTitle: selectedLocationLabel });
+                      const summary = `${inputs.turbines} x ${inputs.mwPerTurbine}MW in ${selectedState} — ${activePermitNames}`;
+                      navigateToIntake(summary);
+                    }}
+                  >
+                    Send to Site Intake
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -670,7 +724,7 @@ export default function SitePlanner({ setActiveTab }) {
                           className="w-full mt-2"
                           onClick={() => {
                             previewScenario(scenario);
-                            navigateToIntake(`${scenario.title} — ${scenario.metrics.mw}MW`);
+                            navigateToIntake(`${scenario.title} — ${scenario.metrics.mw}MW — ${activePermitNames}`);
                           }}
                         >
                           Apply &rarr; Intake
@@ -688,7 +742,7 @@ export default function SitePlanner({ setActiveTab }) {
                   <CardTitle>Custom Scenario Builder</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ScenarioTest inputs={inputs} onApply={(params) => { handleApplyScenario(params); navigateToIntake(`Custom scenario — ${params.turbines} x ${params.mwPerTurbine}MW`); }} />
+                  <ScenarioTest inputs={inputs} onApply={(params) => { handleApplyScenario(params); navigateToIntake(`Custom scenario — ${params.turbines} x ${params.mwPerTurbine}MW — ${activePermitNames}`); }} />
                 </CardContent>
               </Card>
             </TabsContent>

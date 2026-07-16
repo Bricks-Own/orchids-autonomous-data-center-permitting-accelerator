@@ -525,3 +525,11 @@ export const POWER_MODULES = [
     subSlug: 'CHP',
   },
 ];
+
+// ─── Project Q&A — shared between SiteIntake and SitePlanner ────────────────
+export const PROJECT_QUESTIONS = [
+  { key: 'hasOnSiteGeneration', question: 'Will this site include on-site power generation — turbines, generators, or other combustion equipment?', helps: 'air' },
+  { key: 'hasWaterUse', question: 'Will this site use or discharge water — cooling towers, process water, wastewater?', helps: 'water' },
+  { key: 'hasNewConstruction', question: 'Is this new building construction, or a build-out inside an existing structure?', helps: 'building' },
+  { key: 'hasGridInterconnection', question: 'Will this site need a new or upgraded grid interconnection?', helps: 'power' },
+];
