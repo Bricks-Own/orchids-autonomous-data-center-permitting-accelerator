@@ -6,11 +6,12 @@ import { getDocumentSource, getValidationInfo, registerAsgTemplate } from '../ut
 import asgTemplatePTE from '../data/asgTemplates/air_4_PTE';
 import asgTemplateBACT from '../data/asgTemplates/air_7_BACT';
 import { usePermitData } from '../context/PermitDataContext';
-import { Wind, Drop } from '@phosphor-icons/react';
+import { Wind, Drop, Buildings, Lightning } from '@phosphor-icons/react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from './ui/table';
 import { Badge } from './ui/badge';
 import { downloadPackageAsPdf } from '../utils/pdfExport';
+import { BUILDING_MODULES, POWER_MODULES } from '../data/permitData';
 
 // ─── Regulation Cross-Reference Map ─────────────────────────────────────────
 // Each document's primary CFR/CWA citations for compliance tracking
@@ -41,6 +42,23 @@ const REG_CITATIONS = {
   'water_8':  { cfr: ['40 CFR § 403.5', '40 CFR § 403.12'],                   agency: 'EPA/State Water Agency/POTW', type: 'Water' },
   'water_9':  { cfr: ['CWA § 404', 'CWA § 401'],                              agency: 'USACE/State Water Agency',    type: 'Water' },
   'water_10': { cfr: ['CWA § 303', 'State Water Conservation Rules'],          agency: 'State Water Agency',           type: 'Water' },
+  // Building docs
+  'building_1':  { cfr: ['IBC 2021 Chapters 3, 5, 6'],                            agency: 'Local Building Official / AHJ',                  type: 'Building' },
+  'building_2':  { cfr: ['IBC 2021 Chapter 9', 'NFPA 13', 'NFPA 2001'],           agency: 'Fire Marshal / Local AHJ',                       type: 'Building' },
+  'building_3':  { cfr: ['NFPA 110', 'NFPA 70 Art. 700/701/702', 'NFPA 37'],      agency: 'Local Building / Electrical Official',            type: 'Building' },
+  'building_4':  { cfr: ['IBC 2021 Chapters 16-23', 'ASCE 7-22'],                  agency: 'Local Building Official / Structural Peer Review',type: 'Building' },
+  'building_5':  { cfr: ['IBC 2021 Chapter 7', 'ASTM E119'],                       agency: 'Local Building Official / Fire Marshal',          type: 'Building' },
+  'building_6':  { cfr: ['IMC 2021 Chapters 4-7', 'ASHRAE 90.4-2022'],             agency: 'Local Building / Mechanical Official',            type: 'Building' },
+  'building_7':  { cfr: ['IBC 2021 §105', 'IBC 2021 §107'],                       agency: 'Local Building Department',                       type: 'Building' },
+  'building_8':  { cfr: ['Local Zoning Ordinance', 'IBC Appendix E'],              agency: 'Zoning Board / Planning Commission',              type: 'Building' },
+  // Power docs
+  'power_1':  { cfr: ['FERC Order 2003', 'FERC Order 2006', 'ISO/RTO Tariff'],     agency: 'FERC / Utility / ISO-RTO',                        type: 'Power' },
+  'power_2':  { cfr: ['NERC Reliability Standards', 'NERC Rules of Procedure §500'],agency: 'NERC / Regional Reliability Entity',              type: 'Power' },
+  'power_3':  { cfr: ['State PUC Regulations', 'PURPA 16 USC §2601'],              agency: 'State Public Utility Commission',                 type: 'Power' },
+  'power_4':  { cfr: ['PJM Manual 21', 'MISO Tariff Sch. 38', 'ERCOT Protocols §6'],agency: 'ISO/RTO (PJM, MISO, ERCOT, CAISO, NYISO)',        type: 'Power' },
+  'power_5':  { cfr: ['NERC TPL-001', 'State Siting Board Regulations'],           agency: 'Utility / ISO-RTO / State Siting Board',          type: 'Power' },
+  'power_6':  { cfr: ['Natural Gas Act 15 USC §717', '49 CFR Part 192'],           agency: 'FERC / State Pipeline Agency / Gas Utility',      type: 'Power' },
+  'power_7':  { cfr: ['FERC PURPA §210', 'CAA §112/NESHAP', '26 USC §48'],         agency: 'FERC / DOE / State Energy Office',                type: 'Power' },
 };
 
 const AIR_DOCS = [
@@ -74,6 +92,22 @@ const WATER_DOCS = [
   { id: 9,  key: 'water_9',  name: 'Wetlands / Waters of the US Screening Package',       cfr: 'CWA § 404 / § 401',               pages: '12–20' },
   { id: 10, key: 'water_10', name: 'Water Conservation & ZLD Feasibility Memo',           cfr: 'NPDES BMP / state water regs',    pages: '10–18' },
 ];
+
+const BUILDING_DOCS = BUILDING_MODULES.map((m, i) => ({
+  id: i + 1,
+  key: `building_${i + 1}`,
+  name: m.title,
+  cfr: m.regulation,
+  pages: '8–15',
+}));
+
+const POWER_DOCS = POWER_MODULES.map((m, i) => ({
+  id: i + 1,
+  key: `power_${i + 1}`,
+  name: m.title,
+  cfr: m.regulation,
+  pages: '8–15',
+}));
 
 // ─── All Permits Required — BigWatt Upsized Site ──────────────────────────────
 const UPSIZED_PERMITS = [
@@ -200,7 +234,7 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
   return (
     <TableRow>
       <TableCell className="py-2.5">
-        <span className="font-mono text-xs text-muted-foreground/70">{docType === 'air' ? 'AIR' : 'WAT'}-{String(doc.id).padStart(3,'0')}</span>
+        <span className="font-mono text-xs text-muted-foreground/70">{docType === 'air' ? 'AIR' : docType === 'water' ? 'WAT' : docType === 'building' ? 'BLD' : 'POW'}-{String(doc.id).padStart(3,'0')}</span>
       </TableCell>
       <TableCell className="py-2.5">
         <div className="flex items-center gap-2">
@@ -678,6 +712,8 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
   const allDocs = [
     ...(showAir ? AIR_DOCS.map(d => ({ ...d, docType: 'air' })) : []),
     ...(showWater ? WATER_DOCS.map(d => ({ ...d, docType: 'water' })) : []),
+    ...(showBuilding ? BUILDING_DOCS.map(d => ({ ...d, docType: 'building' })) : []),
+    ...(showPower ? POWER_DOCS.map(d => ({ ...d, docType: 'power' })) : []),
   ];
 
   const safeInputs = inputs || {
@@ -737,6 +773,8 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
   const totalGenerated = generated.size;
   const airGenerated = AIR_DOCS.filter(d => generated.has(d.key)).length;
   const waterGenerated = WATER_DOCS.filter(d => generated.has(d.key)).length;
+  const buildingGenerated = BUILDING_DOCS.filter(d => generated.has(d.key)).length;
+  const powerGenerated = POWER_DOCS.filter(d => generated.has(d.key)).length;
   const filteredPermitCount = filteredPermits.reduce((s, c) => s + c.permits.length, 0);
   const totalDocCount = allDocs.length;
 
@@ -785,6 +823,8 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
               { label: 'Total Documents', value: `${totalGenerated} / ${totalDocCount}`, color: 'text-primary' },
               ...(showAir ? [{ label: 'Air Permits', value: `${airGenerated} / ${AIR_DOCS.length}`, color: 'text-[var(--color-chart-1)]' }] : []),
               ...(showWater ? [{ label: 'Water Permits', value: `${waterGenerated} / ${WATER_DOCS.length}`, color: 'text-[var(--color-chart-2)]' }] : []),
+              ...(showBuilding ? [{ label: 'Building Permits', value: `${buildingGenerated} / ${BUILDING_DOCS.length}`, color: 'text-[var(--color-chart-3)]' }] : []),
+              ...(showPower ? [{ label: 'Power Permits', value: `${powerGenerated} / ${POWER_DOCS.length}`, color: 'text-[var(--color-chart-4)]' }] : []),
               { label: 'Permit Actions', value: filteredPermitCount, color: 'text-destructive' },
             ].map(s => (
               <div key={s.label} className="bg-background/40 border border-border/40 p-3">
@@ -924,6 +964,90 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
                         key={doc.key}
                         doc={doc}
                         docType="water"
+                        generated={generated}
+                        compliance={compliance}
+                        onPreview={openPreview}
+                        onGenerate={handleGenerateSingle}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* BUILDING Documents Table */}
+          {showBuilding && (
+            <Card className="pt-0">
+              <CardHeader className="items-center border-b border-[var(--color-chart-3)]/30 bg-[var(--color-chart-3)]/5">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    <Buildings size={18} weight="duotone" style={{ color: 'var(--color-chart-3)' }} />
+                    <CardTitle className="text-sm normal-case tracking-normal font-sans" style={{ color: 'var(--color-chart-3)' }}>Building Permit Documents</CardTitle>
+                    <span className="text-xs text-muted-foreground ml-1">({BUILDING_DOCS.length} documents)</span>
+                  </div>
+                  <span className="text-xs" style={{ color: 'var(--color-chart-3)' }}>{buildingGenerated}/{BUILDING_DOCS.length} generated</span>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="py-2 px-3">Doc No.</TableHead>
+                      <TableHead className="py-2 px-3">Document</TableHead>
+                      <TableHead className="py-2 px-3 text-center">Pages</TableHead>
+                      <TableHead className="py-2 px-3 text-center">Status</TableHead>
+                      <TableHead className="py-2 px-3 text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {BUILDING_DOCS.map(doc => (
+                      <DocRow
+                        key={doc.key}
+                        doc={doc}
+                        docType="building"
+                        generated={generated}
+                        compliance={compliance}
+                        onPreview={openPreview}
+                        onGenerate={handleGenerateSingle}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* POWER Documents Table */}
+          {showPower && (
+            <Card className="pt-0">
+              <CardHeader className="items-center border-b border-[var(--color-chart-4)]/30 bg-[var(--color-chart-4)]/5">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    <Lightning size={18} weight="duotone" style={{ color: 'var(--color-chart-4)' }} />
+                    <CardTitle className="text-sm normal-case tracking-normal font-sans" style={{ color: 'var(--color-chart-4)' }}>Power Permit Documents</CardTitle>
+                    <span className="text-xs text-muted-foreground ml-1">({POWER_DOCS.length} documents)</span>
+                  </div>
+                  <span className="text-xs" style={{ color: 'var(--color-chart-4)' }}>{powerGenerated}/{POWER_DOCS.length} generated</span>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="py-2 px-3">Doc No.</TableHead>
+                      <TableHead className="py-2 px-3">Document</TableHead>
+                      <TableHead className="py-2 px-3 text-center">Pages</TableHead>
+                      <TableHead className="py-2 px-3 text-center">Status</TableHead>
+                      <TableHead className="py-2 px-3 text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {POWER_DOCS.map(doc => (
+                      <DocRow
+                        key={doc.key}
+                        doc={doc}
+                        docType="power"
                         generated={generated}
                         compliance={compliance}
                         onPreview={openPreview}

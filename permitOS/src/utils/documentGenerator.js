@@ -3,6 +3,7 @@
 
 import { convertForState } from './formConverter.js';
 import { getAsgTemplate } from './asgImporter.js';
+import { BUILDING_MODULES, POWER_MODULES } from '../data/permitData.js';
 
 const fmt = (n, d = 1) => (typeof n === 'number' ? n.toFixed(d) : '—');
 const fmtInt = (n) => Math.round(n).toLocaleString();
@@ -1663,6 +1664,48 @@ RECOMMENDATION: ZLD not recommended at this time. Implement COC optimization (Op
 }
 
 // ─── MASTER DOCUMENT DISPATCHER ─────────────────────────────────────────────
+// ─── Building / Power Generic Generator ─────────────────────────────────────
+function genFromModule(module, docNum, docType, inputs, results) {
+  const { siteName, client, state, county, address } = inputs;
+  const typeLabel = docType === 'building' ? 'Building' : 'Power';
+  const docTypeLabel = docType === 'building' ? 'BLD' : 'POW';
+
+  return {
+    title: module.title,
+    docNum: `${docTypeLabel}-${String(docNum).padStart(3, '0')}`,
+    sections: [
+      {
+        heading: '1. PROJECT IDENTIFICATION',
+        body: `Facility Name: ${siteName}
+Owner/Operator: ${client}
+Site Address: ${address}
+County: ${county}, State: ${state}
+Permit Category: ${typeLabel} Code Compliance
+Regulatory Module: ${module.title}
+Prepared by: Brick PermitOS™ Permitting Platform
+Date: ${today()}`
+      },
+      {
+        heading: '2. REGULATORY REQUIREMENTS',
+        body: `${module.description}
+
+Regulatory Citation(s):
+${module.regulation}
+
+Agency: ${module.agency}`
+      },
+      {
+        heading: '3. TECHNICAL GUIDANCE',
+        body: module.guidance
+      },
+      {
+        heading: '4. DELIVERABLES CHECKLIST',
+        body: module.deliverables.map((d, i) => `${i + 1}. ${d}`).join('\n')
+      }
+    ]
+  };
+}
+
 export function generateDocument(docType, docNum, inputs, results) {
   const generators = {
     // Air docs
@@ -1693,6 +1736,23 @@ export function generateDocument(docType, docNum, inputs, results) {
     'water_8':  () => genWater8_POTW(inputs, results),
     'water_9':  () => genWater9_Wetlands(inputs, results),
     'water_10': () => genWater10_WaterConservation(inputs, results),
+    // Building docs
+    'building_1': () => genFromModule(BUILDING_MODULES[0], 1, 'building', inputs, results),
+    'building_2': () => genFromModule(BUILDING_MODULES[1], 2, 'building', inputs, results),
+    'building_3': () => genFromModule(BUILDING_MODULES[2], 3, 'building', inputs, results),
+    'building_4': () => genFromModule(BUILDING_MODULES[3], 4, 'building', inputs, results),
+    'building_5': () => genFromModule(BUILDING_MODULES[4], 5, 'building', inputs, results),
+    'building_6': () => genFromModule(BUILDING_MODULES[5], 6, 'building', inputs, results),
+    'building_7': () => genFromModule(BUILDING_MODULES[6], 7, 'building', inputs, results),
+    'building_8': () => genFromModule(BUILDING_MODULES[7], 8, 'building', inputs, results),
+    // Power docs
+    'power_1': () => genFromModule(POWER_MODULES[0], 1, 'power', inputs, results),
+    'power_2': () => genFromModule(POWER_MODULES[1], 2, 'power', inputs, results),
+    'power_3': () => genFromModule(POWER_MODULES[2], 3, 'power', inputs, results),
+    'power_4': () => genFromModule(POWER_MODULES[3], 4, 'power', inputs, results),
+    'power_5': () => genFromModule(POWER_MODULES[4], 5, 'power', inputs, results),
+    'power_6': () => genFromModule(POWER_MODULES[5], 6, 'power', inputs, results),
+    'power_7': () => genFromModule(POWER_MODULES[6], 7, 'power', inputs, results),
   };
   const key = `${docType}_${docNum}`;
   const genericContent = generators[key] ? generators[key]() : null;
