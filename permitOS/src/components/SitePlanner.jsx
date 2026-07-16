@@ -5,6 +5,13 @@ import { applyLocation } from '../utils/locationUtils';
 import { US_STATES, STATE_BOUNDING_BOXES, STATES_ATTAINMENT } from '../data/permitData';
 import 'leaflet/dist/leaflet.css';
 import { usePermitData } from '../context/PermitDataContext';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Slider } from './ui/slider';
+import { Label } from './ui/label';
+import { Input } from './ui/input';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 
 // ─── Leaflet Map Component ──────────────────────────────────────────────────
 // Reverse geocode lat/lon to US state using bounding boxes
@@ -162,9 +169,9 @@ function SiteMap({ lat, lon, onLatLonChange, onBoundaryChange, siteAcres }) {
     ];
 
     const rect = L.rectangle(bounds, {
-      color: '#6366f1',
+      color: 'var(--color-chart-1)',
       weight: 2,
-      fillColor: '#6366f1',
+      fillColor: 'var(--color-chart-1)',
       fillOpacity: 0.12,
       dashArray: '5, 5',
     }).addTo(map);
@@ -184,7 +191,7 @@ function SiteMap({ lat, lon, onLatLonChange, onBoundaryChange, siteAcres }) {
   };
 
   return (
-    <div className=" overflow-hidden border border-border/40 relative">
+    <div className="overflow-hidden relative">
       <div ref={mapRef} style={{ height: '420px', width: '100%' }} />
       {!leaflet && (
         <div className="absolute inset-0 flex items-center justify-center bg-card text-muted-foreground text-sm z-[1000]">
@@ -201,8 +208,8 @@ function SiteMap({ lat, lon, onLatLonChange, onBoundaryChange, siteAcres }) {
   );
 }
 
-// ─── Quick Scenario Test ────────────────────────────────────────────────────
-function ScenarioTest({ inputs, onApply, onNavigateToIntake }) {
+// ─── Custom Scenario Builder ────────────────────────────────────────────────
+function ScenarioTest({ inputs, onApply }) {
   const [params, setParams] = useState({ ...inputs });
   const [results, setResults] = useState(null);
 
@@ -250,72 +257,73 @@ function ScenarioTest({ inputs, onApply, onNavigateToIntake }) {
 
   return (
     <div className="space-y-4">
+      <p className="text-xs text-muted-foreground">Adjust sliders to see instant PTE and pathway changes. Apply to sync with Site Intake.</p>
       <div className="grid md:grid-cols-2 gap-4">
         {sliders.map(s => (
-          <div key={s.key}>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs text-muted-foreground">{s.label}</label>
-              <span className="text-xs font-semibold text-primary font-mono">{params[s.key]}{s.unit && <span className="text-muted-foreground"> {s.unit}</span>}</span>
+          <div key={s.key} className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>{s.label}</Label>
+              <span className="text-xs font-semibold text-primary font-mono">{params[s.key]}{s.unit && <span className="text-muted-foreground font-normal"> {s.unit}</span>}</span>
             </div>
-            <input
-              type="range"
+            <Slider
+              value={[params[s.key]]}
+              onValueChange={([v]) => updateParam(s.key, v)}
               min={s.min}
               max={s.max}
               step={s.step}
-              value={params[s.key]}
-              onChange={e => updateParam(s.key, parseFloat(e.target.value))}
-              className="w-full accent-primary h-1.5  appearance-none bg-muted cursor-pointer"
             />
           </div>
         ))}
       </div>
 
       {results && (
-        <div className="bg-card/60 border border-border/40  p-4">
-          <h4 className="text-xs font-semibold text-muted-foreground mb-3">Instant PTE Results (tpy)</h4>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-            {criticalPollutants.map(p => {
-              const val = results.controlled?.[p.key] || 0;
-              const pct = (val / p.threshold) * 100;
-              return (
-                <div key={p.key} className="bg-muted/40  p-2 text-center">
-                  <div className={`text-xs font-semibold ${p.color}`}>{p.label}</div>
-                  <div className="text-lg font-bold text-white font-mono">{val.toFixed(1)}</div>
-                  <div className="mt-1 bg-muted  h-1">
-                    <div className={`h-1  ${pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-green-500'}`}
-                      style={{ width: `${Math.min(100, pct)}%` }} />
+        <Card>
+          <CardContent className="pt-(--card-spacing)">
+            <h4 className="text-xs font-semibold text-muted-foreground mb-3">Instant PTE Results (tpy)</h4>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+              {criticalPollutants.map(p => {
+                const val = results.controlled?.[p.key] || 0;
+                const pct = (val / p.threshold) * 100;
+                return (
+                  <div key={p.key} className="bg-muted/40 p-2 text-center">
+                    <div className={`text-xs font-semibold ${p.color}`}>{p.label}</div>
+                    <div className="text-lg font-bold text-white font-mono">{val.toFixed(1)}</div>
+                    <div className="mt-1 bg-muted h-1">
+                      <div className={`h-1 ${pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-green-500'}`}
+                        style={{ width: `${Math.min(100, pct)}%` }} />
+                    </div>
+                    <div className={`text-xs mt-0.5 ${pct >= 100 ? 'text-destructive' : 'text-primary'}`}>
+                      {pct.toFixed(0)}% of {p.threshold}
+                    </div>
                   </div>
-                  <div className={`text-xs mt-0.5 ${pct >= 100 ? 'text-destructive' : 'text-primary'}`}>
-                    {pct.toFixed(0)}% of {p.threshold}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            {results.pathway?.requiresPSD && (
-              <span className="text-xs px-2 py-0.5 rounded bg-destructive/10 text-destructive border border-destructive/40">PSD Major Source</span>
-            )}
-            {results.pathway?.syntheticMinorViable && (
-              <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/40">Synthetic Minor Viable</span>
-            )}
-            {results.pathway?.requiresTitleV && (
-              <span className="text-xs px-2 py-0.5 rounded bg-amber-900/30 text-destructive border border-amber-800/40">Title V Required</span>
-            )}
-            <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">
-              {results.totalMW} MW · {(results.baseline?.nox || 0).toFixed(1)} tpy NOx baseline
-            </span>
-          </div>
-        </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {results.pathway?.requiresPSD && (
+                <span className="text-xs px-2 py-0.5 bg-destructive/10 text-destructive border border-destructive/40">PSD Major Source</span>
+              )}
+              {results.pathway?.syntheticMinorViable && (
+                <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary border border-primary/40">Synthetic Minor Viable</span>
+              )}
+              {results.pathway?.requiresTitleV && (
+                <span className="text-xs px-2 py-0.5 bg-amber-900/30 text-destructive border border-amber-800/40">Title V Required</span>
+              )}
+              <span className="text-xs px-2 py-0.5 bg-muted text-muted-foreground border border-border">
+                {results.totalMW} MW · {(results.baseline?.nox || 0).toFixed(1)} tpy NOx baseline
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      <button
-        onClick={() => { onApply(params); onNavigateToIntake && onNavigateToIntake(); }}
-        className="w-full bg-primary hover:bg-primary text-white py-2.5  font-semibold text-sm transition-all flex items-center justify-center gap-2"
+      <Button
+        onClick={() => onApply(params)}
+        className="w-full"
       >
         Apply Parameters to Site Intake
-      </button>
+      </Button>
     </div>
   );
 }
@@ -333,7 +341,6 @@ export default function SitePlanner({ setActiveTab }) {
   const [siteAcres, setSiteAcres] = useState(inputs.siteAcres || 45);
   const [selectedState, setSelectedState] = useState(inputs.state || 'Tennessee');
   const [selectedLocationLabel, setSelectedLocationLabel] = useState(null);
-  const [showScenario, setShowScenario] = useState(false);
 
   const handleLatLonChange = (newLat, newLon) => {
     setLat(newLat);
@@ -375,378 +382,356 @@ export default function SitePlanner({ setActiveTab }) {
     { label: 'Northern Virginia (AWS/US East)', state: 'Virginia', lat: '38.8339', lon: '-77.3373', acres: 150 },
   ];
 
+  // Shared handler for previewing a scenario on the map (card click)
+  const previewScenario = (scenario) => {
+    const s = scenario.params;
+    if (s.lat && s.lon && s.state) {
+      setLat(s.lat);
+      setLon(s.lon);
+      setSelectedState(s.state);
+      setSiteAcres(s.siteAcres || 45);
+      setSelectedLocationLabel(scenario.title);
+      const { lat, lon, state, siteAcres, ...rest } = s;
+      applyLocation(setInputs, {
+        state, lat, lon, acres: siteAcres,
+        scenarioTitle: scenario.title,
+        extraParams: { ...rest, _scenario: scenario.title },
+      });
+    } else {
+      setInputs(prev => ({ ...prev, ...s, _scenario: scenario.title }));
+      if (s.siteAcres) setSiteAcres(s.siteAcres);
+    }
+  };
+
+  const scenarios = [
+    {
+      title: 'Edge Site (Small)',
+      badge: 'SMALL',
+      icon: '📡',
+      desc: 'Distributed edge node, minimal footprint',
+      params: { turbines: 4, mwPerTurbine: 15, hours: 4000, brickSavings: 20, gensetCount: 6, gensetHours: 100, datacenterMW: 40, siteAcres: 22, pueTarget: 1.40, stackHeight: 40, buildingSqFt: 5000, stories: 1, occupancyType: 'Business (B)', fireSuppression: 'Pre-action sprinkler', emergencyPowerConfig: '2N', powerSourceType: 'Grid-only', interconnectionVoltage: 69, transformerCapacity: 70 },
+      highlight: 'Fastest permit path',
+      highlightColor: 'text-primary',
+      metrics: { mw: 60, nox: '19.8', psd: 'No', title5: 'No' },
+    },
+    {
+      title: 'Colocation Expansion',
+      badge: 'MID',
+      icon: '🏢',
+      desc: 'Existing campus expansion, moderate scale',
+      params: { turbines: 8, mwPerTurbine: 25, hours: 6000, brickSavings: 15, gensetCount: 12, gensetHours: 150, datacenterMW: 133, siteAcres: 50, pueTarget: 1.35, stackHeight: 55, buildingSqFt: 16000, stories: 2, occupancyType: 'Business (B)', fireSuppression: 'Pre-action sprinkler', emergencyPowerConfig: 'N+1', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 138, transformerCapacity: 230 },
+      highlight: 'Synthetic minor viable',
+      highlightColor: 'text-destructive',
+      metrics: { mw: 200, nox: '52.8', psd: 'No', title5: 'Yes' },
+    },
+    {
+      title: 'Hyperscale Campus',
+      badge: 'LARGE',
+      icon: '🏗️',
+      desc: 'Full hyperscale buildout, major source',
+      params: { turbines: 16, mwPerTurbine: 50, hours: 7000, brickSavings: 25, gensetCount: 24, gensetHours: 100, datacenterMW: 533, siteAcres: 200, pueTarget: 1.30, stackHeight: 80, buildingSqFt: 65000, stories: 5, occupancyType: 'Business (B)', fireSuppression: 'Hybrid (pre-action + clean agent)', emergencyPowerConfig: '2N', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 345, transformerCapacity: 920 },
+      highlight: 'PSD major source',
+      highlightColor: 'text-destructive',
+      metrics: { mw: 800, nox: '186.7', psd: 'Yes', title5: 'Yes' },
+    },
+    {
+      title: 'CA Nonattainment',
+      badge: 'CA',
+      icon: '🌴',
+      desc: 'California site with NNSR/LAER requirements',
+      params: { turbines: 6, mwPerTurbine: 20, hours: 5000, brickSavings: 30, gensetCount: 8, gensetHours: 80, datacenterMW: 80, siteAcres: 35, pueTarget: 1.38, stackHeight: 50, state: 'California', lat: '37.3861', lon: '-122.0839', nonAttainment: true, nonAttainNOx: true, nonAttainPM25: true, nonAttainOzone: true, buildingSqFt: 10000, stories: 2, occupancyType: 'Business (B)', fireSuppression: 'Clean agent (FM-200/Novec)', emergencyPowerConfig: 'N+1', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 69, transformerCapacity: 138 },
+      highlight: 'LAER + offsets needed',
+      highlightColor: 'text-destructive',
+      metrics: { mw: 120, nox: '28.3', psd: 'No', title5: 'Yes' },
+    },
+  ];
+
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className=" border border-primary/30 bg-primary/10 p-5">
-        <div className="flex items-start justify-between flex-wrap gap-3">
-          <div>
-            <h2 className="text-base font-semibold text-white mb-1">Site Planner — BigWatt Digital Test Bed</h2>
-            <p className="text-xs text-muted-foreground">Explore site configurations on an interactive map with street/satellite views, scale controls, and draggable markers. Toggle between OpenStreetMap road map and high-res ESRI satellite imagery.</p>
-          </div>
-          <button
-            onClick={() => setActiveTab('intake')}
-            className="text-xs bg-muted hover:bg-muted-foreground/10 text-foreground/80 px-3 py-1.5  border border-border/60 transition-colors"
-          >
-            &rarr; Open Full Site Intake
-          </button>
+      {/* Header — plain heading style matching all other pages */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-foreground tracking-[-0.02em]">Site Planner</h1>
+          <p className="text-sm text-muted-foreground mt-1">Explore site configurations on an interactive map with street/satellite views, scale controls, and draggable markers.</p>
         </div>
+        <Button variant="outline" size="sm" onClick={() => setActiveTab('intake')}>
+          Open Full Site Intake
+        </Button>
       </div>
 
       <div className="grid lg:grid-cols-5 gap-6">
-        {/* Left Column: Map */}
-        <div className="lg:col-span-3 space-y-4">
+        {/* Left Column: Map + Location + Config */}
+        <div className="lg:col-span-3 space-y-6">
           {/* Location Presets */}
-          <div className=" border border-border/40 bg-card/40 p-4">
-            <h3 className="text-xs font-semibold text-muted-foreground mb-3">Quick Location Presets</h3>
-            <div className="flex flex-wrap gap-1.5">
-              {locationPresets.map(p => (
-                <button
-                  key={p.label}
-                  onClick={() => {
-                    setSelectedState(p.state);
-                    setLat(p.lat);
-                    setLon(p.lon);
-                    setSiteAcres(p.acres);
-                    setSelectedLocationLabel(p.label);
-                    applyLocation(setInputs, {
-                      state: p.state,
-                      lat: p.lat,
-                      lon: p.lon,
-                      acres: p.acres,
-                      presetLabel: p.label,
-                    });
-                  }}
-                  className={`text-xs px-2.5 py-1  border transition-all ${
-                    selectedState === p.state && lat === p.lat
-                      ? 'bg-primary/30 border-primary/40 text-primary'
-                      : 'bg-muted/60 border-border/40 text-muted-foreground hover:bg-muted hover:text-foreground/80'
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Location Presets</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-1.5">
+                {locationPresets.map(p => (
+                  <Button
+                    key={p.label}
+                    variant={selectedState === p.state && lat === p.lat ? 'default' : 'outline'}
+                    size="xs"
+                    onClick={() => {
+                      setSelectedState(p.state);
+                      setLat(p.lat);
+                      setLon(p.lon);
+                      setSiteAcres(p.acres);
+                      setSelectedLocationLabel(p.label);
+                      applyLocation(setInputs, {
+                        state: p.state,
+                        lat: p.lat,
+                        lon: p.lon,
+                        acres: p.acres,
+                        presetLabel: p.label,
+                      });
+                    }}
+                  >
+                    {p.label}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Interactive Map */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold text-muted-foreground">Site Boundary Map</h3>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 text-xs bg-muted/60  px-2 py-1">
-                  <span className="text-primary font-medium">Street/Satellite</span>
-                  <span className="text-muted-foreground/70">|</span>
-                  <span className="text-muted-foreground">Layer toggle (top-right)</span>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between w-full">
+                <CardTitle>Site Boundary Map</CardTitle>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 text-xs bg-muted/60 px-2 py-1">
+                    <span className="text-primary font-medium">Street/Satellite</span>
+                    <span className="text-muted-foreground/70">|</span>
+                    <span className="text-muted-foreground">Layer toggle (top-right)</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs">
+                    <span className="text-muted-foreground">Lat:</span>
+                    <Input
+                      type="text"
+                      value={lat}
+                      onChange={e => handleLatLonChange(e.target.value, lon)}
+                      className="w-20 h-auto py-0.5 text-xs font-mono"
+                    />
+                    <span className="text-muted-foreground">Lon:</span>
+                    <Input
+                      type="text"
+                      value={lon}
+                      onChange={e => handleLatLonChange(lat, e.target.value)}
+                      className="w-20 h-auto py-0.5 text-xs font-mono"
+                    />
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 text-xs">
-                  <span className="text-muted-foreground">Lat:</span>
-                  <input
-                    type="text"
-                    value={lat}
-                    onChange={e => handleLatLonChange(e.target.value, lon)}
-                    className="w-20 bg-muted border border-border rounded px-1.5 py-0.5 text-foreground/80 font-mono text-xs"
+              </div>
+            </CardHeader>
+            <CardContent>
+              <SiteMap
+                lat={lat}
+                lon={lon}
+                siteAcres={siteAcres}
+                onLatLonChange={handleLatLonChange}
+                onBoundaryChange={handleBoundaryChange}
+              />
+              <div className="mt-3 flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs">Site Area (acres)</Label>
+                  <Input
+                    type="number"
+                    value={siteAcres}
+                    onChange={e => handleAcresManualInput(e.target.value)}
+                    min={1}
+                    max={500}
+                    className="w-20 h-auto py-0.5 text-sm font-mono"
                   />
-                  <span className="text-muted-foreground">Lon:</span>
-                  <input
-                    type="text"
-                    value={lon}
-                    onChange={e => handleLatLonChange(lat, e.target.value)}
-                    className="w-20 bg-muted border border-border rounded px-1.5 py-0.5 text-foreground/80 font-mono text-xs"
-                  />
+                  <span className="text-xs text-muted-foreground/70">(~{Math.round(siteAcres * 0.4047)} ha)</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground/70">
+                  <span>State: <span className="text-muted-foreground font-medium">{selectedState}</span></span>
+                  <span className="text-muted-foreground/50">|</span>
+                  <span className="text-muted-foreground">
+                    <span className="text-primary">{locationPresets.find(p => p.state === selectedState && p.lat === lat)?.label || selectedState}</span>
+                  </span>
+                  <span className="text-muted-foreground">Drag marker / click map to reposition</span>
                 </div>
               </div>
-            </div>
-            <SiteMap
-              lat={lat}
-              lon={lon}
-              siteAcres={siteAcres}
-              onLatLonChange={handleLatLonChange}
-              onBoundaryChange={handleBoundaryChange}
-            />
-            <div className="mt-2 flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <label className="text-xs text-muted-foreground">Site Area (acres):</label>
-                <input
-                  type="number"
-                  value={siteAcres}
-                  onChange={e => handleAcresManualInput(e.target.value)}
-                  min={1}
-                  max={500}
-                  className="w-20 bg-muted border border-border rounded px-2 py-1 text-foreground/80 font-mono text-sm"
-                />
-                <span className="text-xs text-muted-foreground/70">(~{Math.round(siteAcres * 0.4047)} ha)</span>
-              </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground/70">
-                <span>State: <span className="text-muted-foreground font-medium">{selectedState}</span></span>
-                <span className="text-muted-foreground/50">|</span>
-                <span className="text-muted-foreground">
-                  <span className="text-primary">{locationPresets.find(p => p.state === selectedState && p.lat === lat)?.label || selectedState}</span>
-                </span>
-                <span className="text-muted-foreground">Drag marker / click map to reposition</span>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {/* Site Details Summary */}
-          <div className=" border border-border/40 bg-card/40 p-4">
-            <h3 className="text-xs font-semibold text-muted-foreground mb-3">Current Site Configuration</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-              {[
-                { label: 'Turbines', value: `${inputs.turbines} \u00d7 ${inputs.mwPerTurbine} MW` },
-                { label: 'Annual Hours', value: `${inputs.hours.toLocaleString()} hr/yr` },
-                { label: 'Brick Savings', value: `${inputs.brickSavings}%` },
-                { label: 'Gensets', value: `${inputs.gensetCount} @ ${inputs.gensetHours} hr/yr` },
-                { label: 'Site Area', value: `${siteAcres} acres` },
-                { label: 'Data Center Load', value: `${inputs.datacenterMW} MW` },
-                { label: 'PUE Target', value: inputs.pueTarget },
-                { label: 'Stack Height', value: `${inputs.stackHeight} ft` },
-              ].map(item => (
-                <div key={item.label} className="bg-muted/40  p-2.5">
-                  <div className="text-muted-foreground mb-0.5">{item.label}</div>
-                  <div className="text-foreground font-semibold">{item.value}</div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 flex gap-2">
-              <button
-                onClick={() => setShowScenario(!showScenario)}
-                className="text-xs bg-primary hover:bg-primary text-white px-3 py-1.5  font-semibold transition-all"
-              >
-                {showScenario ? 'Hide Scenario Test' : 'Quick Scenario Test'}
-              </button>
-              <button
-                onClick={() => {
-                  applyLocation(setInputs, { state: selectedState, lat, lon, acres: siteAcres, presetLabel: selectedLocationLabel, scenarioTitle: selectedLocationLabel });
-                  const summary = `${inputs.turbines} x ${inputs.mwPerTurbine}MW in ${selectedState}`;
-                  navigateToIntake(summary);
-                }}
-                className="text-xs bg-muted hover:bg-muted-foreground/20 text-foreground px-3 py-1.5  font-semibold transition-all"
-              >
-                Send to Site Intake
-              </button>
-            </div>
-          </div>
-
-          {/* Scenario Test Panel */}
-          {showScenario && (
-            <div className=" border border-primary/30 bg-violet-950/20 p-5">
-              <h3 className="text-base font-semibold text-violet-300 mb-4">Quick Scenario Test</h3>
-              <p className="text-xs text-muted-foreground mb-4">Adjust sliders to see instant PTE and pathway changes. Apply to sync with Site Intake.</p>
-              <ScenarioTest inputs={inputs} onApply={(params) => { handleApplyScenario(params); navigateToIntake(`Custom scenario — ${params.turbines} x ${params.mwPerTurbine}MW`); }} onNavigateToIntake={() => {}} />
-            </div>
-          )}
+          {/* Current Site Configuration */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between w-full">
+                <CardTitle>Current Site Configuration</CardTitle>
+                <Button
+                  variant="outline"
+                  size="xs"
+                  onClick={() => {
+                    applyLocation(setInputs, { state: selectedState, lat, lon, acres: siteAcres, presetLabel: selectedLocationLabel, scenarioTitle: selectedLocationLabel });
+                    const summary = `${inputs.turbines} x ${inputs.mwPerTurbine}MW in ${selectedState}`;
+                    navigateToIntake(summary);
+                  }}
+                >
+                  Send to Site Intake
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { label: 'Turbines', value: `${inputs.turbines} \u00d7 ${inputs.mwPerTurbine} MW` },
+                  { label: 'Annual Hours', value: `${inputs.hours.toLocaleString()} hr/yr` },
+                  { label: 'Brick Savings', value: `${inputs.brickSavings}%` },
+                  { label: 'Gensets', value: `${inputs.gensetCount} @ ${inputs.gensetHours} hr/yr` },
+                  { label: 'Site Area', value: `${siteAcres} acres` },
+                  { label: 'Data Center Load', value: `${inputs.datacenterMW} MW` },
+                  { label: 'PUE Target', value: inputs.pueTarget },
+                  { label: 'Stack Height', value: `${inputs.stackHeight} ft` },
+                ].map(item => (
+                  <Card key={item.label} size="sm">
+                    <CardContent className="py-3 px-3">
+                      <div className="text-xs text-muted-foreground">{item.label}</div>
+                      <div className="text-sm font-semibold text-foreground">{item.value}</div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Right Column: Scenario Explorer */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Scenario Explorer */}
-          <div className=" border border-primary/30 bg-primary/10 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-base font-semibold text-primary">Scenario Explorer</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Click any scenario to instantly see emissions, pathway, and compliance impact</p>
-              </div>
-              <button
-                onClick={() => setShowScenario(!showScenario)}
-                className={`text-xs ${showScenario ? 'bg-primary hover:bg-primary/80' : 'bg-muted hover:bg-muted-foreground/20'} text-white px-3 py-1.5  font-semibold transition-all`}
-              >
-                {showScenario ? 'Hide Sliders' : 'Custom Sliders'}
-              </button>
-            </div>
+        {/* Right Column: Tabs-based Scenario Explorer / Custom Builder */}
+        <div className="lg:col-span-2 space-y-6">
+          <Tabs defaultValue="explorer">
+            <TabsList className="w-full">
+              <TabsTrigger value="explorer" className="flex-1">Scenario Explorer</TabsTrigger>
+              <TabsTrigger value="builder" className="flex-1">Custom Builder</TabsTrigger>
+            </TabsList>
 
-            {/* Scenario Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[
-                {
-                  title: 'Edge Site (Small)',
-                  badge: 'SMALL',
-                  badgeColor: 'bg-primary/10 text-primary border-primary/40',
-                  icon: '📡',
-                  desc: 'Distributed edge node, minimal footprint',
-                  params: { turbines: 4, mwPerTurbine: 15, hours: 4000, brickSavings: 20, gensetCount: 6, gensetHours: 100, datacenterMW: 40, siteAcres: 22, pueTarget: 1.40, stackHeight: 40, buildingSqFt: 5000, stories: 1, occupancyType: 'Business (B)', fireSuppression: 'Pre-action sprinkler', emergencyPowerConfig: '2N', powerSourceType: 'Grid-only', interconnectionVoltage: 69, transformerCapacity: 70 },
-                  highlight: 'Fastest permit path',
-                  highlightColor: 'text-primary',
-                  metrics: { mw: 60, nox: '19.8', psd: 'No', title5: 'No' },
-                },
-                {
-                  title: 'Colocation Expansion',
-                  badge: 'MID',
-                  badgeColor: 'bg-blue-900/30 text-blue-400 border-blue-800/40',
-                  icon: '🏢',
-                  desc: 'Existing campus expansion, moderate scale',
-                  params: { turbines: 8, mwPerTurbine: 25, hours: 6000, brickSavings: 15, gensetCount: 12, gensetHours: 150, datacenterMW: 133, siteAcres: 50, pueTarget: 1.35, stackHeight: 55, buildingSqFt: 16000, stories: 2, occupancyType: 'Business (B)', fireSuppression: 'Pre-action sprinkler', emergencyPowerConfig: 'N+1', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 138, transformerCapacity: 230 },
-                  highlight: 'Synthetic minor viable',
-                  highlightColor: 'text-destructive',
-                  metrics: { mw: 200, nox: '52.8', psd: 'No', title5: 'Yes' },
-                },
-                {
-                  title: 'Hyperscale Campus',
-                  badge: 'LARGE',
-                  badgeColor: 'bg-destructive/10 text-destructive border-destructive/40',
-                  icon: '🏗️',
-                  desc: 'Full hyperscale buildout, major source',
-                  params: { turbines: 16, mwPerTurbine: 50, hours: 7000, brickSavings: 25, gensetCount: 24, gensetHours: 100, datacenterMW: 533, siteAcres: 200, pueTarget: 1.30, stackHeight: 80, buildingSqFt: 65000, stories: 5, occupancyType: 'Business (B)', fireSuppression: 'Hybrid (pre-action + clean agent)', emergencyPowerConfig: '2N', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 345, transformerCapacity: 920 },
-                  highlight: 'PSD major source',
-                  highlightColor: 'text-destructive',
-                  metrics: { mw: 800, nox: '186.7', psd: 'Yes', title5: 'Yes' },
-                },
-                {
-                  title: 'CA Nonattainment',
-                  badge: 'CA',
-                  badgeColor: 'bg-amber-900/30 text-destructive border-amber-800/40',
-                  icon: '🌴',
-                  desc: 'California site with NNSR/LAER requirements',
-                  params: { turbines: 6, mwPerTurbine: 20, hours: 5000, brickSavings: 30, gensetCount: 8, gensetHours: 80, datacenterMW: 80, siteAcres: 35, pueTarget: 1.38, stackHeight: 50, state: 'California', lat: '37.3861', lon: '-122.0839', nonAttainment: true, nonAttainNOx: true, nonAttainPM25: true, nonAttainOzone: true, buildingSqFt: 10000, stories: 2, occupancyType: 'Business (B)', fireSuppression: 'Clean agent (FM-200/Novec)', emergencyPowerConfig: 'N+1', powerSourceType: 'Hybrid (Grid + On-site)', interconnectionVoltage: 69, transformerCapacity: 138 },
-                  highlight: 'LAER + offsets needed',
-                  highlightColor: 'text-destructive',
-                  metrics: { mw: 120, nox: '28.3', psd: 'No', title5: 'Yes' },
-                },
-              ].map(scenario => (
-                <div key={scenario.title}
-                  onClick={() => {
-                    const s = scenario.params;
-                    if (s.lat && s.lon && s.state) {
-                      // Cards with location data (CA Nonattainment)
-                      setLat(s.lat);
-                      setLon(s.lon);
-                      setSelectedState(s.state);
-                      setSiteAcres(s.siteAcres || 45);
-                      setSelectedLocationLabel(scenario.title);
-                      const { lat, lon, state, siteAcres, ...rest } = s;
-                      applyLocation(setInputs, {
-                        state, lat, lon, acres: siteAcres,
-                        scenarioTitle: scenario.title,
-                        extraParams: { ...rest, _scenario: scenario.title },
-                      });
-                    } else {
-                      // Cards without location data — equipment params only
-                      setInputs(prev => ({ ...prev, ...s, _scenario: scenario.title }));
-                      if (s.siteAcres) setSiteAcres(s.siteAcres);
-                    }
-                  }}
-                  className={` border p-4 cursor-pointer transition-all duration-200
-                    ${inputs._scenario === scenario.title 
-                      ? 'border-primary bg-primary/15  shadow-indigo-900/20' 
-                      : 'border-border/40 bg-card/40 hover:border-primary/40 hover:bg-card/60'}`}
-                >
-                  {/* Header row */}
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{scenario.icon}</span>
-                      <div>
-                        <h4 className="text-sm font-semibold text-foreground">{scenario.title}</h4>
-                        <p className="text-xs text-muted-foreground">{scenario.desc}</p>
+            <TabsContent value="explorer">
+              <div className="space-y-4">
+                <p className="text-xs text-muted-foreground">Click any scenario to preview its impact on the map and metrics. Use the Apply button below to run full screening.</p>
+                <div className="grid grid-cols-1 gap-3">
+                  {scenarios.map(scenario => {
+                    const isActive = inputs._scenario === scenario.title;
+                    return (
+                      <div key={scenario.title}>
+                        <div
+                          onClick={() => previewScenario(scenario)}
+                          className={`border p-4 cursor-pointer transition-all duration-200 ${
+                            isActive
+                              ? 'border-primary bg-primary/15'
+                              : 'border-border/40 bg-card/40 hover:border-primary/40 hover:bg-card/60'
+                          }`}
+                        >
+                          {/* Header row */}
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{scenario.icon}</span>
+                              <div>
+                                <h4 className="text-sm font-semibold text-foreground">{scenario.title}</h4>
+                                <p className="text-xs text-muted-foreground">{scenario.desc}</p>
+                              </div>
+                            </div>
+                            <Badge variant={isActive ? 'default' : 'outline'}>
+                              {scenario.badge}
+                            </Badge>
+                          </div>
+
+                          {/* Metric badges */}
+                          <div className="grid grid-cols-4 gap-1.5 mb-2">
+                            <div className="bg-muted/60 p-1.5 text-center">
+                              <div className="text-xs text-muted-foreground">Capacity</div>
+                              <div className="text-xs font-bold text-foreground">{scenario.metrics.mw} MW</div>
+                            </div>
+                            <div className="bg-muted/60 p-1.5 text-center">
+                              <div className="text-xs text-muted-foreground">NOx</div>
+                              <div className="text-xs font-bold text-foreground">{scenario.metrics.nox} tpy</div>
+                            </div>
+                            <div className="bg-muted/60 p-1.5 text-center">
+                              <div className="text-xs text-muted-foreground">PSD</div>
+                              <div className={`text-xs font-bold ${scenario.metrics.psd === 'Yes' ? 'text-destructive' : 'text-primary'}`}>{scenario.metrics.psd}</div>
+                            </div>
+                            <div className="bg-muted/60 p-1.5 text-center">
+                              <div className="text-xs text-muted-foreground">Title V</div>
+                              <div className={`text-xs font-bold ${scenario.metrics.title5 === 'Yes' ? 'text-destructive' : 'text-primary'}`}>{scenario.metrics.title5}</div>
+                            </div>
+                          </div>
+
+                          {/* Highlight */}
+                          <span className={`text-xs font-medium ${scenario.highlightColor}`}>{scenario.highlight}</span>
+                        </div>
+
+                        {/* Apply button — clearly separated below the card, not nested inside */}
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="w-full mt-2"
+                          onClick={() => {
+                            previewScenario(scenario);
+                            navigateToIntake(`${scenario.title} — ${scenario.metrics.mw}MW`);
+                          }}
+                        >
+                          Apply &rarr; Intake
+                        </Button>
                       </div>
-                    </div>
-                    <span className={`text-xs px-1.5 py-0.5 rounded border ${scenario.badgeColor}`}>{scenario.badge}</span>
-                  </div>
-
-                  {/* Metric badges */}
-                  <div className="grid grid-cols-4 gap-1.5 mb-2">
-                    <div className="bg-muted/60  p-1.5 text-center">
-                      <div className="text-xs text-muted-foreground">Capacity</div>
-                      <div className="text-xs font-bold text-foreground">{scenario.metrics.mw} MW</div>
-                    </div>
-                    <div className="bg-muted/60  p-1.5 text-center">
-                      <div className="text-xs text-muted-foreground">NOx</div>
-                      <div className="text-xs font-bold text-foreground">{scenario.metrics.nox} tpy</div>
-                    </div>
-                    <div className="bg-muted/60  p-1.5 text-center">
-                      <div className="text-xs text-muted-foreground">PSD</div>
-                      <div className={`text-xs font-bold ${scenario.metrics.psd === 'Yes' ? 'text-destructive' : 'text-primary'}`}>{scenario.metrics.psd}</div>
-                    </div>
-                    <div className="bg-muted/60  p-1.5 text-center">
-                      <div className="text-xs text-muted-foreground">Title V</div>
-                      <div className={`text-xs font-bold ${scenario.metrics.title5 === 'Yes' ? 'text-destructive' : 'text-primary'}`}>{scenario.metrics.title5}</div>
-                    </div>
-                  </div>
-
-                  {/* Highlight & action */}
-                  <div className="flex items-center justify-between">
-                    <span className={`text-xs font-medium ${scenario.highlightColor}`}>{scenario.highlight}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const s = scenario.params;
-                        if (s.lat && s.lon && s.state) {
-                          setLat(s.lat);
-                          setLon(s.lon);
-                          setSelectedState(s.state);
-                          setSiteAcres(s.siteAcres || 45);
-                          setSelectedLocationLabel(scenario.title);
-                          const { lat, lon, state, siteAcres, ...rest } = s;
-                          applyLocation(setInputs, {
-                            state, lat, lon, acres: siteAcres,
-                            scenarioTitle: scenario.title,
-                            extraParams: { ...rest, _scenario: scenario.title },
-                          });
-                        } else {
-                          setInputs(prev => ({ ...prev, ...s, _scenario: scenario.title }));
-                          if (s.siteAcres) setSiteAcres(s.siteAcres);
-                        }
-                        navigateToIntake(`${scenario.title} — ${scenario.metrics.mw}MW`);
-                      }}
-                      className="text-xs bg-primary hover:bg-primary text-white px-2 py-1  font-medium transition-all"
-                    >
-                      Apply → Intake
-                    </button>
-                  </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+              </div>
+            </TabsContent>
 
-            {/* Scenario summary note */}
-            <div className="mt-3 text-center">
-              <span className="text-xs text-muted-foreground/70">
-                Click any card to preview its impact on the map and metrics. 
-                <span className="text-primary"> Apply &rarr; Intake</span> to run full screening.
-              </span>
-            </div>
-          </div>
+            <TabsContent value="builder">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Custom Scenario Builder</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ScenarioTest inputs={inputs} onApply={(params) => { handleApplyScenario(params); navigateToIntake(`Custom scenario — ${params.turbines} x ${params.mwPerTurbine}MW`); }} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
 
-          {/* Custom Scenario Sliders (togglable) */}
-          {showScenario && (
-            <div className=" border border-primary/30 bg-violet-950/20 p-5">
-              <h3 className="text-base font-semibold text-violet-300 mb-4">Custom Scenario Builder</h3>
-              <p className="text-xs text-muted-foreground mb-4">Fine-tune parameters manually and see instant PTE results. Apply to sync with Site Intake.</p>
-              <ScenarioTest inputs={inputs} onApply={(params) => { handleApplyScenario(params); navigateToIntake(`Custom scenario — ${params.turbines} x ${params.mwPerTurbine}MW`); }} onNavigateToIntake={() => {}} />
-            </div>
-          )}
-
-          {/* Quick Map Reference */}
-          <div className=" border border-border/40 bg-card/40 p-4">
-            <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
-              <span>Quick Reference</span>
-              <span className="text-xs text-muted-foreground/70 font-normal">Map controls &amp; site info</span>
-            </h3>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-muted/40  p-2 flex items-center gap-2">
-                <span className="w-2.5 h-2.5  bg-primary flex-shrink-0 opacity-60"></span>
-                <span className="text-muted-foreground">Drag marker / click map to reposition</span>
+          {/* Quick Reference */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-1.5">
+                <CardTitle>Quick Reference</CardTitle>
+                <span className="text-xs text-muted-foreground/70 font-normal">Map controls &amp; site info</span>
               </div>
-              <div className="bg-muted/40  p-2 flex items-center gap-2">
-                <div className="w-4 h-2 border border-indigo-400 border-dashed rounded flex-shrink-0"></div>
-                <span className="text-muted-foreground">Boundary auto-scaled to acreage</span>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-muted/40 p-2 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 bg-primary flex-shrink-0 opacity-60"></span>
+                  <span className="text-muted-foreground">Drag marker / click map to reposition</span>
+                </div>
+                <div className="bg-muted/40 p-2 flex items-center gap-2">
+                  <div className="w-4 h-2 border border-[var(--color-chart-1)] border-dashed flex-shrink-0"></div>
+                  <span className="text-muted-foreground">Boundary auto-scaled to acreage</span>
+                </div>
+                <div className="bg-muted/40 p-2 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 bg-blue-500 flex-shrink-0"></span>
+                  <span className="text-muted-foreground">Toggle Street / Satellite (top-right)</span>
+                </div>
+                <div className="bg-muted/40 p-2 flex items-center gap-2">
+                  <span className="text-muted-foreground font-mono text-xs">+/-</span>
+                  <span className="text-muted-foreground">Zoom controls &amp; mouse wheel</span>
+                </div>
               </div>
-              <div className="bg-muted/40  p-2 flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded bg-blue-500 flex-shrink-0"></span>
-                <span className="text-muted-foreground">Toggle Street / Satellite (top-right)</span>
+              <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground/70">
+                <span>Current: <span className="text-muted-foreground font-medium">{inputs.turbines}&times;{inputs.mwPerTurbine}MW</span></span>
+                <span className="text-muted-foreground/50">|</span>
+                <span>State: <span className="text-muted-foreground">{selectedState}</span></span>
+                <span className="text-muted-foreground/50">|</span>
+                <span>Acres: <span className="text-muted-foreground">{siteAcres}</span></span>
               </div>
-              <div className="bg-muted/40  p-2 flex items-center gap-2">
-                <span className="text-muted-foreground font-mono text-xs">+/-</span>
-                <span className="text-muted-foreground">Zoom controls &amp; mouse wheel</span>
-              </div>
-            </div>
-            <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground/70">
-              <span>Current: <span className="text-muted-foreground font-medium">{inputs.turbines}&times;{inputs.mwPerTurbine}MW</span></span>
-              <span className="text-muted-foreground/50">|</span>
-              <span>State: <span className="text-muted-foreground">{selectedState}</span></span>
-              <span className="text-muted-foreground/50">|</span>
-              <span>Acres: <span className="text-muted-foreground">{siteAcres}</span></span>
-            </div>
-          </div>
-        </div></div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
