@@ -91,8 +91,8 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
   const update = (key, val) => setInputs(prev => ({ ...prev, [key]: val }));
 
   const derivedPermitTypes = [
-    (inputs.hasOnSiteGeneration !== false || inputs.turbines > 0 || inputs.gensetCount > 0) && 'air',
-    (inputs.hasWaterUse !== false || inputs.coolingMGD > 0 || inputs.waterMGD > 0) && 'water',
+    inputs.hasOnSiteGeneration !== false && 'air',
+    inputs.hasWaterUse !== false && 'water',
     inputs.hasNewConstruction !== false && 'building',
     inputs.hasGridInterconnection !== false && 'power',
   ].filter(Boolean);
@@ -568,11 +568,11 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
     const comparison = computeTimelineComparison(inputs, results);
 
     const timelinePhases = [
-      { label: 'Site Intake & Screening', weeks: '1-4', color: '#4ade80', status: 'complete' },
-      { label: 'Technical Analysis & Modeling', weeks: '4-10', color: '#3b82f6', status: 'upcoming' },
-      { label: 'Document Generation & Assembly', weeks: '6-12', color: '#e0a95c', status: 'upcoming' },
-      { label: 'Agency Submission & Review', weeks: '10-40', color: '#f87171', status: 'upcoming' },
-      { label: 'Permit Issuance', weeks: '16-60', color: '#a1a1aa', status: 'upcoming' },
+      { label: 'Site Intake & Screening', weeks: '1-4', color: 'var(--color-chart-1)', status: 'complete' },
+      { label: 'Technical Analysis & Modeling', weeks: '4-10', color: 'var(--color-chart-2)', status: 'upcoming' },
+      { label: 'Document Generation & Assembly', weeks: '6-12', color: 'var(--color-chart-3)', status: 'upcoming' },
+      { label: 'Agency Submission & Review', weeks: '10-40', color: 'var(--color-chart-4)', status: 'upcoming' },
+      { label: 'Permit Issuance', weeks: '16-60', color: 'var(--color-chart-5)', status: 'upcoming' },
     ];
 
     return (

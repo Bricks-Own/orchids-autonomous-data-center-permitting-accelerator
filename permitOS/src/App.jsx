@@ -178,8 +178,8 @@ function App() {
   }
 
   const permitTypes = [
-    (inputs?.hasOnSiteGeneration !== false || inputs?.turbines > 0 || inputs?.gensetCount > 0) && 'air',
-    (inputs?.hasWaterUse !== false || inputs?.coolingMGD > 0 || inputs?.waterMGD > 0) && 'water',
+    inputs?.hasOnSiteGeneration !== false && 'air',
+    inputs?.hasWaterUse !== false && 'water',
     inputs?.hasNewConstruction !== false && 'building',
     inputs?.hasGridInterconnection !== false && 'power',
   ].filter(Boolean);
