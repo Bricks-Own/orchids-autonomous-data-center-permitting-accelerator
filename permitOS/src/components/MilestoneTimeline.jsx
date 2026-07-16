@@ -257,15 +257,19 @@ export default function MilestoneTimeline({ setActiveTab }) {
       <div>
         <h3 className="text-base font-semibold text-foreground/80 mb-4">Permit Phases — What Gets Done and When</h3>
 
-        {/* Sequential Phase Timelines */}
-        <div className="mb-6 space-y-4">
-          <div>
-            <div className="text-xs font-medium text-muted-foreground mb-2">Traditional Pathway — Phase Sequence &amp; Duration</div>
-            <PhaseTimeline phases={traditionalPhases} totalWeeks={comparison.traditional.totalWeeks} accentColor="var(--muted-foreground)" />
-          </div>
-          <div>
-            <div className="text-xs font-medium text-muted-foreground mb-2">Brick-Accelerated — Phase Sequence &amp; Duration</div>
-            <PhaseTimeline phases={brickPhases} totalWeeks={comparison.brickAccel.totalWeeks} accentColor="var(--color-primary)" />
+        {/* Sequential Phase Timelines — side by side */}
+        <div className="mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <div className="text-sm font-semibold text-foreground">Traditional Pathway</div>
+              <div className="text-xs text-muted-foreground mb-4">~{comparison.traditional.totalMonths} months total</div>
+              <PhaseTimeline phases={traditionalPhases} accentColor="var(--muted-foreground)" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-primary">Brick-Accelerated</div>
+              <div className="text-xs text-primary mb-4">~{comparison.brickAccel.totalMonths} months total</div>
+              <PhaseTimeline phases={brickPhases} accentColor="var(--color-primary)" />
+            </div>
           </div>
         </div>
 

@@ -164,12 +164,12 @@ export function computeTimelineComparison(inputs, results) {
 // Shared between SiteIntake Step 3 and MilestoneTimeline for phase-level views
 
 const PHASE_WEIGHTS = [
-  { label: 'Site Intake & Screening', weight: 0.08 },
-  { label: 'Applicability Screening & PTE', weight: 0.10 },
-  { label: 'Technical Analysis & Modeling', weight: 0.20 },
-  { label: 'Document Generation & Assembly', weight: 0.15 },
-  { label: 'Agency Submission & Review', weight: 0.35 },
-  { label: 'Permit Issuance', weight: 0.12 },
+  { label: 'Site Intake & Screening', weight: 0.08, description: 'Collect equipment, site, and regulatory data; establish jurisdiction and applicability baseline.' },
+  { label: 'Applicability Screening & PTE', weight: 0.10, description: 'Determine permit pathway (PSD/NSR/Title V) and calculate baseline + controlled potential to emit.' },
+  { label: 'Technical Analysis & Modeling', weight: 0.20, description: 'BACT/LAER analysis, AERMOD dispersion modeling, and water balance characterization.' },
+  { label: 'Document Generation & Assembly', weight: 0.15, description: 'Prepare full permit application packages, compliance matrices, and supporting plans.' },
+  { label: 'Agency Submission & Review', weight: 0.35, description: 'Submit to regulators, respond to requests for information, and negotiate permit conditions.' },
+  { label: 'Permit Issuance', weight: 0.12, description: 'Final conditions issued; compliance monitoring and operational controls go live.' },
 ];
 
 export function getPhaseBreakdown(totalWeeks) {
@@ -178,7 +178,7 @@ export function getPhaseBreakdown(totalWeeks) {
     const start = Math.round(cursor) + 1;
     cursor += totalWeeks * p.weight;
     const end = Math.round(cursor);
-    return { label: p.label, startWeek: start, endWeek: Math.max(end, start), weeks: Math.max(end - start + 1, 1) };
+    return { label: p.label, description: p.description, startWeek: start, endWeek: Math.max(end, start), weeks: Math.max(end - start + 1, 1) };
   });
 }
 

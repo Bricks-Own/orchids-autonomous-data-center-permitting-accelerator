@@ -642,7 +642,7 @@ export default function SiteIntake({ setActiveTab }) {
                   </div>
                 )}
                 <div className="absolute top-0 right-0 w-16 h-16">
-                  <div className="absolute top-3 right-3 text-[#3b82f6]/20 text-xs font-bold tracking-wider uppercase" style={{ transform: 'rotate(45deg)' }}>Brick</div>
+                  <div className="absolute top-3 right-3 text-primary/20 text-xs font-bold tracking-wider uppercase" style={{ transform: 'rotate(45deg)' }}>Brick</div>
                 </div>
               </div>
             </div>
@@ -846,8 +846,8 @@ export default function SiteIntake({ setActiveTab }) {
                 <ChartContainer config={chartConfig} className="!aspect-auto w-full h-full">
                   <BarChart data={chartData} layout="vertical" margin={{ left: 140, right: 20, top: 5, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                    <XAxis type="number" domain={[0, 65]} tick={{ fill: '#a1a1aa', fontSize: 11 }} />
-                    <YAxis type="category" dataKey="phase" tick={{ fill: '#a1a1aa', fontSize: 11 }} width={130} />
+                    <XAxis type="number" domain={[0, 65]} tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} />
+                    <YAxis type="category" dataKey="phase" tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} width={130} />
                     <ChartTooltip
                       content={<ChartTooltipContent
                         formatter={(value, name, item) => {
