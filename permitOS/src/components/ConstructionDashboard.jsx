@@ -132,12 +132,12 @@ function CostCategoryBreakdown({ categories }) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 80, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-        <XAxis type="number" tick={{ fill: '#9ca3af', fontSize: 11 }} />
-        <YAxis dataKey="name" type="category" tick={{ fill: '#9ca3af', fontSize: 11 }} width={90} />
-        <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} formatter={(val) => '$' + val.toFixed(1) + 'M'} />
-        <Bar dataKey="budget" fill="#6366f1" name="Budget ($M)" radius={[0, 3, 3, 0]} />
-        <Bar dataKey="actual" fill="#22c55e" name="Actual ($M)" radius={[0, 3, 3, 0]} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+        <XAxis type="number" tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} />
+        <YAxis dataKey="name" type="category" tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} width={90} />
+        <Tooltip contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--color-foreground)', fontSize: '12px' }} labelStyle={{ color: 'var(--color-foreground)' }} itemStyle={{ color: 'var(--color-foreground)' }} formatter={(val) => '$' + val.toFixed(1) + 'M'} />
+        <Bar dataKey="budget" fill="var(--color-chart-1)" name="Budget ($M)" radius={[0, 3, 3, 0]} />
+        <Bar dataKey="actual" fill="var(--color-chart-2)" name="Actual ($M)" radius={[0, 3, 3, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -146,15 +146,15 @@ function CostCategoryBreakdown({ categories }) {
 // ─── Trend Line Chart ─────────────────────────────────────────────────────
 function TrendChart({ data, lines, yLabel }) {
   if (!data || data.length === 0) return <div className="text-xs text-muted-foreground/70 text-center py-8">No trend data</div>;
-  const colors = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6'];
+  const colors = ['var(--color-chart-1)', 'var(--color-chart-2)', 'var(--color-chart-3)', 'var(--color-chart-4)', 'var(--color-chart-5)'];
   return (
     <ResponsiveContainer width="100%" height={250}>
       <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-        <XAxis dataKey="period" tick={{ fill: '#9ca3af', fontSize: 11 }} />
-        <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} domain={[0, 'auto']} />
-        <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} />
-        <Legend wrapperStyle={{ fontSize: '11px', color: '#9ca3af' }} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+        <XAxis dataKey="period" tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} />
+        <YAxis tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} domain={[0, 'auto']} />
+        <Tooltip contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--color-foreground)', fontSize: '12px' }} labelStyle={{ color: 'var(--color-foreground)' }} itemStyle={{ color: 'var(--color-foreground)' }} />
+        <Legend wrapperStyle={{ fontSize: '11px', color: 'var(--muted-foreground)' }} />
         {lines.map((l, i) => (
           <Line key={l.key} type="monotone" dataKey={l.key} stroke={colors[i % colors.length]} strokeWidth={2} dot={{ r: 3 }} name={l.label || l.key} />
         ))}
@@ -1101,13 +1101,13 @@ function renderEVMBars(evm) {
   return (
     <ResponsiveContainer width="100%" height={200}>
       <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-        <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 11 }} />
-        <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} />
-        <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} formatter={(val) => '$' + val.toFixed(1) + 'M'} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+        <XAxis dataKey="name" tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} />
+        <YAxis tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} />
+        <Tooltip contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--color-foreground)', fontSize: '12px' }} labelStyle={{ color: 'var(--color-foreground)' }} itemStyle={{ color: 'var(--color-foreground)' }} formatter={(val) => '$' + val.toFixed(1) + 'M'} />
         <Bar dataKey="value" radius={[3, 3, 0, 0]}>
           {data.map((entry, index) => (
-            <Cell key={index} fill={entry.name === 'EAC' ? '#f59e0b' : entry.name === 'ACWP' ? '#ef4444' : '#6366f1'} />
+            <Cell key={index} fill={entry.name === 'EAC' ? 'var(--color-chart-3)' : entry.name === 'ACWP' ? 'var(--color-chart-4)' : 'var(--color-chart-1)'} />
           ))}
         </Bar>
       </BarChart>

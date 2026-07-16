@@ -845,7 +845,7 @@ export default function SiteIntake({ setActiveTab }) {
               return (
                 <ChartContainer config={chartConfig} className="!aspect-auto w-full h-full">
                   <BarChart data={chartData} layout="vertical" margin={{ left: 140, right: 20, top: 5, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                     <XAxis type="number" domain={[0, 65]} tick={{ fill: '#a1a1aa', fontSize: 11 }} />
                     <YAxis type="category" dataKey="phase" tick={{ fill: '#a1a1aa', fontSize: 11 }} width={130} />
                     <ChartTooltip

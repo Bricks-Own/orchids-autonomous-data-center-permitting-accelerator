@@ -173,22 +173,22 @@ export default function DigitalTwin() {
                     <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="brickGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--color-chart-1)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--color-chart-1)" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-                <XAxis dataKey="hour" tick={{ fill: '#6b7280', fontSize: 11 }}
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="hour" tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
                   tickFormatter={h => `${String(h).padStart(2,'0')}:00`} />
-                <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} unit=" MW" />
+                <YAxis tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} unit=" MW" />
                 <Tooltip
-                  contentStyle={{ background: '#111827', border: '1px solid #374151', borderRadius: '8px', fontSize: '11px' }}
+                  contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '11px' }}
                   labelFormatter={h => `Hour ${String(h).padStart(2,'0')}:00`}
                 />
                 <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                <Area type="monotone" dataKey="baseline_mw" name="Baseline MW" stroke="#ef4444" fill="url(#baseGrad)" strokeWidth={1.5} dot={false} />
-                <Area type="monotone" dataKey="optimized_mw" name="Brick-Controlled MW" stroke="#6366f1" fill="url(#brickGrad)" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="battery_dispatch" name="Battery Dispatch (MW)" stroke="#fbbf24" strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
+                <Area type="monotone" dataKey="baseline_mw" name="Baseline MW" stroke="var(--color-chart-4)" fill="url(#baseGrad)" strokeWidth={1.5} dot={false} />
+                <Area type="monotone" dataKey="optimized_mw" name="Brick-Controlled MW" stroke="var(--color-chart-1)" fill="url(#brickGrad)" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="battery_dispatch" name="Battery Dispatch (MW)" stroke="var(--color-chart-3)" strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -199,12 +199,12 @@ export default function DigitalTwin() {
               <h3 className="text-base font-semibold text-foreground/80 mb-4">Hourly NOx Emissions — Permit Compliance</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={simData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-                  <XAxis dataKey="hour" tick={{ fill: '#6b7280', fontSize: 10 }} tickFormatter={h => `${h}h`} />
-                  <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} unit=" lb/h" />
-                  <Tooltip contentStyle={{ background: '#111827', border: '1px solid #374151', borderRadius: '8px', fontSize: '11px' }} />
-                  <Line type="monotone" dataKey="baseline_nox" name="Baseline NOx" stroke="#ef4444" strokeWidth={1.5} dot={false} />
-                  <Line type="monotone" dataKey="optimized_nox" name="Brick NOx" stroke="#4ade80" strokeWidth={2} dot={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="hour" tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} tickFormatter={h => `${h}h`} />
+                  <YAxis tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} unit=" lb/h" />
+                  <Tooltip contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '11px' }} />
+                  <Line type="monotone" dataKey="baseline_nox" name="Baseline NOx" stroke="var(--color-chart-4)" strokeWidth={1.5} dot={false} />
+                  <Line type="monotone" dataKey="optimized_nox" name="Brick NOx" stroke="var(--color-chart-2)" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -214,12 +214,12 @@ export default function DigitalTwin() {
               <h3 className="text-base font-semibold text-foreground/80 mb-4">Hourly Water Use — Cooling Tower</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={simData.filter((_, i) => i % 2 === 0)} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-                  <XAxis dataKey="hour" tick={{ fill: '#6b7280', fontSize: 10 }} tickFormatter={h => `${h}h`} />
-                  <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} unit=" GPM" />
-                  <Tooltip contentStyle={{ background: '#111827', border: '1px solid #374151', borderRadius: '8px', fontSize: '11px' }} />
-                  <Bar dataKey="water_gpm" name="Baseline GPM" fill="#374151" radius={[2,2,0,0]} />
-                  <Bar dataKey="water_optimized" name="Brick GPM" fill="#0ea5e9" radius={[2,2,0,0]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="hour" tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} tickFormatter={h => `${h}h`} />
+                  <YAxis tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} unit=" GPM" />
+                  <Tooltip contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '11px' }} />
+                  <Bar dataKey="water_gpm" name="Baseline GPM" fill="var(--muted-foreground)" radius={[2,2,0,0]} />
+                  <Bar dataKey="water_optimized" name="Brick GPM" fill="var(--color-chart-2)" radius={[2,2,0,0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

@@ -392,14 +392,14 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
           <h3 className="text-xs font-semibold text-muted-foreground mb-3">Cost S-Curve — Planned vs Actual vs Projected</h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={projections.sCurveData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-              <XAxis dataKey="period" tick={{ fill: '#9ca3af', fontSize: 10 }} />
-              <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} domain={[0, 100]} />
-              <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} />
-              <Legend wrapperStyle={{ fontSize: '10px', color: '#9ca3af' }} />
-              <Line type="monotone" dataKey="planned" stroke="#6366f1" strokeWidth={2} dot={false} name="Planned" />
-              <Line type="monotone" dataKey="actual" stroke="#22c55e" strokeWidth={2} dot={false} name="Actual" />
-              <Line type="monotone" dataKey="projected" stroke="#f59e0b" strokeWidth={2} strokeDasharray="6 3" dot={false} name="Projected" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="period" tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} />
+              <YAxis tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} domain={[0, 100]} />
+              <Tooltip contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--color-foreground)', fontSize: '12px' }} labelStyle={{ color: 'var(--color-foreground)' }} itemStyle={{ color: 'var(--color-foreground)' }} />
+              <Legend wrapperStyle={{ fontSize: '10px', color: 'var(--muted-foreground)' }} />
+              <Line type="monotone" dataKey="planned" stroke="var(--color-chart-1)" strokeWidth={2} dot={false} name="Planned" />
+              <Line type="monotone" dataKey="actual" stroke="var(--color-chart-2)" strokeWidth={2} dot={false} name="Actual" />
+              <Line type="monotone" dataKey="projected" stroke="var(--color-chart-3)" strokeWidth={2} strokeDasharray="6 3" dot={false} name="Projected" />
             </LineChart>
           </ResponsiveContainer>
           <div className="text-xs text-muted-foreground/70 mt-1">Projected series shown dashed — based on current CPI/SPI trend</div>
@@ -410,13 +410,13 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
           <h3 className="text-xs font-semibold text-muted-foreground mb-3">Contingency Drawdown vs Physical Progress</h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={projections.contDrawdown}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-              <XAxis dataKey="period" tick={{ fill: '#9ca3af', fontSize: 10 }} />
-              <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} domain={[0, 100]} />
-              <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} />
-              <Legend wrapperStyle={{ fontSize: '10px', color: '#9ca3af' }} />
-              <Line type="monotone" dataKey="contingency" stroke="#f59e0b" strokeWidth={2} dot={false} name="Contingency %" />
-              <Line type="monotone" dataKey="physicalProgress" stroke="#22c55e" strokeWidth={2} dot={false} name="Physical Progress %" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="period" tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} />
+              <YAxis tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} domain={[0, 100]} />
+              <Tooltip contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--color-foreground)', fontSize: '12px' }} labelStyle={{ color: 'var(--color-foreground)' }} itemStyle={{ color: 'var(--color-foreground)' }} />
+              <Legend wrapperStyle={{ fontSize: '10px', color: 'var(--muted-foreground)' }} />
+              <Line type="monotone" dataKey="contingency" stroke="var(--color-chart-3)" strokeWidth={2} dot={false} name="Contingency %" />
+              <Line type="monotone" dataKey="physicalProgress" stroke="var(--color-chart-2)" strokeWidth={2} dot={false} name="Physical Progress %" />
             </LineChart>
           </ResponsiveContainer>
           <div className="text-xs text-muted-foreground/70 mt-1">Contingency reaches zero at ~{projections.contZeroPct}% physical progress (current burn rate)</div>
@@ -427,14 +427,14 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
           <h3 className="text-xs font-semibold text-muted-foreground mb-3">Cash Flow Projection</h3>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={projections.cashFlowProjection}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-              <XAxis dataKey="period" tick={{ fill: '#9ca3af', fontSize: 10 }} />
-              <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} tickFormatter={(v) => '$' + v.toFixed(0) + 'M'} />
-              <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} formatter={(val) => '$' + val.toFixed(1) + 'M'} />
-              <Legend wrapperStyle={{ fontSize: '10px', color: '#9ca3af' }} />
-              <Area type="monotone" dataKey="projectedCost" stroke="#ef4444" fill="#ef4444" fillOpacity={0.1} strokeWidth={2} name="Projected Cost" />
-              <Area type="monotone" dataKey="projectedBilled" stroke="#6366f1" fill="#6366f1" fillOpacity={0.1} strokeWidth={2} name="Projected Billed" />
-              <Area type="monotone" dataKey="projectedReceived" stroke="#22c55e" fill="#22c55e" fillOpacity={0.1} strokeWidth={2} name="Projected Received" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="period" tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} />
+              <YAxis tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} tickFormatter={(v) => '$' + v.toFixed(0) + 'M'} />
+              <Tooltip contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--color-foreground)', fontSize: '12px' }} labelStyle={{ color: 'var(--color-foreground)' }} itemStyle={{ color: 'var(--color-foreground)' }} formatter={(val) => '$' + val.toFixed(1) + 'M'} />
+              <Legend wrapperStyle={{ fontSize: '10px', color: 'var(--muted-foreground)' }} />
+              <Area type="monotone" dataKey="projectedCost" stroke="var(--color-chart-4)" fill="var(--color-chart-4)" fillOpacity={0.1} strokeWidth={2} name="Projected Cost" />
+              <Area type="monotone" dataKey="projectedBilled" stroke="var(--color-chart-1)" fill="var(--color-chart-1)" fillOpacity={0.1} strokeWidth={2} name="Projected Billed" />
+              <Area type="monotone" dataKey="projectedReceived" stroke="var(--color-chart-2)" fill="var(--color-chart-2)" fillOpacity={0.1} strokeWidth={2} name="Projected Received" />
             </AreaChart>
           </ResponsiveContainer>
           <div className="text-xs text-muted-foreground/70 mt-1">Projected — based on current billing and collection rates</div>
@@ -445,10 +445,10 @@ export default function BaselineProjections({ data, onSave, initialBaseline }) {
           <h3 className="text-xs font-semibold text-muted-foreground mb-3">Milestone Variance — Baseline vs Forecast</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={projections.milestoneVariance} layout="vertical" margin={{ left: 100 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-              <XAxis type="number" tick={{ fill: '#9ca3af', fontSize: 10 }} />
-              <YAxis dataKey="name" type="category" tick={{ fill: '#9ca3af', fontSize: 10 }} width={95} />
-              <Tooltip contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#e5e7eb', fontSize: '12px' }} labelStyle={{ color: '#e5e7eb' }} itemStyle={{ color: '#e5e7eb' }} formatter={(val) => val + ' days'} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis type="number" tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} />
+              <YAxis dataKey="name" type="category" tick={{ fill: 'var(--muted-foreground)', fontSize: 10 }} width={95} />
+              <Tooltip contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--color-foreground)', fontSize: '12px' }} labelStyle={{ color: 'var(--color-foreground)' }} itemStyle={{ color: 'var(--color-foreground)' }} formatter={(val) => val + ' days'} />
               <Bar dataKey="variance" name="Variance Days" radius={[0, 3, 3, 0]}>
                 {projections.milestoneVariance.map((entry, idx) => (
                   <rect key={idx} fill={entry.variance > 0 ? '#ef4444' : '#22c55e'} />
