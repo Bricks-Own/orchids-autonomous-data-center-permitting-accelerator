@@ -874,7 +874,7 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
                     <Wind size={18} weight="duotone" style={{ color: 'var(--color-chart-1)' }} />
-                    <CardTitle className="text-sm" style={{ color: 'var(--color-chart-1)' }}>Air Permit Documents</CardTitle>
+                    <CardTitle className="text-sm normal-case tracking-normal font-sans" style={{ color: 'var(--color-chart-1)' }}>Air Permit Documents</CardTitle>
                     <span className="text-xs text-muted-foreground ml-1">({AIR_DOCS.length} documents)</span>
                   </div>
                   <span className="text-xs" style={{ color: 'var(--color-chart-1)' }}>{airGenerated}/{AIR_DOCS.length} generated</span>
@@ -916,7 +916,7 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
                     <Drop size={18} weight="duotone" style={{ color: 'var(--color-chart-2)' }} />
-                    <CardTitle className="text-sm" style={{ color: 'var(--color-chart-2)' }}>Water Permit Documents</CardTitle>
+                    <CardTitle className="text-sm normal-case tracking-normal font-sans" style={{ color: 'var(--color-chart-2)' }}>Water Permit Documents</CardTitle>
                     <span className="text-xs text-muted-foreground ml-1">({WATER_DOCS.length} documents)</span>
                   </div>
                   <span className="text-xs" style={{ color: 'var(--color-chart-2)' }}>{waterGenerated}/{WATER_DOCS.length} generated</span>
