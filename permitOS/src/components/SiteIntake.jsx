@@ -11,7 +11,7 @@ import { calcPTE } from '../utils/calculations';
 import { calculatePTE as apiPTE, analyzeScenario, listScenarios } from '../utils/api';
 import { usePermitData } from '../context/PermitDataContext';
 import Stepper from './Stepper';
-import { computeTimelineComparison } from '../utils/timelineCalc';
+import { computeTimelineComparison, getPhaseBreakdown } from '../utils/timelineCalc';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from './ui/chart';
@@ -80,7 +80,7 @@ const PROJECT_QUESTIONS = [
 // ─── Main Component ─────────────────────────────────────────────────────────
 export default function SiteIntake({ setActiveTab }) {
   const { inputs, setInputs, results, setResults } = usePermitData();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(() => (results !== null ? 3 : 1));
   const [running, setRunning] = useState(false);
   const done = results !== null;
   const [scenarioAnalysis, setScenarioAnalysis] = useState(null);
@@ -569,13 +569,13 @@ export default function SiteIntake({ setActiveTab }) {
     const pathway = results?.pathway || {};
     const comparison = computeTimelineComparison(inputs, results);
 
-    const timelinePhases = [
-      { label: 'Site Intake & Screening', weeks: '1-4', color: 'var(--color-chart-1)', status: 'complete' },
-      { label: 'Technical Analysis & Modeling', weeks: '4-10', color: 'var(--color-chart-2)', status: 'upcoming' },
-      { label: 'Document Generation & Assembly', weeks: '6-12', color: 'var(--color-chart-3)', status: 'upcoming' },
-      { label: 'Agency Submission & Review', weeks: '10-40', color: 'var(--color-chart-4)', status: 'upcoming' },
-      { label: 'Permit Issuance', weeks: '16-60', color: 'var(--color-chart-5)', status: 'upcoming' },
-    ];
+    const breakdown = getPhaseBreakdown(comparison.brickAccel.totalWeeks);
+    const timelinePhases = breakdown.map((p, i) => ({
+      label: p.label,
+      weeks: `${p.startWeek}-${p.endWeek}`,
+      color: `var(--color-chart-${(i % 5) + 1})`,
+      status: 'upcoming',
+    }));
 
     return (
       <div className="space-y-5">
@@ -655,7 +655,7 @@ export default function SiteIntake({ setActiveTab }) {
         </Card>
 
         {/* 3. Permit-by-Permit Breakdown */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 grid-flow-dense">
           {permitTypes.includes('air') && (
             <Card>
               <CardContent>
@@ -877,8 +877,8 @@ export default function SiteIntake({ setActiveTab }) {
 
         {/* 5. Generate Button */}
         <div className="pt-2 space-y-3">
-          <div className="flex gap-3">
-            <Button onClick={runScreening} disabled={running || done} className="flex-1">
+          <div className="flex gap-3 items-center">
+            <Button onClick={runScreening} disabled={running || done} size="sm">
               {running ? (
                 <><CircleNotch weight="duotone" size={20} className="animate-spin" /> Generating Permits...</>
               ) : (
@@ -886,7 +886,7 @@ export default function SiteIntake({ setActiveTab }) {
               )}
             </Button>
             {done && (
-              <Button variant="outline" onClick={() => setResults(null)}>
+              <Button variant="outline" size="sm" onClick={() => setResults(null)}>
                 Reset
               </Button>
             )}

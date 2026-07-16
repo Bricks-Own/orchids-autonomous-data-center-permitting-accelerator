@@ -160,5 +160,27 @@ export function computeTimelineComparison(inputs, results) {
   };
 }
 
+// ─── Phase Breakdown Utility ─────────────────────────────────────────────────
+// Shared between SiteIntake Step 3 and MilestoneTimeline for phase-level views
+
+const PHASE_WEIGHTS = [
+  { label: 'Site Intake & Screening', weight: 0.08 },
+  { label: 'Applicability Screening & PTE', weight: 0.10 },
+  { label: 'Technical Analysis & Modeling', weight: 0.20 },
+  { label: 'Document Generation & Assembly', weight: 0.15 },
+  { label: 'Agency Submission & Review', weight: 0.35 },
+  { label: 'Permit Issuance', weight: 0.12 },
+];
+
+export function getPhaseBreakdown(totalWeeks) {
+  let cursor = 0;
+  return PHASE_WEIGHTS.map(p => {
+    const start = Math.round(cursor) + 1;
+    cursor += totalWeeks * p.weight;
+    const end = Math.round(cursor);
+    return { label: p.label, startWeek: start, endWeek: Math.max(end, start), weeks: Math.max(end - start + 1, 1) };
+  });
+}
+
 // Re-export for use in getGanttTracks() — same exact MW/attainment math
 export { PROJECT_SCENARIO_FACTORS };
