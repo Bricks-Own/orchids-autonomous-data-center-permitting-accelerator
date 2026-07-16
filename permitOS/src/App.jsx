@@ -226,7 +226,7 @@ function App() {
             <SidebarFooterContent onLogout={handleLogout} />
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset>
+        <SidebarInset className="overflow-x-hidden">
           <Header activeTab={activeTab} onLogout={handleLogout} />
           <main className="max-w-[1400px] mx-auto w-full px-4 md:px-6">
             {renderRoutes()}

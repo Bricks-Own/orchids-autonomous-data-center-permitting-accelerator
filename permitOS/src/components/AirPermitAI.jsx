@@ -457,8 +457,8 @@ export default function AirPermitAI({ results, inputs, setActiveTab }) {
                       <span className="font-semibold text-foreground/80">{b.pollutant}</span>
                       <div className="text-muted-foreground/70 text-xs">{b.thresholdType}</div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground max-w-[200px]">{b.brickControl}</TableCell>
-                    <TableCell className="text-amber-300 max-w-[200px]">{b.additionalControls || 'N/A — mitigated by Brick controls'}</TableCell>
+                    <TableCell className="text-muted-foreground max-w-[200px] whitespace-normal break-words">{b.brickControl}</TableCell>
+                    <TableCell className="text-amber-300 max-w-[200px] whitespace-normal break-words">{b.additionalControls || 'N/A — mitigated by Brick controls'}</TableCell>
                     <TableCell className="text-center">
                       <span className={`px-2 py-0.5 text-xs ${
                         b.severity === 'critical' ? 'bg-red-900/40 text-destructive' :
