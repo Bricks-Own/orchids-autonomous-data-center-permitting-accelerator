@@ -10,6 +10,7 @@ import { Wind, Drop } from '@phosphor-icons/react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from './ui/table';
 import { Badge } from './ui/badge';
+import { downloadPackageAsPdf } from '../utils/pdfExport';
 
 // ─── Regulation Cross-Reference Map ─────────────────────────────────────────
 // Each document's primary CFR/CWA citations for compliance tracking
@@ -78,6 +79,7 @@ const WATER_DOCS = [
 const UPSIZED_PERMITS = [
   {
     category: 'Federal Air Permits & Regulations',
+    permitKey: 'air',
     color: 'indigo',
     permits: [
       { name: 'Preconstruction Air Permit (State Minor or PSD)', trigger: 'Upsizing to full MW generation capacity triggers PSD major source thresholds (>100 tpy NOx/CO uncontrolled)', urgency: 'Critical', timeline: '9–18 months' },
@@ -92,6 +94,7 @@ const UPSIZED_PERMITS = [
   },
   {
     category: 'Federal Water Permits & Regulations',
+    permitKey: 'water',
     color: 'blue',
     permits: [
       { name: 'NPDES Individual Permit — Cooling Tower Blowdown', trigger: 'Upsized cooling demand increases blowdown volume above general permit thresholds; biocide treatment requires individual characterization', urgency: 'Critical', timeline: '6–12 months' },
@@ -105,6 +108,7 @@ const UPSIZED_PERMITS = [
   },
   {
     category: 'State Air Permits (State-Specific)',
+    permitKey: 'air',
     color: 'violet',
     permits: [
       { name: 'State Preconstruction Air Permit (synthetic minor)', trigger: 'Foundational state-level permit — must be issued before construction begins; upsizing triggers reapplication if prior permit existed', urgency: 'Critical', timeline: '6–12 months' },
@@ -115,6 +119,7 @@ const UPSIZED_PERMITS = [
   },
   {
     category: 'State Water Permits (State-Specific)',
+    permitKey: 'water',
     color: 'cyan',
     permits: [
       { name: 'State NPDES Permit (state-delegated authority)', trigger: 'State issues NPDES permit for cooling tower blowdown — required before any discharge; upsized cooling system needs new or amended permit', urgency: 'Critical', timeline: '6–12 months' },
@@ -126,6 +131,7 @@ const UPSIZED_PERMITS = [
   },
   {
     category: 'Land Use, Zoning & Utility Permits',
+    permitKey: 'landuse',
     color: 'amber',
     permits: [
       { name: 'Conditional Use Permit (CUP) / Special Use Permit', trigger: 'Upsized MW capacity may change zoning classification or exceed originally approved use; local zoning board approval required', urgency: 'Critical', timeline: '3–9 months' },
@@ -138,6 +144,7 @@ const UPSIZED_PERMITS = [
   },
   {
     category: 'Fire, Safety & Environmental Compliance',
+    permitKey: 'always',
     color: 'red',
     permits: [
       { name: 'Fire Suppression & Hazmat Storage Permit (local fire marshal)', trigger: 'Diesel storage for upsized genset fleet; fire suppression system design for data halls and generator rooms', urgency: 'Required', timeline: '4–8 weeks' },
@@ -334,6 +341,18 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
   // Derive which permit categories apply based on site intake answers
   const showAir = inputs?.hasOnSiteGeneration !== false;
   const showWater = inputs?.hasWaterUse !== false;
+  const showBuilding = inputs?.hasNewConstruction !== false;
+  const showPower = inputs?.hasGridInterconnection !== false;
+
+  // Filter UPSIZED_PERMITS based on which permit categories are needed
+  const filteredPermits = UPSIZED_PERMITS.filter(cat => {
+    if (cat.permitKey === 'air') return showAir;
+    if (cat.permitKey === 'water') return showWater;
+    if (cat.permitKey === 'building') return showBuilding;
+    if (cat.permitKey === 'power') return showPower;
+    if (cat.permitKey === 'landuse') return showBuilding || showPower;
+    return true; // 'always' and anything else
+  });
 
   // Register ASG-sourced template content on mount
   useEffect(() => {
@@ -708,51 +727,17 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
   const handleDownloadAll = () => {
     const genDocs = allDocs.filter(d => generated.has(d.key));
     if (genDocs.length === 0) return;
-    const lines = [];
-    lines.push('BRICK PERMITOS™ — COMPLETE PERMIT PACKAGE');
-    lines.push('═'.repeat(80));
-    lines.push(`Facility: ${safeInputs.siteName}`);
-    lines.push(`Client: ${safeInputs.client} | State: ${safeInputs.state} | County: ${safeInputs.county}`);
-    lines.push(`Generated: ${new Date().toLocaleDateString()}`);
-    lines.push(`Documents: ${genDocs.length} of 26`);
-    lines.push('');
-    lines.push('⚠ DRAFT — ALL DOCUMENTS REQUIRE PROFESSIONAL ENGINEER REVIEW BEFORE SUBMISSION');
-    lines.push('═'.repeat(80));
-    lines.push('');
-
-    genDocs.forEach(d => {
+    const docs = genDocs.map(d => {
       const [type, num] = d.key.split('_');
-      const doc = generateDocument(type, num, safeInputs, safeResults);
-      if (!doc) return;
-      lines.push('');
-      lines.push('╔' + '═'.repeat(78) + '╗');
-      lines.push('║  ' + doc.title.padEnd(76) + '║');
-      lines.push('║  ' + `Document No.: ${doc.docNum}`.padEnd(76) + '║');
-      lines.push('╚' + '═'.repeat(78) + '╝');
-      lines.push('');
-      doc.sections.forEach(sec => {
-        lines.push('─── ' + sec.heading + ' ' + '─'.repeat(Math.max(0, 76 - sec.heading.length)));
-        lines.push('');
-        lines.push(sec.body);
-        lines.push('');
-      });
-      lines.push('─── [END OF ' + doc.docNum + '] ' + '─'.repeat(60));
-      lines.push('');
-    });
-
-    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `BrickPermitOS_${safeInputs.siteName.replace(/[^a-z0-9]/gi,'_').toLowerCase()}_permit_package.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+      return generateDocument(type, num, safeInputs, safeResults);
+    }).filter(Boolean);
+    downloadPackageAsPdf(docs, safeInputs.siteName);
   };
 
   const totalGenerated = generated.size;
   const airGenerated = AIR_DOCS.filter(d => generated.has(d.key)).length;
   const waterGenerated = WATER_DOCS.filter(d => generated.has(d.key)).length;
-  const totalPermits = UPSIZED_PERMITS.reduce((s, c) => s + c.permits.length, 0);
+  const filteredPermitCount = filteredPermits.reduce((s, c) => s + c.permits.length, 0);
   const totalDocCount = allDocs.length;
 
   return (
@@ -768,7 +753,7 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
               </p>
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <p className="text-xs text-destructive font-semibold">
-                  &#9888; BigWatt upsizing to {safeInputs.turbines}&times;{safeInputs.mwPerTurbine} MW triggers {UPSIZED_PERMITS.reduce((s,c) => s+c.permits.length, 0)} permit actions across {UPSIZED_PERMITS.length} regulatory domains.
+                  &#9888; BigWatt upsizing to {safeInputs.turbines}&times;{safeInputs.mwPerTurbine} MW triggers permit actions across {filteredPermits.length} regulatory domains.
                 </p>
                 {/* State format badge */}
                 {getStateFormat(selectedState).airAgency !== DEFAULT_STATE_FORMAT.airAgency && (
@@ -789,7 +774,7 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
                 onClick={() => setActiveView('permits')}
                 className={`text-xs px-4 py-2 border transition-all ${activeView === 'permits' ? 'bg-destructive text-white border-amber-600' : 'bg-muted text-muted-foreground border-border hover:text-foreground'}`}
               >
-                All Permits Required ({totalPermits})
+                All Permits Required ({filteredPermitCount})
               </button>
             </div>
           </div>
@@ -800,7 +785,7 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
               { label: 'Total Documents', value: `${totalGenerated} / ${totalDocCount}`, color: 'text-primary' },
               ...(showAir ? [{ label: 'Air Permits', value: `${airGenerated} / ${AIR_DOCS.length}`, color: 'text-[var(--color-chart-1)]' }] : []),
               ...(showWater ? [{ label: 'Water Permits', value: `${waterGenerated} / ${WATER_DOCS.length}`, color: 'text-[var(--color-chart-2)]' }] : []),
-              { label: 'Permit Actions', value: totalPermits, color: 'text-destructive' },
+              { label: 'Permit Actions', value: filteredPermitCount, color: 'text-destructive' },
             ].map(s => (
               <div key={s.label} className="bg-background/40 border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">{s.label}</div>
@@ -970,12 +955,12 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
             <p className="text-xs text-destructive font-semibold mb-1">BigWatt Upsized Site — Complete Permit Universe</p>
             <p className="text-xs text-muted-foreground leading-relaxed">
               BigWatt Digital's decision to upsize the campus to <strong className="text-white">{safeInputs.turbines}&times;{safeInputs.mwPerTurbine} MW = {safeInputs.turbines * safeInputs.mwPerTurbine} MW total generation</strong> triggers a substantially larger permit footprint than a smaller site would require.
-              The following <strong className="text-white">{totalPermits} permit actions</strong> across <strong className="text-white">{UPSIZED_PERMITS.length} regulatory domains</strong> are required or warrant evaluation.
+              The following <strong className="text-white">{filteredPermitCount} permit actions</strong> across <strong className="text-white">{filteredPermits.length} regulatory domains</strong> are required or warrant evaluation.
               Each row identifies the specific upsizing trigger — the reason this permit is required because of the larger site scope.
             </p>
           </div>
 
-          {UPSIZED_PERMITS.map(cat => (
+          {filteredPermits.map(cat => (
             <div key={cat.category} className={`border overflow-hidden ${CAT_COLOR[cat.color]}`}>
               <div className={`px-4 py-3 border-b flex items-center justify-between ${CAT_COLOR[cat.color]}`}>
                 <span className="text-sm font-semibold">{cat.category}</span>
@@ -1018,10 +1003,10 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
 
           <div className="border border-border/40 bg-card/40 p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Critical Actions', value: UPSIZED_PERMITS.flatMap(c=>c.permits).filter(p=>p.urgency==='Critical').length, color: 'text-destructive' },
-              { label: 'Required Actions', value: UPSIZED_PERMITS.flatMap(c=>c.permits).filter(p=>p.urgency==='Required').length, color: 'text-destructive' },
-              { label: 'Evaluate / Screen', value: UPSIZED_PERMITS.flatMap(c=>c.permits).filter(p=>p.urgency==='Evaluate').length, color: 'text-blue-400' },
-              { label: 'Total Permit Actions', value: totalPermits, color: 'text-primary' },
+              { label: 'Critical Actions', value: filteredPermits.flatMap(c=>c.permits).filter(p=>p.urgency==='Critical').length, color: 'text-destructive' },
+              { label: 'Required Actions', value: filteredPermits.flatMap(c=>c.permits).filter(p=>p.urgency==='Required').length, color: 'text-destructive' },
+              { label: 'Evaluate / Screen', value: filteredPermits.flatMap(c=>c.permits).filter(p=>p.urgency==='Evaluate').length, color: 'text-blue-400' },
+              { label: 'Total Permit Actions', value: filteredPermitCount, color: 'text-primary' },
             ].map(s => (
               <div key={s.label} className="text-center">
                 <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
