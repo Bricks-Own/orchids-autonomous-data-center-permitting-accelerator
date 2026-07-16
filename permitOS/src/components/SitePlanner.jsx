@@ -169,9 +169,9 @@ function SiteMap({ lat, lon, onLatLonChange, onBoundaryChange, siteAcres }) {
     ];
 
     const rect = L.rectangle(bounds, {
-      color: 'var(--color-chart-1)',
+      color: '#e0a95c',
       weight: 2,
-      fillColor: 'var(--color-chart-1)',
+      fillColor: '#e0a95c',
       fillOpacity: 0.12,
       dashArray: '5, 5',
     }).addTo(map);
@@ -709,7 +709,7 @@ export default function SitePlanner({ setActiveTab }) {
                   <span className="text-muted-foreground">Drag marker / click map to reposition</span>
                 </div>
                 <div className="bg-muted/40 p-2 flex items-center gap-2">
-                  <div className="w-4 h-2 border border-[var(--color-chart-1)] border-dashed flex-shrink-0"></div>
+                  <div className="w-4 h-2 border border-[#e0a95c] border-dashed flex-shrink-0"></div>
                   <span className="text-muted-foreground">Boundary auto-scaled to acreage</span>
                 </div>
                 <div className="bg-muted/40 p-2 flex items-center gap-2">
