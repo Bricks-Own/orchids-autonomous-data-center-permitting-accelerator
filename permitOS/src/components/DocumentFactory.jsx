@@ -854,8 +854,8 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
 
           {/* AIR Documents Table */}
           {showAir && (
-            <Card>
-              <CardHeader className="border-b border-[var(--color-chart-1)]/30 bg-[var(--color-chart-1)]/5">
+            <Card className="pt-0">
+              <CardHeader className="items-center border-b border-[var(--color-chart-1)]/30 bg-[var(--color-chart-1)]/5">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
                     <Wind size={18} weight="duotone" style={{ color: 'var(--color-chart-1)' }} />
@@ -896,8 +896,8 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
 
           {/* WATER Documents Table */}
           {showWater && (
-            <Card>
-              <CardHeader className="border-b border-[var(--color-chart-2)]/30 bg-[var(--color-chart-2)]/5">
+            <Card className="pt-0">
+              <CardHeader className="items-center border-b border-[var(--color-chart-2)]/30 bg-[var(--color-chart-2)]/5">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
                     <Drop size={18} weight="duotone" style={{ color: 'var(--color-chart-2)' }} />
