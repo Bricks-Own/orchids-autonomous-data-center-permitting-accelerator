@@ -1,11 +1,13 @@
 import React from 'react';
 import { Badge } from './ui/badge';
+import { usePermitData } from '../context/PermitDataContext';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './ui/dropdown-menu';
 import {
   SignOut
 } from '@phosphor-icons/react';
 
-export default function Header({ activeTab, results, onLogout }) {
+export default function Header({ activeTab, onLogout }) {
+  const { results } = usePermitData();
   const hasResults = !!results;
 
   return (

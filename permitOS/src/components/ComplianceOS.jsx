@@ -7,6 +7,7 @@ import {
   createAuditLogEntry,
   exportDocx,
 } from '../utils/api';
+import { usePermitData } from '../context/PermitDataContext';
 
 const CONDITIONS = [
   {
@@ -279,7 +280,8 @@ function LiveTicker({ results }) {
   );
 }
 
-export default function ComplianceOS({ results, inputs, onNavigateDoc }) {
+export default function ComplianceOS({ onNavigateDoc }) {
+  const { inputs, results } = usePermitData();
   const [view, setView] = useState('conditions'); // 'conditions' | 'validation' | 'submissions'
   const [filter, setFilter] = useState('All');
   const [expanded, setExpanded] = useState(null);

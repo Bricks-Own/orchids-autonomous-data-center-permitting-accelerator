@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import AuthModal from './components/AuthModal';
 import Overview from './components/Overview';
@@ -14,6 +15,7 @@ import KnowledgeHub from './components/KnowledgeHub';
 import SitePlanner from './components/SitePlanner';
 import SiteAssistant from './components/SiteAssistant';
 import ConstructionDashboard from './components/ConstructionDashboard';
+import { usePermitData } from './context/PermitDataContext';
 import { isAuthenticated, getAuthToken, setAuthToken, logout, startTokenExpiryCheck, stopTokenExpiryCheck } from './utils/api';
 import {
   SidebarProvider,
@@ -38,42 +40,6 @@ import {
   SignOut, ShieldCheck as ShieldLogo, SidebarIcon as PanelLeft
 } from '@phosphor-icons/react';
 
-export const defaultInputs = {
-  siteName: 'BigWatt AI Campus - Site A',
-  client: 'BigWatt Digital',
-  state: 'Tennessee',
-  county: 'Davidson County',
-  address: '1200 Industrial Blvd, Nashville, TN 37201',
-  lat: '36.1627',
-  lon: '-86.7816',
-  turbineType: 'Gas Turbine (DLN, modern)',
-  turbines: 8,
-  mwPerTurbine: 25,
-  hours: 6000,
-  heatRate: 8.5,
-  noxFactor: 0.015,
-  coFactor: 0.035,
-  brickSavings: 20,
-  gensetCount: 12,
-  gensetHP: 2000,
-  gensetHours: 100,
-  coolingMGD: 2.8,
-  blowdownPct: 20,
-  waterMGD: 1.2,
-  datacenterMW: 133,
-  pueTarget: 1.35,
-  phases: 3,
-  codTarget: '2026-Q3',
-  siteAcres: 45,
-  stackHeight: 65,
-  nearestReceptorFt: 1200,
-  nonAttainment: false,
-  hasOnSiteGeneration: true,
-  hasWaterUse: true,
-  hasNewConstruction: true,
-  hasGridInterconnection: true,
-  projectScenario: 'greenfield',
-};
 
 const tabIcons = {
   overview: Compass,
@@ -94,9 +60,11 @@ function App() {
   const [authenticated, setAuthenticated] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [sessionExpiredMessage, setSessionExpiredMessage] = useState('');
-  const [activeTab, setActiveTab] = useState('overview');
-  const [inputs, setInputs] = useState(defaultInputs);
-  const [results, setResults] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const activeTab = location.pathname === '/' ? 'overview' : location.pathname.slice(1);
+  const setActiveTab = (tab) => navigate(tab === 'overview' ? '/' : `/${tab}`);
+  const { inputs, results } = usePermitData();
   const [selectedDocKey, setSelectedDocKey] = useState(null);
 
   useEffect(() => {
@@ -134,23 +102,22 @@ function App() {
     setActiveTab('docs');
   };
 
-  const renderTab = () => {
-    switch (activeTab) {
-      case 'overview':    return <Overview setActiveTab={setActiveTab} />;
-      case 'siteplanner': return <SitePlanner inputs={inputs} setInputs={setInputs} setActiveTab={setActiveTab} />;
-      case 'intake':      return <SiteIntake inputs={inputs} setInputs={setInputs} results={results} setResults={setResults} setActiveTab={setActiveTab} />;
-      case 'permits':     return <Permits inputs={inputs} results={results} setActiveTab={setActiveTab} />;
-      case 'milestones':  return <MilestoneTimeline results={results} inputs={inputs} />;
-      case 'docs':        return <DocumentFactory results={results} inputs={inputs} selectedDocKey={selectedDocKey} onClearSelection={() => setSelectedDocKey(null)} />;
-      case 'simulation':  return <DigitalTwin results={results} inputs={inputs} />;
-      case 'compliance':  return <ComplianceOS results={results} inputs={inputs} onNavigateDoc={handleNavigateDoc} />;
-      case 'copilot':     return <RegulatorCopilot results={results} inputs={inputs} />;
-      case 'executive':   return <ExecutiveSummary results={results} inputs={inputs} setActiveTab={setActiveTab} />;
-      case 'knowledge':   return <KnowledgeHub inputs={inputs} results={results} />;
-      case 'construction': return <ConstructionDashboard inputs={inputs} results={results} setActiveTab={setActiveTab} />;
-      default:            return <Overview setActiveTab={setActiveTab} />;
-    }
-  };
+  const renderRoutes = () => (
+    <Routes>
+      <Route path="/" element={<Overview setActiveTab={setActiveTab} />} />
+      <Route path="/siteplanner" element={<SitePlanner setActiveTab={setActiveTab} />} />
+      <Route path="/intake" element={<SiteIntake setActiveTab={setActiveTab} />} />
+      <Route path="/permits" element={<Permits setActiveTab={setActiveTab} />} />
+      <Route path="/milestones" element={<MilestoneTimeline setActiveTab={setActiveTab} />} />
+      <Route path="/docs" element={<DocumentFactory selectedDocKey={selectedDocKey} onClearSelection={() => setSelectedDocKey(null)} />} />
+      <Route path="/simulation" element={<DigitalTwin />} />
+      <Route path="/compliance" element={<ComplianceOS onNavigateDoc={handleNavigateDoc} />} />
+      <Route path="/copilot" element={<RegulatorCopilot />} />
+      <Route path="/executive" element={<ExecutiveSummary setActiveTab={setActiveTab} />} />
+      <Route path="/knowledge" element={<KnowledgeHub />} />
+      <Route path="/construction" element={<ConstructionDashboard setActiveTab={setActiveTab} />} />
+    </Routes>
+  );
 
   const renderSidebarNavItem = (tabId, label, onPress) => {
     const Icon = tabIcons[tabId];
@@ -260,11 +227,11 @@ function App() {
           </SidebarFooter>
         </Sidebar>
         <SidebarInset>
-          <Header activeTab={activeTab} results={results} onLogout={handleLogout} />
+          <Header activeTab={activeTab} onLogout={handleLogout} />
           <main className="max-w-[1400px] mx-auto w-full px-4 md:px-6">
-            {renderTab()}
+            {renderRoutes()}
           </main>
-          <SiteAssistant inputs={inputs} results={results} setActiveTab={setActiveTab} />
+          <SiteAssistant setActiveTab={setActiveTab} />
         </SidebarInset>
       </div>
     </SidebarProvider>

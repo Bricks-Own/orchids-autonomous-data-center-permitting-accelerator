@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { calcRiskScore, calcTimelineAcceleration, THRESHOLDS } from '../utils/calculations';
 import { STATES_ATTAINMENT } from '../data/permitData';
 import { getPermitScore, analyzeScenario } from '../utils/api';
+import { usePermitData } from '../context/PermitDataContext';
 
 function AnimatedCounter({ target, duration = 1200, suffix = '', prefix = '' }) {
   const [val, setVal] = useState(0);
@@ -43,7 +44,8 @@ function RiskMeter({ score }) {
   );
 }
 
-export default function ExecutiveSummary({ results, inputs, setActiveTab }) {
+export default function ExecutiveSummary({ setActiveTab }) {
+  const { inputs, results } = usePermitData();
   if (!results) {
     return (
       <div className="p-6 text-center py-20">

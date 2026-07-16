@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { queryAgent, exportRAIDocx, createAuditLogEntry } from '../utils/api';
+import { usePermitData } from '../context/PermitDataContext';
 
 const RAI_TEMPLATES = [
   {
@@ -74,7 +75,8 @@ const DEFICIENCY_TEMPLATES = [
 
 const CATEGORIES = ['All', 'AERMOD / Modeling', 'BACT / Technology', 'PTE / Enforceable Limits', 'Environmental Justice', 'NPDES / Water'];
 
-export default function RegulatorCopilot({ results, inputs }) {
+export default function RegulatorCopilot() {
+  const { inputs, results } = usePermitData();
   const siteId = typeof window !== 'undefined' ? (localStorage.getItem('permitos_site_id') || 'site_demo') : 'site_demo';
   const [activeMode, setActiveMode] = useState('rai');
   const [selectedRAI, setSelectedRAI] = useState(null);

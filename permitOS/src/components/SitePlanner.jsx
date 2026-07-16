@@ -3,6 +3,7 @@ import { calcPTE } from '../utils/calculations';
 import { applyLocation } from '../utils/locationUtils';
 import { US_STATES, STATE_BOUNDING_BOXES, STATES_ATTAINMENT } from '../data/permitData';
 import 'leaflet/dist/leaflet.css';
+import { usePermitData } from '../context/PermitDataContext';
 
 // ─── Leaflet Map Component ──────────────────────────────────────────────────
 // Reverse geocode lat/lon to US state using bounding boxes
@@ -319,7 +320,8 @@ function ScenarioTest({ inputs, onApply, onNavigateToIntake }) {
 }
 
 // ─── Main SitePlanner Component ────────────────────────────────────────────
-export default function SitePlanner({ inputs, setInputs, setActiveTab }) {
+export default function SitePlanner({ setActiveTab }) {
+  const { inputs, setInputs } = usePermitData();
   const [lat, setLat] = useState(inputs.lat || '36.1627');
   const [lon, setLon] = useState(inputs.lon || '-86.7816');
   const [siteAcres, setSiteAcres] = useState(inputs.siteAcres || 45);

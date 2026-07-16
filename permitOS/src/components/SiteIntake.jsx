@@ -9,6 +9,7 @@ import { US_STATES, STATES_ATTAINMENT, NOX_EMISSION_FACTORS, CO_EMISSION_FACTORS
 import { STATE_ADDRESS_DEFAULTS } from '../utils/locationUtils';
 import { calcPTE } from '../utils/calculations';
 import { calculatePTE as apiPTE, analyzeScenario, listScenarios } from '../utils/api';
+import { usePermitData } from '../context/PermitDataContext';
 import Stepper from './Stepper';
 import { computeTimelineComparison } from '../utils/timelineCalc';
 import { Button } from './ui/button';
@@ -77,7 +78,8 @@ const PROJECT_QUESTIONS = [
 ];
 
 // ─── Main Component ─────────────────────────────────────────────────────────
-export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab, results }) {
+export default function SiteIntake({ setActiveTab }) {
+  const { inputs, setInputs, results, setResults } = usePermitData();
   const [step, setStep] = useState(1);
   const [running, setRunning] = useState(false);
   const done = results !== null;
@@ -874,14 +876,21 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
         </Card>
 
         {/* 5. Generate Button */}
-        <div className="pt-2">
-          <Button onClick={runScreening} disabled={running} className="w-full">
-            {running ? (
-              <><CircleNotch weight="duotone" size={20} className="animate-spin" /> Generating Permits...</>
-            ) : (
-              <><Lightning weight="duotone" size={20} /> Generate My Permits</>
+        <div className="pt-2 space-y-3">
+          <div className="flex gap-3">
+            <Button onClick={runScreening} disabled={running || done} className="flex-1">
+              {running ? (
+                <><CircleNotch weight="duotone" size={20} className="animate-spin" /> Generating Permits...</>
+              ) : (
+                <><Lightning weight="duotone" size={20} /> Generate My Permits</>
+              )}
+            </Button>
+            {done && (
+              <Button variant="outline" onClick={() => setResults(null)}>
+                Reset
+              </Button>
             )}
-          </Button>
+          </div>
           {screeningError && (
             <div className="mt-4 bg-destructive/10 border border-destructive/30 px-4 py-3 text-xs text-destructive flex items-center gap-2">
               <WarningCircle weight="duotone" size={14} className="shrink-0" />

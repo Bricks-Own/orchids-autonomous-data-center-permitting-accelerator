@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { searchKnowledge, getKnowledgeStats, askKnowledgeAI, webFetch } from '../utils/api';
+import { usePermitData } from '../context/PermitDataContext';
 
 const CATEGORIES = [
   { value: '', label: 'All Categories' },
@@ -216,7 +217,8 @@ function KnowledgeArticleModal({ item, onClose }) {
 }
 
 // ─── Main KnowledgeHub Component ─────────────────────────────────────────
-export default function KnowledgeHub({ inputs, results }) {
+export default function KnowledgeHub() {
+  const { inputs, results } = usePermitData();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('');
   const [resultsList, setResultsList] = useState([]);

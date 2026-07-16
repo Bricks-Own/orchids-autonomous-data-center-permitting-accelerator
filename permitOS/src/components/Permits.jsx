@@ -5,6 +5,7 @@ import BuildingPermitAI from './BuildingPermitAI';
 import PowerPermitAI from './PowerPermitAI';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
+import { usePermitData } from '../context/PermitDataContext';
 import { Wind, Drop, Buildings, Lightning } from '@phosphor-icons/react';
 
 const PERMIT_DEFS = {
@@ -14,7 +15,8 @@ const PERMIT_DEFS = {
   power: { label: 'Power / Interconnection', icon: Lightning, Component: PowerPermitAI },
 };
 
-export default function Permits({ inputs, results, setActiveTab }) {
+export default function Permits({ setActiveTab }) {
+  const { inputs, results } = usePermitData();
   const [selected, setSelected] = useState(null);
 
   if (!results) {

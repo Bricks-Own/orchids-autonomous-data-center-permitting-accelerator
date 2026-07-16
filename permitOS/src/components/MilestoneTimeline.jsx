@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MILESTONE_PHASES, OTHER_PERMITS } from '../data/permitData';
 import { STATES_ATTAINMENT } from '../data/permitData';
+import { usePermitData } from '../context/PermitDataContext';
 
 const TRACK_COLORS = {
   air: 'bg-red-500',
@@ -103,10 +104,35 @@ function GanttBar({ startWk, endWk, color, label }) {
   );
 }
 
-const CATEGORIES = ['All', 'Air', 'Water', 'Other', 'Brick PermitOS'];
-
-export default function MilestoneTimeline({ results, inputs }) {
+export default function MilestoneTimeline({ setActiveTab }) {
+  const { inputs, results } = usePermitData();
   const [filter, setFilter] = useState('All');
+
+  if (!results) {
+    return (
+      <div className="px-10 py-8 max-w-[1180px] mx-auto">
+        <div className="border border-border/40 bg-card/40 p-10 text-center">
+          <p className="text-lg font-semibold text-foreground mb-2">No timeline generated yet</p>
+          <p className="text-sm text-muted-foreground mb-6">Run Site Intake to generate a milestone timeline for your project.</p>
+          <button
+            onClick={() => setActiveTab?.('intake')}
+            className="text-sm text-primary hover:text-primary/80 underline underline-offset-4 transition-colors"
+          >
+            Go to Site Intake &rarr;
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const CATEGORIES = [
+    'All',
+    ...(inputs?.hasOnSiteGeneration !== false ? ['Air'] : []),
+    ...(inputs?.hasWaterUse !== false ? ['Water'] : []),
+    'Other',
+    'Brick PermitOS',
+  ];
+
   const attainment = STATES_ATTAINMENT[inputs?.state || 'Tennessee'] || 'Attainment';
   const isNonAttain = attainment.includes('Nonattainment');
   const siteMW = results?.totalMW || 200;

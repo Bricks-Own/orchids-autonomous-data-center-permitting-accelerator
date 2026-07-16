@@ -5,6 +5,7 @@ import { getStateFormat, STATE_FORMATS, DEFAULT_STATE_FORMAT } from '../data/sta
 import { getDocumentSource, getValidationInfo, registerAsgTemplate } from '../utils/asgImporter';
 import asgTemplatePTE from '../data/asgTemplates/air_4_PTE';
 import asgTemplateBACT from '../data/asgTemplates/air_7_BACT';
+import { usePermitData } from '../context/PermitDataContext';
 
 // ─── Regulation Cross-Reference Map ─────────────────────────────────────────
 // Each document's primary CFR/CWA citations for compliance tracking
@@ -306,7 +307,8 @@ function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) 
   );
 }
 
-export default function DocumentFactory({ results, inputs, selectedDocKey, onClearSelection }) {
+export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
+  const { inputs, results } = usePermitData();
   const [generated, setGenerated] = useState(new Set());
   const [generating, setGenerating] = useState(false);
   const [generateProgress, setGenerateProgress] = useState(0);

@@ -8,6 +8,7 @@ import SiteView3D from './SiteView3D';
 import FormulaPopover from './FormulaPopover';
 import BaselineProjections from './BaselineProjections';
 import VendorLedger from './VendorLedger';
+import { usePermitData } from '../context/PermitDataContext';
 import { BudgetWaterfall, SCurveChart, ContingencyDrawdown, MilestoneVarianceChart, CPISPITrend } from './AdvancedCharts';
 
 // ─── Color / Style Constants ──────────────────────────────────────────────
@@ -240,7 +241,8 @@ function DataEntryModal({ open, onClose, onSave, initialData }) {
 }
 
 // ─── Main ConstructionDashboard Component ─────────────────────────────────
-export default function ConstructionDashboard({ inputs, results }) {
+export default function ConstructionDashboard() {
+  const { inputs, results } = usePermitData();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [subTab, setSubTab] = useState('leadership');

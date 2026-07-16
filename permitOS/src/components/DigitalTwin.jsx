@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { simulate24h, THRESHOLDS } from '../utils/calculations';
+import { usePermitData } from '../context/PermitDataContext';
 import {
   AreaChart, Area, LineChart, Line, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend, BarChart, Bar
@@ -66,7 +67,8 @@ function MiniChart({ data, keyBaseline, keyOptimized, color, label, unit }) {
   );
 }
 
-export default function DigitalTwin({ results, inputs }) {
+export default function DigitalTwin() {
+  const { inputs, results } = usePermitData();
   const [hour, setHour] = useState(12);
   const [simData, setSimData] = useState(null);
 

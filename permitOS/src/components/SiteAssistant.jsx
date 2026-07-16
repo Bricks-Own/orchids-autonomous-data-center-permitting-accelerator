@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { queryAgent, queryAgentWithWeb, analyzeScenario, searchKnowledge, searchRegulations } from '../utils/api';
+import { usePermitData } from '../context/PermitDataContext';
 
 const QUICK_TEMPLATES = [
   { id: 'pathway', label: 'Permit pathway' },
@@ -26,7 +27,8 @@ function makeQuickPrompt(templateId, inputs) {
 
 const MAX_RAG_DISPLAY_LENGTH = 1500;
 
-export default function SiteAssistant({ inputs, results, setActiveTab }) {
+export default function SiteAssistant({ setActiveTab }) {
+  const { inputs, results } = usePermitData();
   const [open, setOpen] = useState(false);
   const [chatMsg, setChatMsg] = useState('');
   const [chatHistory, setChatHistory] = useState(() => {
