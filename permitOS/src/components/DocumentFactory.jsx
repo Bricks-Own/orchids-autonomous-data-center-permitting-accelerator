@@ -199,13 +199,13 @@ const URGENCY_COLOR = {
   Conditional: 'text-primary bg-primary/15 border-primary/40',
 };
 
-const CAT_COLOR = {
-  indigo: 'border-primary text-primary bg-primary/8',
-  blue:   'border-blue-600 text-blue-400 bg-blue-900/10',
-  violet: 'border-primary text-primary bg-primary/8',
-  cyan:   'border-cyan-600 text-cyan-400 bg-cyan-900/10',
-  amber:  'border-amber-600 text-destructive bg-amber-900/10',
-  red:    'border-red-600 text-destructive bg-red-900/10',
+const CAT_STYLE = {
+  air:      { border: 'border-[var(--color-chart-1)]/30', bg: 'bg-[var(--color-chart-1)]/5' },
+  water:    { border: 'border-[var(--color-chart-2)]/30', bg: 'bg-[var(--color-chart-2)]/5' },
+  building: { border: 'border-[var(--color-chart-3)]/30', bg: 'bg-[var(--color-chart-3)]/5' },
+  power:    { border: 'border-[var(--color-chart-4)]/30', bg: 'bg-[var(--color-chart-4)]/5' },
+  landuse:  { border: 'border-[var(--color-chart-3)]/30', bg: 'bg-[var(--color-chart-3)]/5' },
+  always:   { border: 'border-[var(--color-chart-4)]/30', bg: 'bg-[var(--color-chart-4)]/5' },
 };
 
 function DocRow({ doc, docType, generated, compliance, onPreview, onGenerate }) {
@@ -895,14 +895,14 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
           {/* AIR Documents Table */}
           {showAir && (
             <Card className="pt-0">
-              <CardHeader className="items-center border-b border-[var(--color-chart-1)]/30 bg-[var(--color-chart-1)]/5">
+              <CardHeader className="items-center pt-(--card-spacing) border-b border-[var(--color-chart-1)]/30 bg-[var(--color-chart-1)]/5">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
                     <Wind size={18} weight="duotone" style={{ color: 'var(--color-chart-1)' }} />
-                    <CardTitle className="text-sm normal-case tracking-normal font-sans" style={{ color: 'var(--color-chart-1)' }}>Air Permit Documents</CardTitle>
+                    <CardTitle className="text-sm normal-case tracking-normal font-sans text-white">Air Permit Documents</CardTitle>
                     <span className="text-xs text-muted-foreground ml-1">({AIR_DOCS.length} documents)</span>
                   </div>
-                  <span className="text-xs" style={{ color: 'var(--color-chart-1)' }}>{airGenerated}/{AIR_DOCS.length} generated</span>
+                  <span className="text-xs text-white">{airGenerated}/{AIR_DOCS.length} generated</span>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -937,14 +937,14 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
           {/* WATER Documents Table */}
           {showWater && (
             <Card className="pt-0">
-              <CardHeader className="items-center border-b border-[var(--color-chart-2)]/30 bg-[var(--color-chart-2)]/5">
+              <CardHeader className="items-center pt-(--card-spacing) border-b border-[var(--color-chart-2)]/30 bg-[var(--color-chart-2)]/5">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
                     <Drop size={18} weight="duotone" style={{ color: 'var(--color-chart-2)' }} />
-                    <CardTitle className="text-sm normal-case tracking-normal font-sans" style={{ color: 'var(--color-chart-2)' }}>Water Permit Documents</CardTitle>
+                    <CardTitle className="text-sm normal-case tracking-normal font-sans text-white">Water Permit Documents</CardTitle>
                     <span className="text-xs text-muted-foreground ml-1">({WATER_DOCS.length} documents)</span>
                   </div>
-                  <span className="text-xs" style={{ color: 'var(--color-chart-2)' }}>{waterGenerated}/{WATER_DOCS.length} generated</span>
+                  <span className="text-xs text-white">{waterGenerated}/{WATER_DOCS.length} generated</span>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -979,14 +979,14 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
           {/* BUILDING Documents Table */}
           {showBuilding && (
             <Card className="pt-0">
-              <CardHeader className="items-center border-b border-[var(--color-chart-3)]/30 bg-[var(--color-chart-3)]/5">
+              <CardHeader className="items-center pt-(--card-spacing) border-b border-[var(--color-chart-3)]/30 bg-[var(--color-chart-3)]/5">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
                     <Buildings size={18} weight="duotone" style={{ color: 'var(--color-chart-3)' }} />
-                    <CardTitle className="text-sm normal-case tracking-normal font-sans" style={{ color: 'var(--color-chart-3)' }}>Building Permit Documents</CardTitle>
+                    <CardTitle className="text-sm normal-case tracking-normal font-sans text-white">Building Permit Documents</CardTitle>
                     <span className="text-xs text-muted-foreground ml-1">({BUILDING_DOCS.length} documents)</span>
                   </div>
-                  <span className="text-xs" style={{ color: 'var(--color-chart-3)' }}>{buildingGenerated}/{BUILDING_DOCS.length} generated</span>
+                  <span className="text-xs text-white">{buildingGenerated}/{BUILDING_DOCS.length} generated</span>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -1021,14 +1021,14 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
           {/* POWER Documents Table */}
           {showPower && (
             <Card className="pt-0">
-              <CardHeader className="items-center border-b border-[var(--color-chart-4)]/30 bg-[var(--color-chart-4)]/5">
+              <CardHeader className="items-center pt-(--card-spacing) border-b border-[var(--color-chart-4)]/30 bg-[var(--color-chart-4)]/5">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
                     <Lightning size={18} weight="duotone" style={{ color: 'var(--color-chart-4)' }} />
-                    <CardTitle className="text-sm normal-case tracking-normal font-sans" style={{ color: 'var(--color-chart-4)' }}>Power Permit Documents</CardTitle>
+                    <CardTitle className="text-sm normal-case tracking-normal font-sans text-white">Power Permit Documents</CardTitle>
                     <span className="text-xs text-muted-foreground ml-1">({POWER_DOCS.length} documents)</span>
                   </div>
-                  <span className="text-xs" style={{ color: 'var(--color-chart-4)' }}>{powerGenerated}/{POWER_DOCS.length} generated</span>
+                  <span className="text-xs text-white">{powerGenerated}/{POWER_DOCS.length} generated</span>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -1085,9 +1085,9 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
           </div>
 
           {filteredPermits.map(cat => (
-            <div key={cat.category} className={`border overflow-hidden ${CAT_COLOR[cat.color]}`}>
-              <div className={`px-4 py-3 border-b flex items-center justify-between ${CAT_COLOR[cat.color]}`}>
-                <span className="text-sm font-semibold">{cat.category}</span>
+            <div key={cat.category} className={`border overflow-hidden ${CAT_STYLE[cat.permitKey]?.border || 'border-border/60'}`}>
+              <div className={`px-4 py-3 border-b flex items-center justify-between ${CAT_STYLE[cat.permitKey]?.bg || 'bg-muted/20'}`}>
+                <span className="text-sm font-semibold text-white">{cat.category}</span>
                 <span className="text-xs opacity-70">{cat.permits.length} items</span>
               </div>
               <div className="overflow-x-auto bg-card/30">
