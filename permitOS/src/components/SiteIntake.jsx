@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   MapPin, Gear, HardDrives, Wind, Drop, Buildings, Lightning,
   Check, ArrowRight, CircleNotch, Tree,
@@ -80,7 +81,15 @@ const PROJECT_QUESTIONS = [
 // ─── Main Component ─────────────────────────────────────────────────────────
 export default function SiteIntake({ setActiveTab }) {
   const { inputs, setInputs, results, setResults } = usePermitData();
-  const [step, setStep] = useState(() => (results !== null ? 3 : 1));
+  const location = useLocation();
+  const fromPlanner = location.state?.fromPlanner;
+  const plannerSummary = location.state?.summary;
+  const [step, setStep] = useState(() => {
+    if (results !== null) return 3;
+    if (fromPlanner) return 2;
+    return 1;
+  });
+  const [showPlannerBanner, setShowPlannerBanner] = useState(!!fromPlanner);
   const [running, setRunning] = useState(false);
   const done = results !== null;
   const [scenarioAnalysis, setScenarioAnalysis] = useState(null);
@@ -937,6 +946,24 @@ export default function SiteIntake({ setActiveTab }) {
       </div>
 
       <Stepper currentStep={step} />
+
+      {showPlannerBanner && (
+        <div className="border border-primary/30 bg-primary/10 p-4 flex items-start gap-3">
+          <Check weight="duotone" size={20} className="text-primary flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">Parameters loaded from Site Planner</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {plannerSummary ? `${plannerSummary} — ` : ''}Review the details below, then continue to generate permits.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowPlannerBanner(false)}
+            className="text-xs text-muted-foreground hover:text-foreground flex-shrink-0 px-2 py-1"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {step === 1 && renderStep1()}
       {step === 2 && renderStep2()}

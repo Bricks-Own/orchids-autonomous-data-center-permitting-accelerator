@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { calcPTE } from '../utils/calculations';
 import { applyLocation } from '../utils/locationUtils';
 import { US_STATES, STATE_BOUNDING_BOXES, STATES_ATTAINMENT } from '../data/permitData';
@@ -321,7 +322,12 @@ function ScenarioTest({ inputs, onApply, onNavigateToIntake }) {
 
 // ─── Main SitePlanner Component ────────────────────────────────────────────
 export default function SitePlanner({ setActiveTab }) {
-  const { inputs, setInputs } = usePermitData();
+  const { inputs, setInputs, setResults } = usePermitData();
+  const navigate = useNavigate();
+  const navigateToIntake = (summary) => {
+    setResults(null);
+    navigate('/intake', { state: { fromPlanner: true, summary } });
+  };
   const [lat, setLat] = useState(inputs.lat || '36.1627');
   const [lon, setLon] = useState(inputs.lon || '-86.7816');
   const [siteAcres, setSiteAcres] = useState(inputs.siteAcres || 45);
@@ -510,7 +516,11 @@ export default function SitePlanner({ setActiveTab }) {
                 {showScenario ? 'Hide Scenario Test' : 'Quick Scenario Test'}
               </button>
               <button
-                onClick={() => { applyLocation(setInputs, { state: selectedState, lat, lon, acres: siteAcres, presetLabel: selectedLocationLabel, scenarioTitle: selectedLocationLabel }); setActiveTab('intake'); }}
+                onClick={() => {
+                  applyLocation(setInputs, { state: selectedState, lat, lon, acres: siteAcres, presetLabel: selectedLocationLabel, scenarioTitle: selectedLocationLabel });
+                  const summary = `${inputs.turbines} x ${inputs.mwPerTurbine}MW in ${selectedState}`;
+                  navigateToIntake(summary);
+                }}
                 className="text-xs bg-muted hover:bg-muted-foreground/20 text-foreground px-3 py-1.5  font-semibold transition-all"
               >
                 Send to Site Intake
@@ -523,7 +533,7 @@ export default function SitePlanner({ setActiveTab }) {
             <div className=" border border-primary/30 bg-violet-950/20 p-5">
               <h3 className="text-base font-semibold text-violet-300 mb-4">Quick Scenario Test</h3>
               <p className="text-xs text-muted-foreground mb-4">Adjust sliders to see instant PTE and pathway changes. Apply to sync with Site Intake.</p>
-              <ScenarioTest inputs={inputs} onApply={handleApplyScenario} onNavigateToIntake={() => setActiveTab('intake')} />
+              <ScenarioTest inputs={inputs} onApply={(params) => { handleApplyScenario(params); navigateToIntake(`Custom scenario — ${params.turbines} x ${params.mwPerTurbine}MW`); }} onNavigateToIntake={() => {}} />
             </div>
           )}
         </div>
@@ -675,7 +685,7 @@ export default function SitePlanner({ setActiveTab }) {
                           setInputs(prev => ({ ...prev, ...s, _scenario: scenario.title }));
                           if (s.siteAcres) setSiteAcres(s.siteAcres);
                         }
-                        setActiveTab('intake');
+                        navigateToIntake(`${scenario.title} — ${scenario.metrics.mw}MW`);
                       }}
                       className="text-xs bg-primary hover:bg-primary text-white px-2 py-1  font-medium transition-all"
                     >
@@ -700,7 +710,7 @@ export default function SitePlanner({ setActiveTab }) {
             <div className=" border border-primary/30 bg-violet-950/20 p-5">
               <h3 className="text-base font-semibold text-violet-300 mb-4">Custom Scenario Builder</h3>
               <p className="text-xs text-muted-foreground mb-4">Fine-tune parameters manually and see instant PTE results. Apply to sync with Site Intake.</p>
-              <ScenarioTest inputs={inputs} onApply={handleApplyScenario} onNavigateToIntake={() => setActiveTab('intake')} />
+              <ScenarioTest inputs={inputs} onApply={(params) => { handleApplyScenario(params); navigateToIntake(`Custom scenario — ${params.turbines} x ${params.mwPerTurbine}MW`); }} onNavigateToIntake={() => {}} />
             </div>
           )}
 
