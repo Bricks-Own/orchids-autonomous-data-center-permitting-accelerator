@@ -13,6 +13,8 @@ import Stepper from './Stepper';
 import { computeTimelineComparison } from '../utils/timelineCalc';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from './ui/chart';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell } from 'recharts';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Badge } from './ui/badge';
@@ -66,6 +68,14 @@ const PERMIT_TYPE_CONFIG = [
   { key: 'power', label: 'Power / Interconnection', icon: Lightning, desc: 'Grid interconnection, transformers, gensets, FERC' },
 ];
 
+// ─── Project Q&A (replaces manual permit type picking) ───────────────────────
+const PROJECT_QUESTIONS = [
+  { key: 'hasOnSiteGeneration', question: 'Will this site include on-site power generation — turbines, generators, or other combustion equipment?', helps: 'air' },
+  { key: 'hasWaterUse', question: 'Will this site use or discharge water — cooling towers, process water, wastewater?', helps: 'water' },
+  { key: 'hasNewConstruction', question: 'Is this new building construction, or a build-out inside an existing structure?', helps: 'building' },
+  { key: 'hasGridInterconnection', question: 'Will this site need a new or upgraded grid interconnection?', helps: 'power' },
+];
+
 // ─── Main Component ─────────────────────────────────────────────────────────
 export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab, results }) {
   const [step, setStep] = useState(1);
@@ -80,7 +90,13 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
 
   const update = (key, val) => setInputs(prev => ({ ...prev, [key]: val }));
 
-  const permitTypes = inputs.permitTypesNeeded || ['air', 'water', 'building', 'power'];
+  const derivedPermitTypes = [
+    (inputs.hasOnSiteGeneration !== false || inputs.turbines > 0 || inputs.gensetCount > 0) && 'air',
+    (inputs.hasWaterUse !== false || inputs.coolingMGD > 0 || inputs.waterMGD > 0) && 'water',
+    inputs.hasNewConstruction !== false && 'building',
+    inputs.hasGridInterconnection !== false && 'power',
+  ].filter(Boolean);
+  const permitTypes = derivedPermitTypes;
   const projectScenario = inputs.projectScenario || 'greenfield';
 
   // Load scenario definitions on mount
@@ -158,13 +174,6 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
     update('coFactor', CO_EMISSION_FACTORS[type]);
   };
 
-  const togglePermitType = (key) => {
-    const current = inputs.permitTypesNeeded || ['air', 'water', 'building', 'power'];
-    if (current.includes(key) && current.length <= 1) return;
-    const next = current.includes(key) ? current.filter(k => k !== key) : [...current, key];
-    update('permitTypesNeeded', next);
-  };
-
   const attainmentStatus = STATES_ATTAINMENT[inputs.state] || 'Unknown';
 
   // ─── STEP 1: Project Setup ────────────────────────────────────────────────
@@ -172,32 +181,30 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
     <div className="space-y-6">
       <Card>
         <CardContent>
-          <SectionHeading icon={SealCheck} label="Permit Types Needed" />
+          <SectionHeading icon={SealCheck} label="Project Scope" />
         <p className="text-sm text-muted-foreground mb-5">
-          Select the permits you're pursuing — the intake form will only show relevant fields.
+          Tell us about your project so we can determine the permits you'll need. Answer a few quick questions below.
         </p>
         <div className="grid grid-cols-2 gap-3">
-          {PERMIT_TYPE_CONFIG.map(p => {
-            const isSelected = (inputs.permitTypesNeeded || ['air', 'water', 'building', 'power']).includes(p.key);
-            const Icon = p.icon;
+          {PROJECT_QUESTIONS.map(q => {
+            const val = inputs[q.key] !== false;
             return (
               <button
-                key={p.key}
-                onClick={() => togglePermitType(p.key)}
+                key={q.key}
+                onClick={() => update(q.key, !val)}
                 className={`relative flex flex-col items-start gap-2 border p-4 text-left transition-all
-                  ${isSelected
+                  ${val
                     ? 'border-border bg-card'
                     : 'border-border bg-transparent hover:bg-card'
                   }`}
               >
-                {isSelected && (
+                {val && (
                   <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
                     <Check weight="bold" size={14} className="text-background" />
                   </span>
                 )}
-                <Icon weight="duotone" size={24} className="text-muted-foreground" />
-                <span className="text-sm font-semibold text-foreground">{p.label}</span>
-                <span className="text-xs text-muted-foreground leading-tight">{p.desc}</span>
+                <span className="text-sm font-semibold text-foreground">{q.question}</span>
+                <span className="text-xs text-muted-foreground leading-tight">{val ? 'Yes' : 'No'}</span>
               </button>
             );
           })}
@@ -239,6 +246,15 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
         </div>
         </CardContent>
       </Card>
+
+      <div className="text-center pt-2">
+        <button
+          onClick={() => setActiveTab('siteplanner')}
+          className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
+        >
+          Not sure yet? Plan your data center first &rarr;
+        </button>
+      </div>
     </div>
   );
 
@@ -563,6 +579,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
       <div className="space-y-5">
         {/* 1. Site Summary */}
         <Card>
+          <CardContent>
           <div className="flex items-center flex-wrap gap-3">
             <div className="flex items-center gap-2 min-w-0">
               <MapPin weight="duotone" size={20} className="text-muted-foreground flex-shrink-0" />
@@ -584,10 +601,12 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               );
             })}
           </div>
+          </CardContent>
         </Card>
 
         {/* 2. Headline Metric */}
         <Card>
+          <CardContent>
           <SectionHeading icon={ChartBar} label="Permitting Timeline Comparison" />
           {results ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -630,12 +649,14 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               Complete the screening to see the timeline comparison. Timeline data is computed from your actual site emissions and pathway determination.
             </div>
           )}
+          </CardContent>
         </Card>
 
         {/* 3. Permit-by-Permit Breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {permitTypes.includes('air') && (
             <Card>
+              <CardContent>
               <div className="flex items-center gap-2.5 mb-4">
                 <Wind weight="duotone" size={20} className="text-muted-foreground" />
                 <h3 className="text-base font-bold text-foreground">Air Permit</h3>
@@ -677,11 +698,13 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               ) : (
                 <div className="text-sm text-muted-foreground">Run screening to see air permit metrics</div>
               )}
+              </CardContent>
             </Card>
           )}
 
           {permitTypes.includes('water') && (
             <Card>
+              <CardContent>
               <div className="flex items-center gap-2.5 mb-4">
                 <Drop weight="duotone" size={20} className="text-muted-foreground" />
                 <h3 className="text-base font-bold text-foreground">Water Permit</h3>
@@ -710,11 +733,13 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               ) : (
                 <div className="text-sm text-muted-foreground">Run screening to see water permit metrics</div>
               )}
+              </CardContent>
             </Card>
           )}
 
           {permitTypes.includes('building') && (
             <Card>
+              <CardContent>
               <div className="flex items-center gap-2.5 mb-4">
                 <Buildings weight="duotone" size={20} className="text-muted-foreground" />
                 <h3 className="text-base font-bold text-foreground">Building Permit</h3>
@@ -743,11 +768,13 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               ) : (
                 <div className="text-sm text-muted-foreground">Run screening to see building permit metrics</div>
               )}
+              </CardContent>
             </Card>
           )}
 
           {permitTypes.includes('power') && (
             <Card>
+              <CardContent>
               <div className="flex items-center gap-2.5 mb-4">
                 <Lightning weight="duotone" size={20} className="text-muted-foreground" />
                 <h3 className="text-base font-bold text-foreground">Power / Interconnection</h3>
@@ -782,12 +809,14 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               ) : (
                 <div className="text-sm text-muted-foreground">Run screening to see power/interconnection metrics</div>
               )}
+              </CardContent>
             </Card>
           )}
         </div>
 
         {/* 4. Compact Milestone Timeline Preview */}
         <Card>
+          <CardContent>
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2.5">
               <Timer weight="duotone" size={20} className="text-muted-foreground" />
@@ -801,33 +830,47 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               <CaretRight weight="duotone" size={14} />
             </button>
           </div>
-          <div className="space-y-0 relative">
-            <div className="absolute left-[15px] top-3 bottom-3 w-[2px] bg-[#27272a]" />
-            {timelinePhases.map((phase, i) => (
-              <div key={i} className="flex items-start gap-4 relative pb-5 last:pb-0">
-                <div
-                  className="w-[12px] h-[12px] rounded-full border-2 border-[#111113] mt-0.5 z-10 flex-shrink-0"
-                  style={{ backgroundColor: phase.color }}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-foreground">{phase.label}</span>
-                    <span className="text-xs text-muted-foreground font-['IBM_Plex_Mono']">{phase.weeks}</span>
-                  </div>
-                  <div className="w-full h-1.5 rounded-full bg-card mt-1.5 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: phase.status === 'complete' ? '100%' : '30%',
-                        backgroundColor: phase.color,
-                        opacity: phase.status === 'complete' ? 1 : 0.4,
-                      }}
+          <div className="h-[260px]">
+            {(() => {
+              const chartData = timelinePhases.map(p => {
+                const [start, end] = p.weeks.split('-').map(Number);
+                return { phase: p.label, start, duration: end - start, fill: p.color };
+              });
+              const chartConfig = {
+                start: { label: 'Start' },
+                duration: { label: 'Duration' },
+              };
+              return (
+                <ChartContainer config={chartConfig} className="!aspect-auto w-full h-full">
+                  <BarChart data={chartData} layout="vertical" margin={{ left: 140, right: 20, top: 5, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={false} />
+                    <XAxis type="number" domain={[0, 65]} tick={{ fill: '#a1a1aa', fontSize: 11 }} />
+                    <YAxis type="category" dataKey="phase" tick={{ fill: '#a1a1aa', fontSize: 11 }} width={130} />
+                    <ChartTooltip
+                      content={<ChartTooltipContent
+                        formatter={(value, name, item) => {
+                          if (name === 'start') return null;
+                          const p = item.payload;
+                          return (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              Weeks {p.start}–{p.start + p.duration}
+                            </div>
+                          );
+                        }}
+                      />}
                     />
-                  </div>
-                </div>
-              </div>
-            ))}
+                    <Bar dataKey="start" stackId="stack" fill="transparent" isAnimationActive={false} />
+                    <Bar dataKey="duration" stackId="stack" radius={[0, 4, 4, 0]} isAnimationActive={false}>
+                      {chartData.map((entry, i) => (
+                        <Cell key={i} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ChartContainer>
+              );
+            })()}
           </div>
+          </CardContent>
         </Card>
 
         {/* 5. Generate Button */}
@@ -853,10 +896,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
               </div>
               <p className="text-xs text-muted-foreground mb-3">Permit pathways, PTE, and document packages generated. Navigate to the relevant tabs to view results.</p>
               <div className="flex flex-wrap gap-2">
-                {permitTypes.includes('air') && <ResultNavButton label="Air Permit AI" tab="air" setActiveTab={setActiveTab} />}
-                {permitTypes.includes('water') && <ResultNavButton label="Water Permit AI" tab="water" setActiveTab={setActiveTab} />}
-                {permitTypes.includes('building') && <ResultNavButton label="Building Permitting" tab="building" setActiveTab={setActiveTab} />}
-                {permitTypes.includes('power') && <ResultNavButton label="Power Permitting" tab="power" setActiveTab={setActiveTab} />}
+                <ResultNavButton label="View Permits" tab="permits" setActiveTab={setActiveTab} />
                 <ResultNavButton label="Milestone Timeline" tab="milestones" setActiveTab={setActiveTab} />
                 <ResultNavButton label="Document Factory" tab="docs" setActiveTab={setActiveTab} />
               </div>
@@ -870,9 +910,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
   // ─── Render ────────────────────────────────────────────────────────────────
   const stepValid = () => {
     if (step === 1) {
-      const hasPermit = (inputs.permitTypesNeeded || ['air', 'water', 'building', 'power']).length > 0;
-      const hasProject = !!inputs.projectScenario;
-      return hasPermit && hasProject;
+      return !!inputs.projectScenario;
     }
     if (step === 2) return true;
     return true;
@@ -883,7 +921,7 @@ export default function SiteIntake({ inputs, setInputs, setResults, setActiveTab
       <div>
         <h1 className="text-4xl font-bold text-foreground tracking-[-0.02em]">Site Intake & Data Collection</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {step === 1 && 'Configure your project scope — permit types and development scenario.'}
+          {step === 1 && 'Tell us about your project — we\'ll determine the permits you need based on your answers.'}
           {step === 2 && 'Enter site, equipment, and operational parameters.'}
           {step === 3 && 'Review your inputs, compare timelines, and generate permits.'}
         </p>

@@ -3,8 +3,7 @@ import Header from './components/Header';
 import AuthModal from './components/AuthModal';
 import Overview from './components/Overview';
 import SiteIntake from './components/SiteIntake';
-import AirPermitAI from './components/AirPermitAI';
-import WaterPermitAI from './components/WaterPermitAI';
+import Permits from './components/Permits';
 import MilestoneTimeline from './components/MilestoneTimeline';
 import DocumentFactory from './components/DocumentFactory';
 import DigitalTwin from './components/DigitalTwin';
@@ -14,8 +13,6 @@ import ExecutiveSummary from './components/ExecutiveSummary';
 import KnowledgeHub from './components/KnowledgeHub';
 import SitePlanner from './components/SitePlanner';
 import SiteAssistant from './components/SiteAssistant';
-import BuildingPermitAI from './components/BuildingPermitAI';
-import PowerPermitAI from './components/PowerPermitAI';
 import ConstructionDashboard from './components/ConstructionDashboard';
 import { isAuthenticated, getAuthToken, setAuthToken, logout, startTokenExpiryCheck, stopTokenExpiryCheck } from './utils/api';
 import {
@@ -36,7 +33,7 @@ import {
   useSidebar,
 } from './components/ui/sidebar';
 import {
-  Compass, ChartBar, MapPin, Clipboard, Wind, Drop, Building, Lightning,
+  Compass, ChartBar, MapPin, Clipboard,
   CalendarCheck, FileText, Cube, ShieldCheck, Robot, Books, Wrench,
   SignOut, ShieldCheck as ShieldLogo, SidebarIcon as PanelLeft
 } from '@phosphor-icons/react';
@@ -71,7 +68,10 @@ export const defaultInputs = {
   stackHeight: 65,
   nearestReceptorFt: 1200,
   nonAttainment: false,
-  permitTypesNeeded: null,
+  hasOnSiteGeneration: true,
+  hasWaterUse: true,
+  hasNewConstruction: true,
+  hasGridInterconnection: true,
   projectScenario: 'greenfield',
 };
 
@@ -80,10 +80,7 @@ const tabIcons = {
   executive: ChartBar,
   siteplanner: MapPin,
   intake: Clipboard,
-  air: Wind,
-  water: Drop,
-  building: Building,
-  power: Lightning,
+  permits: ShieldCheck,
   milestones: CalendarCheck,
   docs: FileText,
   simulation: Cube,
@@ -142,8 +139,7 @@ function App() {
       case 'overview':    return <Overview setActiveTab={setActiveTab} />;
       case 'siteplanner': return <SitePlanner inputs={inputs} setInputs={setInputs} setActiveTab={setActiveTab} />;
       case 'intake':      return <SiteIntake inputs={inputs} setInputs={setInputs} results={results} setResults={setResults} setActiveTab={setActiveTab} />;
-      case 'air':         return <AirPermitAI results={results} inputs={inputs} />;
-      case 'water':       return <WaterPermitAI results={results} inputs={inputs} />;
+      case 'permits':     return <Permits inputs={inputs} results={results} setActiveTab={setActiveTab} />;
       case 'milestones':  return <MilestoneTimeline results={results} inputs={inputs} />;
       case 'docs':        return <DocumentFactory results={results} inputs={inputs} selectedDocKey={selectedDocKey} onClearSelection={() => setSelectedDocKey(null)} />;
       case 'simulation':  return <DigitalTwin results={results} inputs={inputs} />;
@@ -151,8 +147,6 @@ function App() {
       case 'copilot':     return <RegulatorCopilot results={results} inputs={inputs} />;
       case 'executive':   return <ExecutiveSummary results={results} inputs={inputs} setActiveTab={setActiveTab} />;
       case 'knowledge':   return <KnowledgeHub inputs={inputs} results={results} />;
-      case 'building':    return <BuildingPermitAI inputs={inputs} results={results} setActiveTab={setActiveTab} />;
-      case 'power':       return <PowerPermitAI inputs={inputs} results={results} setActiveTab={setActiveTab} />;
       case 'construction': return <ConstructionDashboard inputs={inputs} results={results} setActiveTab={setActiveTab} />;
       default:            return <Overview setActiveTab={setActiveTab} />;
     }
@@ -183,17 +177,19 @@ function App() {
     return <AuthModal onAuth={handleAuth} sessionExpiredMessage={sessionExpiredMessage} />;
   }
 
-  const permitTypes = inputs?.permitTypesNeeded || ['air', 'water', 'building', 'power'];
+  const permitTypes = [
+    (inputs?.hasOnSiteGeneration !== false || inputs?.turbines > 0 || inputs?.gensetCount > 0) && 'air',
+    (inputs?.hasWaterUse !== false || inputs?.coolingMGD > 0 || inputs?.waterMGD > 0) && 'water',
+    inputs?.hasNewConstruction !== false && 'building',
+    inputs?.hasGridInterconnection !== false && 'power',
+  ].filter(Boolean);
 
   const allTabs = [
     { id: 'overview',    label: 'Platform Overview',   group: 'start' },
     { id: 'executive',   label: 'Executive Summary',   group: 'start' },
     { id: 'siteplanner', label: 'Site Planner',         group: 'start' },
     { id: 'intake',      label: 'Site Intake',          group: 'work', permitKey: true },
-    { id: 'air',         label: 'Air Permit AI',        group: 'work', permitKey: 'air' },
-    { id: 'water',       label: 'Water Permit AI',      group: 'work', permitKey: 'water' },
-    { id: 'building',    label: 'Building Permitting',    group: 'work', permitKey: 'building' },
-    { id: 'power',       label: 'Power Permitting',       group: 'work', permitKey: 'power' },
+    { id: 'permits',     label: 'Permits',              group: 'work', permitKey: true },
     { id: 'milestones',  label: 'Milestone Timeline',   group: 'work', permitKey: true },
     { id: 'docs',        label: 'Document Factory',     group: 'work', permitKey: true },
     { id: 'simulation',  label: 'Digital Twin',         group: 'advanced' },
