@@ -612,7 +612,7 @@ export default function SitePlanner({ setActiveTab }) {
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1.5">
                     {permitTypeLabels.map(p => (
-                      <Badge key={p.key} variant={p.active ? 'default' : 'outline'}>
+                      <Badge key={p.key} variant={p.active ? 'default' : 'secondary'}>
                         {p.label}
                       </Badge>
                     ))}
@@ -724,7 +724,14 @@ export default function SitePlanner({ setActiveTab }) {
                           className="w-full mt-2"
                           onClick={() => {
                             previewScenario(scenario);
-                            navigateToIntake(`${scenario.title} — ${scenario.metrics.mw}MW — ${activePermitNames}`);
+                            const s = scenario.params;
+                            const names = [
+                              s.hasOnSiteGeneration !== false && 'Air',
+                              s.hasWaterUse !== false && 'Water',
+                              s.hasNewConstruction !== false && 'Building',
+                              s.hasGridInterconnection !== false && 'Power',
+                            ].filter(Boolean).join(', ');
+                            navigateToIntake(`${scenario.title} — ${scenario.metrics.mw}MW — ${names}`);
                           }}
                         >
                           Apply &rarr; Intake
@@ -742,7 +749,16 @@ export default function SitePlanner({ setActiveTab }) {
                   <CardTitle>Custom Scenario Builder</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ScenarioTest inputs={inputs} onApply={(params) => { handleApplyScenario(params); navigateToIntake(`Custom scenario — ${params.turbines} x ${params.mwPerTurbine}MW — ${activePermitNames}`); }} />
+                  <ScenarioTest inputs={inputs} onApply={(params) => {
+                    handleApplyScenario(params);
+                    const names = [
+                      params.hasOnSiteGeneration !== false && 'Air',
+                      params.hasWaterUse !== false && 'Water',
+                      params.hasNewConstruction !== false && 'Building',
+                      params.hasGridInterconnection !== false && 'Power',
+                    ].filter(Boolean).join(', ');
+                    navigateToIntake(`Custom scenario — ${params.turbines} x ${params.mwPerTurbine}MW — ${names}`);
+                  }} />
                 </CardContent>
               </Card>
             </TabsContent>
