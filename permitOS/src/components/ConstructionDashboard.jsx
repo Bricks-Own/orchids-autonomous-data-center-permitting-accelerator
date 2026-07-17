@@ -491,64 +491,66 @@ export default function ConstructionDashboard({ setActiveTab }) {
 
       {/* ── Tabbed Interface ── */}
       <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="w-full">
-        <TabsList variant="line" className="w-full flex-wrap gap-0">
-          <TabsTrigger value="csuite">
-            <Gauge weight="duotone" size={14} />
-            C-Suite Dashboard
-          </TabsTrigger>
-          <TabsTrigger value="leadership">
-            <ChartBar weight="duotone" size={14} />
-            Leadership Reporting
-          </TabsTrigger>
-          <TabsTrigger value="hse">
-            <ShieldCheck weight="duotone" size={14} />
-            HSE
-          </TabsTrigger>
-          <TabsTrigger value="quality">
-            <SealCheck weight="duotone" size={14} />
-            Quality
-          </TabsTrigger>
-          <TabsTrigger value="financials">
-            <CurrencyDollar weight="duotone" size={14} />
-            Financials
-          </TabsTrigger>
-          <TabsTrigger value="schedule">
-            <CalendarCheck weight="duotone" size={14} />
-            Schedule
-          </TabsTrigger>
-          <TabsTrigger value="costcat">
-            <Folder weight="duotone" size={14} />
-            Cost Categories
-          </TabsTrigger>
-          <TabsTrigger value="trackers">
-            <Clipboard weight="duotone" size={14} />
-            Other Trackers
-          </TabsTrigger>
-          <TabsTrigger value="risks">
-            <Warning weight="duotone" size={14} />
-            Risk Register
-          </TabsTrigger>
-          <TabsTrigger value="pcos">
-            <NotePencil weight="duotone" size={14} />
-            PCO Tracker
-          </TabsTrigger>
-          <TabsTrigger value="baseline">
-            <TrendUp weight="duotone" size={14} />
-            Baseline & Projections
-          </TabsTrigger>
-          <TabsTrigger value="vendor">
-            <Clipboard weight="duotone" size={14} />
-            Vendor Ledger
-          </TabsTrigger>
-          <TabsTrigger value="charts">
-            <ChartLine weight="duotone" size={14} />
-            Advanced Charts
-          </TabsTrigger>
-          <TabsTrigger value="3dview">
-            <Cube weight="duotone" size={14} />
-            3D Site View
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto scrollbar-none">
+          <TabsList className="w-max min-w-full gap-0.5 p-0.5">
+            <TabsTrigger value="csuite" className="px-3 py-1.5">
+              <Gauge weight="duotone" size={13} />
+              C-Suite
+            </TabsTrigger>
+            <TabsTrigger value="leadership" className="px-3 py-1.5">
+              <ChartBar weight="duotone" size={13} />
+              Leadership
+            </TabsTrigger>
+            <TabsTrigger value="hse" className="px-3 py-1.5">
+              <ShieldCheck weight="duotone" size={13} />
+              HSE
+            </TabsTrigger>
+            <TabsTrigger value="quality" className="px-3 py-1.5">
+              <SealCheck weight="duotone" size={13} />
+              Quality
+            </TabsTrigger>
+            <TabsTrigger value="financials" className="px-3 py-1.5">
+              <CurrencyDollar weight="duotone" size={13} />
+              Financials
+            </TabsTrigger>
+            <TabsTrigger value="schedule" className="px-3 py-1.5">
+              <CalendarCheck weight="duotone" size={13} />
+              Schedule
+            </TabsTrigger>
+            <TabsTrigger value="costcat" className="px-3 py-1.5">
+              <Folder weight="duotone" size={13} />
+              Cost Cats
+            </TabsTrigger>
+            <TabsTrigger value="trackers" className="px-3 py-1.5">
+              <Clipboard weight="duotone" size={13} />
+              Trackers
+            </TabsTrigger>
+            <TabsTrigger value="risks" className="px-3 py-1.5">
+              <Warning weight="duotone" size={13} />
+              Risks
+            </TabsTrigger>
+            <TabsTrigger value="pcos" className="px-3 py-1.5">
+              <NotePencil weight="duotone" size={13} />
+              PCOs
+            </TabsTrigger>
+            <TabsTrigger value="baseline" className="px-3 py-1.5">
+              <TrendUp weight="duotone" size={13} />
+              Baseline
+            </TabsTrigger>
+            <TabsTrigger value="vendor" className="px-3 py-1.5">
+              <Clipboard weight="duotone" size={13} />
+              Vendors
+            </TabsTrigger>
+            <TabsTrigger value="charts" className="px-3 py-1.5">
+              <ChartLine weight="duotone" size={13} />
+              Charts
+            </TabsTrigger>
+            <TabsTrigger value="3dview" className="px-3 py-1.5">
+              <Cube weight="duotone" size={13} />
+              3D View
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* ════════════════ C-Suite Dashboard ════════════════ */}
         <TabsContent value="csuite" className="mt-4 space-y-4">

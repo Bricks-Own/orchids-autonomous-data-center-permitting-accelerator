@@ -261,7 +261,7 @@ function SiteScene({ milestoneDetails, progressPct, onHover, hovered, setSelecte
 function SiteView3D({ data }) {
   const [hovered, setHovered] = useState(null);
   const [selectedPhase, setSelectedPhase] = useState(null);
-  const [progressPct, setProgressPct] = useState(100);
+  const [progressPct, setProgressPct] = useState(0);
 
   const milestoneDetails = data?.milestoneDetails || [];
   const milestones = milestoneDetails.length > 0
