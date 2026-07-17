@@ -517,7 +517,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
             <CardHeader>
               <CardTitle>
                 <Gauge weight="duotone" size={16} className="text-primary -mt-0.5" />
-                C-Suite Dashboard \u2014 Total Development Cost (TDC)
+                C-Suite Dashboard — Total Development Cost (TDC)
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -578,16 +578,16 @@ export default function ConstructionDashboard({ setActiveTab }) {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-destructive">${((chg?.pendingValue || 0) / 1e6).toFixed(1)}M</div>
-                    <div className="text-xs text-muted-foreground mt-1">{chg?.pendingCount || 0} pending PCOs \u00b7 Avg {(chg?.avgAgingDays || 0)}d aging</div>
+                    <div className="text-xs text-muted-foreground mt-1">{chg?.pendingCount || 0} pending PCOs · Avg {(chg?.avgAgingDays || 0)}d aging</div>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-primary">Safety &amp; Health Compliance \u2014 TRIR</CardTitle>
+                    <CardTitle className="text-primary">Safety & Health Compliance — TRIR</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-primary">{safety?.trir || 0}</div>
-                    <div className="text-xs text-muted-foreground mt-1">TRIR \u00b7 {safety?.safetyDaysSinceLast || 0} days since last incident \u00b7 {safety?.recordableIncidents || 0} recordable</div>
+                    <div className="text-xs text-muted-foreground mt-1">TRIR · {safety?.safetyDaysSinceLast || 0} days since last incident · {safety?.recordableIncidents || 0} recordable</div>
                   </CardContent>
                 </Card>
               </div>
@@ -1061,7 +1061,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
           <Card>
             <CardHeader>
               <CardTitle>Project Baseline &amp; Projections</CardTitle>
-              <CardDescription>Edit baseline inputs and current actuals below. Projections update instantly \u2014 save to persist.</CardDescription>
+              <CardDescription>Edit baseline inputs and current actuals below. Projections update instantly — save to persist.</CardDescription>
             </CardHeader>
             <CardContent>
               <BaselineProjections
@@ -1192,7 +1192,7 @@ const SiteView3DWrapper = React.memo(function SiteView3DWrapper({ data }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>3D Site View \u2014 Construction Progress Model</CardTitle>
+        <CardTitle>3D Site View — Construction Progress Model</CardTitle>
         <CardDescription>
           Interactive 3D model of the site. Structures are color-coded: green = complete, amber = in progress, gray = not started.
           Use the slider to scrub through the project timeline. Hover or click structures for phase details.
