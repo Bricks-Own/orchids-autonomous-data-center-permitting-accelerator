@@ -4,7 +4,6 @@ import { Check } from '@phosphor-icons/react';
 import { calcPTE } from '../utils/calculations';
 import { applyLocation } from '../utils/locationUtils';
 import { US_STATES, STATE_BOUNDING_BOXES, STATES_ATTAINMENT, PROJECT_QUESTIONS } from '../data/permitData';
-import 'leaflet/dist/leaflet.css';
 import { usePermitData } from '../context/PermitDataContext';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Button } from './ui/button';
@@ -60,6 +59,7 @@ function SiteMap({ lat, lon, onLatLonChange, onBoundaryChange, siteAcres }) {
 
   useEffect(() => {
     import('leaflet').then(L => {
+      import('leaflet/dist/leaflet.css');
       delete L.Icon.Default.prototype._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -268,7 +268,7 @@ function ScenarioTest({ inputs, onApply }) {
             </div>
             <Slider
               value={[params[s.key]]}
-              onValueChange={([v]) => updateParam(s.key, v)}
+              onValueChange={(v) => updateParam(s.key, v)}
               min={s.min}
               max={s.max}
               step={s.step}

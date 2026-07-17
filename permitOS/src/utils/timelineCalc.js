@@ -5,6 +5,12 @@
 
 const WEEKS_TOTAL = 90;
 
+// Target range for permitting timeline reduction when PSD applies and
+// Brick achieves a real emissions reduction. Scales from 30% (low reduction)
+// to 40% (high reduction, ≥25% emissions reduction).
+const TIMELINE_REDUCTION_MIN = 0.30;
+const TIMELINE_REDUCTION_MAX = 0.40;
+
 // Project-type timeline scaling factors derived from SCENARIO_DEFS.typicalTimelineMonths
 // greenfield: 18-36 (midpoint 27) → 1.0
 // expansion: 12-24 (midpoint 18) → 0.67
@@ -41,13 +47,10 @@ export function computePathwayDuration({ totalMW, isNonAttain, requiresPSD, synt
   else if (isSyntheticMinor) pathwayMul = 0.55;
   else pathwayMul = 1.0;
 
-  // Lower controlled emissions simplify BACT analysis and reduce offset needs —
-  // only meaningful when PSD applicability is actually in play. True minor
-  // sources have no BACT/offset scope to begin with, so no credit there.
-  if (!isTrueMinor) {
-    const reductionMul = 1 - Math.min(Math.max(emissionsReductionPct, 0), 0.4) * 1.0;
-    pathwayMul *= reductionMul;
-  }
+  // Emissions reduction is no longer applied as a separate multiplier here.
+  // The target reduction is now applied consistently in computeTimelineComparison()
+  // via TIMELINE_REDUCTION_MIN / TIMELINE_REDUCTION_MAX, giving a single
+  // authoritative path from emissionsReductionPct to the final pctFaster.
 
   const airReviewMul = Math.min(1.8, mwFactor * attainmentMul * pathwayMul);
 
@@ -135,22 +138,27 @@ export function computeTimelineComparison(inputs, results) {
     brickMonths = Math.round(brickAccel.rawMonths);
   }
 
-  // Safety net: whenever PSD applies and Brick has genuinely reduced emissions,
-  // Brick must always show as meaningfully faster than traditional — never equal
-  // or slower — even if an internal duration ceiling or rounding edge case would
-  // otherwise erase the gap. The guaranteed floor scales with how much Brick
-  // actually reduced emissions (10% floor at low reduction, up to 30% at high
-  // reduction), so bigger real reductions always show bigger real savings.
+  // ─── Single authoritative reduction target ─────────────────────────────────
+  // When PSD applies and Brick achieves a real emissions reduction, pctFaster
+  // lands consistently between 30% and 40%, scaling with how much Brick actually
+  // reduces emissions. Low real reduction → close to 30%; high real reduction
+  // (≥25% emissions reduction) → close to 40%.
+  // True minor sites (PSD never applies) continue to show 0% difference.
   const isTrueMinorSite = !actualPathway.requiresPSD;
-  if (!isTrueMinorSite && emissionsReductionPct > 0 && brickMonths >= traditionalMonths) {
-    const floorPct = Math.min(0.3, Math.max(0.1, emissionsReductionPct * 0.75));
-    brickMonths = Math.max(1, Math.floor(traditionalMonths * (1 - floorPct)));
+  const hasRealReduction = emissionsReductionPct > 0;
+
+  let pctFaster;
+  if (!isTrueMinorSite && hasRealReduction) {
+    const scale = Math.min(emissionsReductionPct / 0.25, 1);
+    const targetReduction = TIMELINE_REDUCTION_MIN + (TIMELINE_REDUCTION_MAX - TIMELINE_REDUCTION_MIN) * scale;
+    pctFaster = Math.round(targetReduction * 100);
+    // Override brickMonths to match the target pctFaster
+    brickMonths = Math.max(1, Math.round(traditionalMonths * (1 - pctFaster / 100)));
+  } else {
+    pctFaster = 0;
   }
 
   const monthsSaved = traditionalMonths - brickMonths;
-  const pctFaster = traditionalMonths > 0
-    ? Math.round((monthsSaved / traditionalMonths) * 100)
-    : 0;
 
   return {
     traditional: { ...traditional, totalMonths: traditionalMonths },

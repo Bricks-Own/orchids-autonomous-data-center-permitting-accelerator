@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { computeTimelineComparison } from '../utils/timelineCalc';
+import { defaultInputs } from '../context/PermitDataContext';
+import { calcPTE } from '../utils/calculations';
 
 const tools = [
   {
@@ -50,15 +53,6 @@ const tools = [
     vs: 'Static regulatory databases with no intelligence or relevance scoring.',
     color: 'border-teal-700/40 bg-teal-950/20',
   },
-];
-
-const metrics = [
-  { label: 'Permit Types Covered', value: '20+', sub: 'Air, Water, Env.' },
-  { label: 'CFR Sections Mapped', value: '40+', sub: 'Federal citations' },
-  { label: 'AI Time Reduction', value: '70%', sub: 'vs. manual baseline' },
-  { label: 'Document Generation', value: '100%', sub: 'Draft packages for PE review' },
-  { label: 'States Supported', value: '50', sub: 'All US markets' },
-  { label: 'Post-Permit Control', value: 'Live', sub: 'Digital twin OS' },
 ];
 
 const COMPETITOR_COMPARE = [
@@ -135,6 +129,27 @@ const WORKFLOW_STEPS = [
 
 export default function Overview({ setActiveTab }) {
   const [showCompare, setShowCompare] = useState(false);
+
+  // Compute live timeline reduction from the app's default inputs
+  // so the front-page number can never drift out of sync with what
+  // a user sees after a real screening.
+  const defaultPTE = useMemo(() => {
+    try { return calcPTE(defaultInputs); } catch { return null; }
+  }, []);
+  const timelineComparison = useMemo(() => {
+    if (!defaultPTE) return null;
+    try { return computeTimelineComparison(defaultInputs, defaultPTE); } catch { return null; }
+  }, [defaultPTE]);
+  const pctFaster = timelineComparison?.pctFaster || 0;
+
+  const metrics = [
+    { label: 'Permit Types Covered', value: '20+', sub: 'Air, Water, Env.' },
+    { label: 'CFR Sections Mapped', value: '40+', sub: 'Federal citations' },
+    { label: 'Document Generation', value: 'Instant', sub: 'AI-drafted in seconds, PE-reviewed before filing' },
+    { label: 'Permitting Timeline', value: `${pctFaster}% Faster`, sub: 'vs. traditional consulting timeline' },
+    { label: 'States Supported', value: '50', sub: 'All US markets' },
+    { label: 'Post-Permit Control', value: 'Live', sub: 'Digital twin OS' },
+  ];
 
   return (
     <div className="p-6 space-y-6">
