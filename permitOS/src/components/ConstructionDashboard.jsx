@@ -494,7 +494,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
           </TabsTrigger>
           <TabsTrigger value="baseline">
             <TrendUp weight="duotone" size={14} />
-            Baseline &amp; Projections
+            Baseline & Projections
           </TabsTrigger>
           <TabsTrigger value="vendor">
             <Clipboard weight="duotone" size={14} />
@@ -574,7 +574,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
               <div className="grid md:grid-cols-2 gap-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-destructive">Unapproved Claims &amp; Change Order Exposure</CardTitle>
+                    <CardTitle className="text-destructive">Unapproved Claims & Change Order Exposure</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-destructive">${((chg?.pendingValue || 0) / 1e6).toFixed(1)}M</div>
@@ -727,7 +727,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>AHJ &amp; Commissioning</CardTitle>
+                <CardTitle>AHJ & Commissioning</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -1060,7 +1060,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
         <TabsContent value="baseline" className="mt-4 space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Project Baseline &amp; Projections</CardTitle>
+              <CardTitle>Project Baseline & Projections</CardTitle>
               <CardDescription>Edit baseline inputs and current actuals below. Projections update instantly — save to persist.</CardDescription>
             </CardHeader>
             <CardContent>
