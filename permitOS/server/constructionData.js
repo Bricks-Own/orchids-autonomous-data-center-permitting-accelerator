@@ -22,7 +22,10 @@ const THRESHOLDS = {
   reworkPct: { green: 3, amber: 7 },              // Rework cost as % of total cost
 };
 
-export function getTrafficLight(metric, value) {
+export function getTrafficLight(metric, value, noData = false) {
+  // If the metric has no underlying data (e.g. denominator is zero), return gray/N/A
+  // instead of running normal threshold logic which would produce a false alarm.
+  if (noData) return 'gray';
   const t = THRESHOLDS[metric];
   if (!t) return 'gray';
   if (typeof value === 'number' && value >= 0) {
@@ -85,8 +88,8 @@ export function calcEVM(originalBudget, actualCost, percentComplete, plannedPctC
     TCPI: parseFloat(TCPI.toFixed(3)), percentComplete, plannedPctComplete,
     periodCPI: periodCPI ? parseFloat(periodCPI.toFixed(3)) : null,
     periodSPI: periodSPI ? parseFloat(periodSPI.toFixed(3)) : null,
-    statusCPI: getTrafficLight('cpi', CPI),
-    statusSPI: getTrafficLight('spi', SPI),
+    statusCPI: getTrafficLight('cpi', CPI, ACWP === 0),
+    statusSPI: getTrafficLight('spi', SPI, PV === 0),
     statusVAC: getTrafficLight('vacPct', VACPct),
   };
 }
@@ -219,7 +222,7 @@ export function calcScheduleInfo(plannedFinish, forecastFinish, milestoneVarianc
     criticalPathImpact,
     spi: schedulePerfIndex,
     statusMS: getTrafficLight('milestoneVariance', scheduleVarianceDays),
-    statusSPI: schedulePerfIndex >= 0.95 ? 'green' : schedulePerfIndex >= 0.85 ? 'amber' : 'red',
+    statusSPI: schedulePerfIndex === 0 ? 'gray' : schedulePerfIndex >= 0.95 ? 'green' : schedulePerfIndex >= 0.85 ? 'amber' : 'red',
     flag: Math.abs(scheduleSlipDays) > 30 ? 'Schedule slip exceeds 30 days — review critical path' : null,
   };
 }
@@ -330,7 +333,7 @@ export function calcFullProjectMetrics(data) {
     commissioningPrerequisites: data.commissioningPrerequisites || 0,
     cxPrerequisitesPct: data.cxPrerequisitesPct || 0,
     inspectionPassRate: data.inspectionPassRate || 0,
-    statusInspection: getTrafficLight('inspectionPassRate', data.inspectionPassRate || 0),
+    statusInspection: getTrafficLight('inspectionPassRate', data.inspectionPassRate || 0, (data.inspectionPassRate || 0) === 0),
     // Cost category breakdown
     costCategories: data.costCategories || [],
     // Top 5 risks

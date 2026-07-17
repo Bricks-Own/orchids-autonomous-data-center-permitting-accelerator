@@ -766,9 +766,9 @@ export default function ConstructionDashboard({ setActiveTab }) {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <KpiCard title="TRIR" value={safety?.trir?.toFixed(2) || '\u2014'} status={safety?.statusTRIR} subtitle="Recordable Incident Rate" metricKey="trir" data={data} />
             <KpiCard title="LTIR" value={safety?.ltir?.toFixed(2) || '\u2014'} status={safety?.statusLTIR} subtitle="Lost Time Incident Rate" metricKey="ltir" data={data} />
-            <KpiCard title="Days Since Last Incident" value={data.safetyDaysSinceLast || 0} status={data.safetyDaysSinceLast > 30 ? 'green' : data.safetyDaysSinceLast > 7 ? 'amber' : 'red'} />
+            <KpiCard title="Days Since Last Incident" value={data.safetyDaysSinceLast || 0} status={safety?.totalWorkHours === 0 ? 'gray' : data.safetyDaysSinceLast > 30 ? 'green' : data.safetyDaysSinceLast > 7 ? 'amber' : 'red'} />
             <KpiCard title="Total Work Hours" value={(safety?.totalWorkHours || 0).toLocaleString()} status="green" />
-            <KpiCard title="Safety Observations" value={`${safety?.safetyObservationsResolved || 0} / ${safety?.safetyObservationsTotal || 0}`} status={safety?.safetyObsResolvedPct >= 90 ? 'green' : safety?.safetyObsResolvedPct >= 75 ? 'amber' : 'red'} subtitle={`${safety?.safetyObsResolvedPct || 0}% resolved`} />
+            <KpiCard title="Safety Observations" value={`${safety?.safetyObservationsResolved || 0} / ${safety?.safetyObservationsTotal || 0}`} status={safety?.safetyObservationsTotal === 0 ? 'gray' : safety?.safetyObsResolvedPct >= 90 ? 'green' : safety?.safetyObsResolvedPct >= 75 ? 'amber' : 'red'} subtitle={`${safety?.safetyObsResolvedPct || 0}% resolved`} />
           </div>
           <Card>
             <CardHeader>
@@ -840,12 +840,12 @@ export default function ConstructionDashboard({ setActiveTab }) {
                       <span>{(data.inspectionPassRate || 0).toFixed(0)}%</span>
                     </div>
                     <div className="h-2 bg-muted overflow-hidden">
-                      <div className={`h-full ${data.inspectionPassRate >= 90 ? 'bg-green-500' : data.inspectionPassRate >= 80 ? 'bg-amber-500' : 'bg-red-500'}`}
+                      <div className={`h-full ${data.inspectionPassRate === 0 ? 'bg-muted-foreground/30' : data.inspectionPassRate >= 90 ? 'bg-green-500' : data.inspectionPassRate >= 80 ? 'bg-amber-500' : 'bg-red-500'}`}
                         style={{ width: `${data.inspectionPassRate || 0}%` }}></div>
                     </div>
                     <div className="flex justify-between text-xs text-muted-foreground/70 mt-0.5">
                       <span>Pass</span>
-                      <span>{data.inspectionPassRate >= 90 ? 'On Track' : data.inspectionPassRate >= 80 ? 'At Risk' : 'Critical'}</span>
+                      <span className={data.inspectionPassRate === 0 ? 'text-muted-foreground/70' : ''}>{data.inspectionPassRate === 0 ? 'N/A' : data.inspectionPassRate >= 90 ? 'On Track' : data.inspectionPassRate >= 80 ? 'At Risk' : 'Critical'}</span>
                     </div>
                   </div>
                   <div>
@@ -874,7 +874,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
             <KpiCard title="EAC" value={`$${(evm?.EAC / 1e6).toFixed(1)}M`} status={evm?.statusVAC} subtitle={`BAC: $${(evm?.BAC / 1e6).toFixed(1)}M`} metricKey="eac" data={data} />
             <KpiCard title="VAC" value={`$${(evm?.VAC / 1e6).toFixed(1)}M`} status={evm?.statusVAC} subtitle={`${evm?.VACPct?.toFixed(1) || 0}%`} metricKey="vac" data={data} />
             <KpiCard title="Contingency" value={`${cont?.utilizationPct?.toFixed(0) || 0}%`} status={cont?.status} subtitle={`Used: $${(cont?.used / 1e6).toFixed(1)}M`} metricKey="contingencyUtilization" data={data} />
-            <KpiCard title="Cash Position" value={`$${(data.cashPosition / 1e6).toFixed(1)}M`} status={data.cashPosition > 0 ? 'green' : 'red'} metricKey="netCashPosition" data={data} />
+            <KpiCard title="Cash Position" value={`$${(data.cashPosition / 1e6).toFixed(1)}M`} status={data.cashPosition === 0 && evm?.percentComplete === 0 ? 'gray' : data.cashPosition > 0 ? 'green' : 'red'} metricKey="netCashPosition" data={data} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
@@ -1100,7 +1100,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
         {/* ════════════════ Other Trackers ════════════════ */}
         <TabsContent value="trackers" className="mt-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <KpiCard title="GC Buyout Status" value={`${data.gcBuyoutComplete || 0}%`} status={data.gcBuyoutComplete >= 90 ? 'green' : data.gcBuyoutComplete >= 70 ? 'amber' : 'red'} subtitle="Percent complete" />
+            <KpiCard title="GC Buyout Status" value={`${data.gcBuyoutComplete || 0}%`} status={data.gcBuyoutComplete === 0 && evm?.percentComplete === 0 ? 'gray' : data.gcBuyoutComplete >= 90 ? 'green' : data.gcBuyoutComplete >= 70 ? 'amber' : 'red'} subtitle="Percent complete" />
             <KpiCard title="Stored Materials (Offsite)" value={`$${((data.storedMaterialsValue || 0) / 1e6).toFixed(1)}M`} status="amber" subtitle="Value stored offsite" />
             <KpiCard title="Lien Waiver Compliance" value={data.lienWaiverCompliance || 'N'} status={data.lienWaiverCompliance === 'Y' ? 'green' : 'red'} subtitle={`${data.lienWaiversReceived || 0} received`} />
             <KpiCard title="Headcount" value={data.headcount || 0} status={data.actualVsPlannedHeadcountPct >= 90 ? 'green' : 'amber'} subtitle={data.actualVsPlannedHeadcountPct ? `${data.actualVsPlannedHeadcountPct}% of planned` : ''} />
