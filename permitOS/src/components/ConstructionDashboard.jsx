@@ -98,28 +98,58 @@ function GaugeChart({ value, min = 0, max = 2, thresholds = [1, 0.9], label, inv
 }
 
 // ─── Top 5 Risk Register ──────────────────────────────────────────────────
-function RiskRegister({ risks }) {
+function RiskRegister({ risks, onNavigate }) {
   if (!risks || risks.length === 0) return <div className="text-xs text-muted-foreground/70 text-center py-8">No risks registered</div>;
   const impactColors = { Critical: 'text-destructive', Major: 'text-destructive', Moderate: 'text-amber-400', Minor: 'text-primary' };
+
+  const riskTabMap = [
+    { keyword: 'psd', tab: 'schedule' },
+    { keyword: 'permit timeline', tab: 'schedule' },
+    { keyword: 'nonattainment', tab: 'intake' },
+    { keyword: 'zoning', tab: 'intake' },
+    { keyword: 'labor', tab: 'vendor' },
+    { keyword: 'switchgear', tab: 'schedule' },
+    { keyword: 'delivery', tab: 'schedule' },
+    { keyword: 'cooling', tab: 'schedule' },
+    { keyword: 'fuel', tab: 'hse' },
+    { keyword: 'generator', tab: 'hse' },
+    { keyword: 'water', tab: 'schedule' },
+    { keyword: 'equipment', tab: 'schedule' },
+  ];
+
+  const getTab = (desc) => {
+    const lower = desc.toLowerCase();
+    const match = riskTabMap.find(r => lower.includes(r.keyword));
+    return match ? match.tab : null;
+  };
+
   return (
     <div className="space-y-1.5">
-      {risks.map((r, i) => (
-        <div key={i} className="bg-muted/40 border border-border/30 p-3">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-semibold text-foreground/80">#{r.rank || i + 1}</span>
-            <span className={`text-xs font-medium ${impactColors[r.impact] || 'text-muted-foreground'}`}>{r.impact || 'Moderate'}</span>
-          </div>
-          <p className="text-sm text-muted-foreground mb-2">{r.description}</p>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-muted-foreground/70">Probability:</span>
-            <div className="w-20 h-1.5 bg-muted overflow-hidden">
-              <div className="h-full bg-primary" style={{ width: `${(r.probability || 0.5) * 100}%` }}></div>
+      {risks.map((r, i) => {
+        const tab = getTab(r.description);
+        return (
+          <div
+            key={i}
+            className={`bg-muted/40 border border-border/30 p-3 ${tab && onNavigate ? 'cursor-pointer hover:bg-muted/60 hover:border-primary/30 transition-colors' : ''}`}
+            onClick={() => { if (tab && onNavigate) onNavigate(tab); }}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-semibold text-foreground/80">#{r.rank || i + 1}</span>
+              <span className={`text-xs font-medium ${impactColors[r.impact] || 'text-muted-foreground'}`}>{r.impact || 'Moderate'}</span>
             </div>
-            <span className="text-muted-foreground">{Math.round((r.probability || 0.5) * 100)}%</span>
+            <p className="text-sm text-muted-foreground mb-2">{r.description}</p>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground/70">Probability:</span>
+              <div className="w-20 h-1.5 bg-muted overflow-hidden">
+                <div className="h-full bg-primary" style={{ width: `${(r.probability || 0.5) * 100}%` }}></div>
+              </div>
+              <span className="text-muted-foreground">{Math.round((r.probability || 0.5) * 100)}%</span>
+            </div>
+            {r.mitigation && <p className="text-xs text-muted-foreground/70 mt-1 italic">Mitigation: {r.mitigation}</p>}
+            {tab && onNavigate && <span className="text-xs text-primary/70 mt-1 block">Click to view {tab} details</span>}
           </div>
-          {r.mitigation && <p className="text-xs text-muted-foreground/70 mt-1 italic">Mitigation: {r.mitigation}</p>}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -431,7 +461,16 @@ export default function ConstructionDashboard({ setActiveTab }) {
 
       {/* ── Flags / Alerts ── */}
       {flags.length > 0 && (
-        <Card className="border-destructive/30 bg-destructive/5 py-0" size="sm">
+        <Card className="border-destructive/30 bg-destructive/5 py-0 cursor-pointer hover:bg-destructive/[0.08] transition-colors" size="sm" onClick={() => {
+          // Map flag content to the most relevant tab
+          const allFlags = flags.join(' ').toLowerCase();
+          if (allFlags.includes('safety') || allFlags.includes('incident') || allFlags.includes('trir') || allFlags.includes('hse')) setActiveTab?.('hse');
+          else if (allFlags.includes('rfi') || allFlags.includes('quality') || allFlags.includes('rework')) setActiveTab?.('quality');
+          else if (allFlags.includes('schedule') || allFlags.includes('slip') || allFlags.includes('milestone')) setActiveTab?.('schedule');
+          else if (allFlags.includes('pco') || allFlags.includes('change order') || allFlags.includes('contingency')) setActiveTab?.('financials');
+          else if (allFlags.includes('risk')) setActiveTab?.('risks');
+          else setActiveTab?.('csuite');
+        }}>
           <CardContent className="py-3">
             <div className="text-xs font-semibold text-destructive mb-2 flex items-center gap-1.5">
               <WarningCircle weight="duotone" size={12} />
@@ -532,7 +571,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
               <div className="grid md:grid-cols-2 gap-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-amber-400">Milestone Volatility</CardTitle>
+                    <CardTitle>Milestone Volatility</CardTitle>
                     <CardDescription>Variance Days</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -551,7 +590,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
                 </Card>
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-blue-400">Contingency Burn Rate vs Physical Progress</CardTitle>
+                    <CardTitle>Contingency Burn Rate vs Physical Progress</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-3">
@@ -574,7 +613,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
               <div className="grid md:grid-cols-2 gap-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-destructive">Unapproved Claims & Change Order Exposure</CardTitle>
+                    <CardTitle>Unapproved Claims & Change Order Exposure</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-destructive">${((chg?.pendingValue || 0) / 1e6).toFixed(1)}M</div>
@@ -583,7 +622,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
                 </Card>
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-primary">Safety & Health Compliance — TRIR</CardTitle>
+                    <CardTitle>Safety & Health Compliance — TRIR</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-primary">{safety?.trir || 0}</div>
@@ -601,7 +640,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <RiskRegister risks={data.topRisks} />
+                  <RiskRegister risks={data.topRisks} onNavigate={(tab) => setActiveTab?.(tab)} />
                 </CardContent>
               </Card>
 
@@ -636,9 +675,9 @@ export default function ConstructionDashboard({ setActiveTab }) {
                     <TableHead>Forecast Margin</TableHead>
                     <TableHead>CPI</TableHead>
                     <TableHead>SPI</TableHead>
-                    <TableHead>Schedule</TableHead>
+                    <TableHead>Progress</TableHead>
                     <TableHead>Safety</TableHead>
-                    <TableHead>Quality</TableHead>
+                    <TableHead>Cash Flow</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -653,7 +692,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
                     <TableCell><TrafficBadge status={evm?.statusSPI || 'gray'} /></TableCell>
                     <TableCell><TrafficBadge status={schedule?.statusMS || 'gray'} /></TableCell>
                     <TableCell><TrafficBadge status={safety?.statusTRIR || 'gray'} /></TableCell>
-                    <TableCell><TrafficBadge status={quality?.statusRework || 'gray'} /></TableCell>
+                    <TableCell><TrafficBadge status={data.netCashPosition >= 0 ? 'green' : 'red'} /></TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -663,11 +702,12 @@ export default function ConstructionDashboard({ setActiveTab }) {
 
         {/* ════════════════ HSE ════════════════ */}
         <TabsContent value="hse" className="mt-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <KpiCard title="TRIR" value={safety?.trir?.toFixed(2) || '\u2014'} status={safety?.statusTRIR} subtitle="Recordable Incident Rate" metricKey="trir" data={data} />
             <KpiCard title="LTIR" value={safety?.ltir?.toFixed(2) || '\u2014'} status={safety?.statusLTIR} subtitle="Lost Time Incident Rate" metricKey="ltir" data={data} />
             <KpiCard title="Days Since Last Incident" value={data.safetyDaysSinceLast || 0} status={data.safetyDaysSinceLast > 30 ? 'green' : data.safetyDaysSinceLast > 7 ? 'amber' : 'red'} />
             <KpiCard title="Total Work Hours" value={(safety?.totalWorkHours || 0).toLocaleString()} status="green" />
+            <KpiCard title="Safety Observations" value={`${safety?.safetyObservationsResolved || 0} / ${safety?.safetyObservationsTotal || 0}`} status={safety?.safetyObsResolvedPct >= 90 ? 'green' : safety?.safetyObsResolvedPct >= 75 ? 'amber' : 'red'} subtitle={`${safety?.safetyObsResolvedPct || 0}% resolved`} />
           </div>
           <Card>
             <CardHeader>
@@ -681,6 +721,8 @@ export default function ConstructionDashboard({ setActiveTab }) {
                   { label: 'Lost Time Incidents', value: safety?.lostTimeIncidents || 0 },
                   { label: 'First Aid Cases', value: safety?.firstAidCases || 0 },
                   { label: 'Fatalities', value: safety?.fatalities || 0 },
+                  { label: 'Observations Resolved', value: `${safety?.safetyObservationsResolved || 0} / ${safety?.safetyObservationsTotal || 0}` },
+                  { label: 'Obs. Resolution Rate', value: `${safety?.safetyObsResolvedPct || 0}%` },
                   { label: 'Days Since Last', value: data.safetyDaysSinceLast || 0 },
                 ].map((item, i) => (
                   <div key={i} className="bg-muted/40 p-3 text-center">
@@ -834,6 +876,8 @@ export default function ConstructionDashboard({ setActiveTab }) {
                   <div className="space-y-2 text-xs">
                     {[
                       { label: 'Retainage', value: `$${(data.retainage / 1e6).toFixed(1)}M` },
+                      { label: 'Cash Received to Date', value: `$${(data.cashReceivedToDate / 1e6).toFixed(1)}M` },
+                      { label: 'Days for Receivable', value: `${data.daysForReceivable || 0}d` },
                       { label: 'Owner Contingency Used', value: `$${(data.ownerContingencyUsed / 1e6).toFixed(1)}M` },
                       { label: 'GC Contingency Used', value: `$${(data.gcContingencyUsed / 1e6).toFixed(1)}M` },
                       { label: 'Stored Materials', value: `$${(data.storedMaterialsValue / 1e6).toFixed(1)}M` },
@@ -870,6 +914,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
                   {[
                     { label: 'Planned Finish', value: schedule?.plannedFinish || '\u2014' },
                     { label: 'Forecast Finish', value: schedule?.forecastFinish || '\u2014' },
+                    { label: 'Customer Need Date', value: schedule?.customerNeedDate || '\u2014' },
                     { label: 'Schedule Slip', value: `${schedule?.scheduleSlipDays || 0} days` },
                     { label: 'Slip %', value: `${schedule?.scheduleSlipPct || 0}%` },
                     { label: 'Milestone Variance', value: `${schedule?.milestoneVarianceDays || 0} days` },
@@ -895,6 +940,44 @@ export default function ConstructionDashboard({ setActiveTab }) {
               </CardContent>
             </Card>
           </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Milestone Details</CardTitle>
+              <CardDescription>Per-milestone completion, variance, and critical-path impact</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Milestone</TableHead>
+                    <TableHead className="text-right">% Complete</TableHead>
+                    <TableHead className="text-right">Variance (Days)</TableHead>
+                    <TableHead className="text-right">Status</TableHead>
+                    <TableHead className="text-right">Critical Path</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(data.milestoneDetails || []).map((ms, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="text-foreground/80">{ms.name}</TableCell>
+                      <TableCell className="text-right text-muted-foreground">{ms.pctComplete}%</TableCell>
+                      <TableCell className={`text-right ${ms.varianceDays > 0 ? 'text-destructive' : 'text-primary'}`}>{ms.varianceDays > 0 ? `+${ms.varianceDays}` : ms.varianceDays}</TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant={ms.status === 'complete' ? 'default' : ms.status === 'in_progress' ? 'outline' : 'secondary'} className="px-2 py-0.5">
+                          {ms.status === 'complete' ? 'Complete' : ms.status === 'in_progress' ? 'In Progress' : 'Not Started'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className={ms.criticalPathImpact === 'Y' ? 'text-destructive font-semibold' : 'text-muted-foreground'}>
+                          {ms.criticalPathImpact === 'Y' ? 'Yes' : 'No'}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* ════════════════ Cost Categories ════════════════ */}
@@ -1008,7 +1091,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <RiskRegister risks={data.topRisks} />
+              <RiskRegister risks={data.topRisks} onNavigate={(tab) => setActiveTab?.(tab)} />
             </CardContent>
           </Card>
         </TabsContent>

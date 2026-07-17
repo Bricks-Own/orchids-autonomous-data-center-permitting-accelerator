@@ -777,6 +777,106 @@ export function generateSampleData(asOfDate) {
   return generateConstructionData({}, {});
 }
 
+// ─── Zero-State Generator for Day-1 Sites ─────────────────────────────────
+// Returns proper Day-1 zero-state: BAC computed from inputs, everything else 0.
+// A freshly generated site (never saved) should not show fake mid-project progress.
+export function generateZeroState(inputs, results) {
+  inputs = inputs || {};
+  results = results || {};
+  const stateName = inputs.siteName || 'BigWatt AI Campus — Site A';
+  const state = inputs.state || 'Tennessee';
+  const totalMW = results.totalMW || (inputs.turbines || 8) * (inputs.mwPerTurbine || 25);
+
+  const STATE_COST_MULTIPLIERS = {
+    'California': 1.35, 'New York': 1.30, 'Massachusetts': 1.25,
+    'New Jersey': 1.20, 'Illinois': 1.15, 'Washington': 1.12,
+    'Oregon': 1.10, 'Colorado': 1.08, 'Arizona': 1.05, 'Texas': 1.00,
+    'Tennessee': 0.95, 'Virginia': 1.02, 'North Carolina': 0.98,
+    'Georgia': 0.96, 'Ohio': 0.93, 'Indiana': 0.92, 'Nevada': 0.97,
+  };
+  const LABOR_RATE_INDEX = {
+    'California': 1.30, 'New York': 1.35, 'Texas': 0.92, 'Tennessee': 0.85,
+    'Virginia': 1.05, 'Illinois': 1.10, 'Arizona': 0.90, 'Georgia': 0.88,
+    'North Carolina': 0.90, 'Ohio': 0.85, 'Indiana': 0.82, 'Nevada': 0.95,
+  };
+  const costMultiplier = STATE_COST_MULTIPLIERS[state] || 1.02;
+  const laborIndex = LABOR_RATE_INDEX[state] || 1.00;
+  const baseCostPerMW = 1100000;
+  const adjustedCostPerMW = Math.round(baseCostPerMW * costMultiplier * laborIndex);
+  const bac = Math.round(totalMW * adjustedCostPerMW * 1.0);
+  const revenue = Math.round(bac * 1.12);
+
+  // Day-1 zero metrics
+  const zeroData = {
+    projectId: `BIGWATT-${stateName.replace(/[^A-Za-z0-9]/g, '-').substring(0, 20).toUpperCase()}`,
+    projectName: stateName,
+    asOfDate: new Date().toISOString().split('T')[0],
+    revenue,
+    plannedMargin: 0.12,
+    forecastMargin: 0.12,
+    originalBudget: bac,
+    actualCost: 0,
+    percentComplete: 0,
+    plannedPctComplete: 0,
+    totalWorkHours: 0,
+    recordableIncidents: 0,
+    lostTimeIncidents: 0,
+    fatalities: 0,
+    firstAidCases: 0,
+    safetyObservationsResolved: 0,
+    safetyObservationsTotal: 0,
+    safetyDaysSinceLast: 0,
+    rfiTotal: 0,
+    rfiAvgResponseDays: 0,
+    rfiCriticalPathCount: 0,
+    punchlistItems: 0,
+    punchlistClosed: 0,
+    reworkCost: 0,
+    plannedFinish: '—',
+    forecastFinish: '—',
+    customerNeedDate: '—',
+    milestoneNames: 'Site Preparation, Foundations, Structure, MEP, Commissioning',
+    milestoneDetails: [],
+    milestoneVarianceDays: 0,
+    criticalPathLength: 0,
+    floatConsumed: 0,
+    percentCompletePhysical: 0,
+    criticalPathImpact: 'N',
+    spi: 0,
+    contingencyBudget: 0,
+    contingencyUsed: 0,
+    ownerContingencyBudget: 0,
+    ownerContingencyUsed: 0,
+    gcContingencyBudget: 0,
+    gcContingencyUsed: 0,
+    cashPosition: 0,
+    billingToDate: 0,
+    cashReceivedToDate: 0,
+    daysForReceivable: 0,
+    retainage: 0,
+    netPayableThisMonth: 0,
+    headcount: 0,
+    actualVsPlannedHeadcountPct: 100,
+    weatherDaysLost: 0,
+    weatherDaysClaimed: 0,
+    gcBuyoutComplete: 0,
+    storedMaterialsValue: 0,
+    lienWaiversReceived: 0,
+    lienWaiverCompliance: 'N',
+    ahjPermitStatus: 'Not Started',
+    commissioningPrerequisites: 0,
+    cxPrerequisitesPct: 0,
+    inspectionPassRate: 0,
+    pcoList: [],
+    costCategories: [],
+    topRisks: [],
+    trendData: [],
+    totalConstructionCost: bac,
+  };
+
+  return calcFullProjectMetrics(zeroData);
+}
+
 
 // ─── Validate metrics data ─────────────────────────────────────────────────
 export function validateMetricsData(data) {

@@ -6,7 +6,7 @@ import { searchRegulations } from './rag.js';
 import { queryLLM, generateRAIResponse, generateDocumentSection } from './llm.js';
 import { searchRegulatoryKnowledge, getKnowledgeCategories, getKnowledgeStats } from './web-knowledge.js';
 import { scorePermitSuccess } from './reward-scorer.js';
-import { generateConstructionData, generateSampleData, calcFullProjectMetrics, calcEVM, validateMetricsData } from './constructionData.js';
+import { generateConstructionData, generateZeroState, generateSampleData, calcFullProjectMetrics, calcEVM, validateMetricsData } from './constructionData.js';
 import { analyzeScenario, listScenarios } from './scenarios.js';
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, HeadingLevel, AlignmentType, BorderStyle, WidthType, Header, Footer, PageNumber } from 'docx';
 
@@ -672,9 +672,14 @@ export function createApiRouter(db) {
     try {
       const { siteId } = req.params;
       const { inputs, results } = req.body || {};
-      const generated = generateConstructionData(inputs, results);
       const saved = loadSavedConstruction(siteId, req.user.tenantId);
-      const data = saved ? mergeSavedData(generated, saved) : generated;
+      if (saved) {
+        const generated = generateConstructionData(inputs, results);
+        const data = mergeSavedData(generated, saved);
+        return res.json({ data });
+      }
+      // Day-1: no saved data yet — return zero-state
+      const data = generateZeroState(inputs, results);
       res.json({ data });
     } catch (err) { next(err); }
   });
@@ -682,9 +687,14 @@ export function createApiRouter(db) {
   router.get('/construction/:siteId', (req, res, next) => {
     try {
       const { siteId } = req.params;
-      const generated = generateConstructionData({}, {});
       const saved = loadSavedConstruction(siteId, req.user.tenantId);
-      const data = saved ? mergeSavedData(generated, saved) : generated;
+      if (saved) {
+        const generated = generateConstructionData({}, {});
+        const data = mergeSavedData(generated, saved);
+        return res.json({ data });
+      }
+      // Day-1: no saved data — return zero-state
+      const data = generateZeroState({}, {});
       res.json({ data });
     } catch (err) { next(err); }
   });
