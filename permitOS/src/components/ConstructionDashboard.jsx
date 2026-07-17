@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, Legend,
@@ -18,7 +18,7 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '.
 import {
   Gauge, ChartBar, ShieldCheck, SealCheck, CurrencyDollar, CalendarCheck,
   Folder, Clipboard, Warning, NotePencil, TrendUp, ChartLine, Cube,
-  PencilSimple, ArrowsClockwise, WarningCircle, X,
+  PencilSimple, ArrowsClockwise, WarningCircle, X, CaretLeft, CaretRight,
 } from '@phosphor-icons/react';
 
 // ─── Traffic Light Status ─────────────────────────────────────────────────
@@ -284,6 +284,40 @@ export default function ConstructionDashboard({ setActiveTab }) {
   const [loading, setLoading] = useState(true);
   const [showEntry, setShowEntry] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState('csuite');
+  const tabScrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = useCallback(() => {
+    const el = tabScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  }, []);
+
+  const scrollTabs = useCallback((dir) => {
+    const el = tabScrollRef.current;
+    if (!el) return;
+    const amount = dir === 'left' ? -200 : 200;
+    el.scrollBy({ left: amount, behavior: 'smooth' });
+    setTimeout(checkScroll, 200);
+  }, [checkScroll]);
+
+  // Check scroll button visibility on mount and resize
+  useEffect(() => {
+    const el = tabScrollRef.current;
+    if (!el) return;
+    const raf = requestAnimationFrame(() => checkScroll());
+    const onResize = () => { checkScroll(); };
+    window.addEventListener('resize', onResize);
+    const observer = new ResizeObserver(() => checkScroll());
+    observer.observe(el);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', onResize);
+      observer.disconnect();
+    };
+  }, [checkScroll, data, activeSubTab]);
 
   const fetchData = () => {
     if (!results) return;
@@ -491,8 +525,22 @@ export default function ConstructionDashboard({ setActiveTab }) {
 
       {/* ── Tabbed Interface ── */}
       <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="w-full">
-        <div className="overflow-x-auto scrollbar-none">
-          <TabsList className="w-max min-w-full gap-0.5 p-0.5">
+        <div className="relative flex items-center">
+          {canScrollLeft && (
+            <button
+              onClick={() => scrollTabs('left')}
+              className="absolute left-0 z-10 h-full flex items-center justify-center w-7 bg-gradient-to-r from-background/95 to-transparent cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Scroll tabs left"
+            >
+              <CaretLeft weight="bold" size={14} />
+            </button>
+          )}
+          <div
+            ref={tabScrollRef}
+            className="overflow-x-auto scrollbar-none"
+            onScroll={checkScroll}
+          >
+            <TabsList className="w-max min-w-full gap-0.5 p-0.5">
             <TabsTrigger value="csuite" className="px-3 py-1.5">
               <Gauge weight="duotone" size={13} />
               C-Suite
@@ -550,6 +598,16 @@ export default function ConstructionDashboard({ setActiveTab }) {
               3D View
             </TabsTrigger>
           </TabsList>
+          </div>
+          {canScrollRight && (
+            <button
+              onClick={() => scrollTabs('right')}
+              className="absolute right-0 z-10 h-full flex items-center justify-center w-7 bg-gradient-to-l from-background/95 to-transparent cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Scroll tabs right"
+            >
+              <CaretRight weight="bold" size={14} />
+            </button>
+          )}
         </div>
 
         {/* ════════════════ C-Suite Dashboard ════════════════ */}
