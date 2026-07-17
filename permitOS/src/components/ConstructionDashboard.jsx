@@ -10,52 +10,56 @@ import BaselineProjections from './BaselineProjections';
 import VendorLedger from './VendorLedger';
 import { usePermitData } from '../context/PermitDataContext';
 import { BudgetWaterfall, SCurveChart, ContingencyDrawdown, MilestoneVarianceChart, CPISPITrend } from './AdvancedCharts';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from './ui/table';
+import {
+  Gauge, ChartBar, ShieldCheck, SealCheck, CurrencyDollar, CalendarCheck,
+  Folder, Clipboard, Warning, NotePencil, TrendUp, ChartLine, Cube,
+  PencilSimple, ArrowsClockwise, WarningCircle, X,
+} from '@phosphor-icons/react';
 
-// ─── Color / Style Constants ──────────────────────────────────────────────
+// ─── Traffic Light Status ─────────────────────────────────────────────────
 const TL = {
-  green: { bg: 'bg-green-900/20 border-green-800/30', dot: 'bg-green-500', text: 'text-primary', label: 'On Track' },
-  amber: { bg: 'bg-amber-900/20 border-amber-800/30', dot: 'bg-amber-500', text: 'text-destructive', label: 'At Risk' },
-  red:   { bg: 'bg-red-900/20 border-red-800/30', dot: 'bg-red-500', text: 'text-destructive', label: 'Critical' },
-  gray:  { bg: 'bg-muted/30 border-border/30', dot: 'bg-card0', text: 'text-muted-foreground', label: 'N/A' },
+  green: { dot: 'bg-green-500', text: 'text-primary', label: 'On Track' },
+  amber: { dot: 'bg-amber-500', text: 'text-amber-400', label: 'At Risk' },
+  red:   { dot: 'bg-red-500', text: 'text-destructive', label: 'Critical' },
+  gray:  { dot: 'bg-card0', text: 'text-muted-foreground', label: 'N/A' },
 };
 
-function TrafficDot({ status = 'gray', label }) {
+function TrafficBadge({ status = 'gray', label }) {
   const s = TL[status] || TL.gray;
   return (
-    <span className="inline-flex items-center gap-1.5" title={label || s.label}>
-      <span className={`w-2 h-2  ${s.dot}`}></span>
-      <span className={`text-xs ${s.text}`}>{label || s.label}</span>
-    </span>
+    <Badge variant={status === 'red' ? 'destructive' : status === 'amber' ? 'outline' : 'default'} className="gap-1.5 px-2 py-0.5 text-[0.625rem]">
+      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+      {label || s.label}
+    </Badge>
   );
 }
 
+// ─── KPI Card (shadcn Card + Badge) ───────────────────────────────────────
 function KpiCard({ title, value, status, subtitle, onClick, children, metricKey, data }) {
-  const s = TL[status] || TL.gray;
-  const cardContent = (
-    <>
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-muted-foreground font-medium">{title}</span>
-        <TrafficDot status={status} />
-      </div>
-      <div className="text-xl font-bold flex items-center gap-1">
-        <span className={s.text}>{value}</span>
-        {metricKey && data && (
-          <FormulaPopover metricKey={metricKey} data={data}>
-            <span />
-          </FormulaPopover>
-        )}
-      </div>
-      {subtitle && <div className="text-xs text-muted-foreground/70 mt-0.5">{subtitle}</div>}
-      {children}
-    </>
-  );
   return (
-    <div
-      className={` border ${s.bg} p-4 transition-all hover:scale-[1.02] ${onClick ? 'cursor-pointer' : ''}`}
-      onClick={onClick}
-    >
-      {cardContent}
-    </div>
+    <Card className={`transition-all hover:scale-[1.02] ${onClick ? 'cursor-pointer' : ''}`} size="sm">
+      <CardContent className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between">
+          <span className="text-[0.625rem] font-semibold tracking-widest uppercase text-muted-foreground">{title}</span>
+          <TrafficBadge status={status} />
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className={`text-lg font-bold ${TL[status]?.text || 'text-foreground'}`}>{value}</span>
+          {metricKey && data && (
+            <FormulaPopover metricKey={metricKey} data={data}>
+              <span />
+            </FormulaPopover>
+          )}
+        </div>
+        {subtitle && <span className="text-[0.625rem] text-muted-foreground/70">{subtitle}</span>}
+        {children}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -96,11 +100,11 @@ function GaugeChart({ value, min = 0, max = 2, thresholds = [1, 0.9], label, inv
 // ─── Top 5 Risk Register ──────────────────────────────────────────────────
 function RiskRegister({ risks }) {
   if (!risks || risks.length === 0) return <div className="text-xs text-muted-foreground/70 text-center py-8">No risks registered</div>;
-  const impactColors = { Critical: 'text-destructive', Major: 'text-destructive', Moderate: 'text-yellow-400', Minor: 'text-primary' };
+  const impactColors = { Critical: 'text-destructive', Major: 'text-destructive', Moderate: 'text-amber-400', Minor: 'text-primary' };
   return (
     <div className="space-y-1.5">
       {risks.map((r, i) => (
-        <div key={i} className="bg-muted/40 border border-border/30  p-3">
+        <div key={i} className="bg-muted/40 border border-border/30 p-3">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-semibold text-foreground/80">#{r.rank || i + 1}</span>
             <span className={`text-xs font-medium ${impactColors[r.impact] || 'text-muted-foreground'}`}>{r.impact || 'Moderate'}</span>
@@ -108,8 +112,8 @@ function RiskRegister({ risks }) {
           <p className="text-sm text-muted-foreground mb-2">{r.description}</p>
           <div className="flex items-center gap-2 text-xs">
             <span className="text-muted-foreground/70">Probability:</span>
-            <div className="w-20 h-1.5 bg-muted  overflow-hidden">
-              <div className="h-full bg-primary " style={{ width: `${(r.probability || 0.5) * 100}%` }}></div>
+            <div className="w-20 h-1.5 bg-muted overflow-hidden">
+              <div className="h-full bg-primary" style={{ width: `${(r.probability || 0.5) * 100}%` }}></div>
             </div>
             <span className="text-muted-foreground">{Math.round((r.probability || 0.5) * 100)}%</span>
           </div>
@@ -124,7 +128,7 @@ function RiskRegister({ risks }) {
 function CostCategoryBreakdown({ categories }) {
   if (!categories || categories.length === 0) return <div className="text-xs text-muted-foreground/70 text-center py-8">No cost categories</div>;
   const data = categories.map(c => ({
-    name: c.name.length > 15 ? c.name.substring(0, 15) + '…' : c.name,
+    name: c.name.length > 15 ? c.name.substring(0, 15) + '\u2026' : c.name,
     budget: c.budget / 1e6,
     actual: c.actual / 1e6,
     pct: c.pctComplete || 0,
@@ -203,12 +207,15 @@ function DataEntryModal({ open, onClose, onSave, initialData }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-card border border-border   w-full max-w-2xl max-h-[85vh] overflow-y-auto mx-4" onClick={e => e.stopPropagation()}>
+      <div className="bg-card border border-border w-full max-w-2xl max-h-[85vh] overflow-y-auto mx-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-card z-10">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <span>📋</span> Update Construction Metrics
+            <PencilSimple weight="duotone" size={16} className="text-muted-foreground" />
+            Update Construction Metrics
           </h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground/80 p-1">✕</button>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground/80 p-1">
+            <X weight="duotone" size={14} />
+          </button>
         </div>
         <div className="p-4 space-y-4">
           {sections.map(sec => (
@@ -223,7 +230,7 @@ function DataEntryModal({ open, onClose, onSave, initialData }) {
                       step={f.step}
                       value={form[f.key] ?? ''}
                       onChange={e => update(f.key, parseFloat(e.target.value) || 0)}
-                      className="w-full bg-muted border border-border  px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
+                      className="w-full bg-muted border border-border px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
                     />
                   </div>
                 ))}
@@ -231,8 +238,8 @@ function DataEntryModal({ open, onClose, onSave, initialData }) {
             </div>
           ))}
           <div className="flex justify-end gap-2 pt-2 border-t border-border">
-            <button onClick={onClose} className="px-4 py-2 text-xs text-muted-foreground bg-muted  hover:bg-muted-foreground/10">Cancel</button>
-            <button onClick={handleSave} className="px-4 py-2 text-xs text-white bg-primary  hover:bg-primary">Save Metrics</button>
+            <Button variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
+            <Button size="sm" onClick={handleSave}>Save Metrics</Button>
           </div>
         </div>
       </div>
@@ -240,26 +247,29 @@ function DataEntryModal({ open, onClose, onSave, initialData }) {
   );
 }
 
-// ─── Main ConstructionDashboard Component ─────────────────────────────────
-export default function ConstructionDashboard() {
+// ─── Main Component ────────────────────────────────────────────────────────
+export default function ConstructionDashboard({ setActiveTab }) {
   const { inputs, results } = usePermitData();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [subTab, setSubTab] = useState('leadership');
   const [showEntry, setShowEntry] = useState(false);
 
   const fetchData = () => {
+    if (!results) return;
     setLoading(true);
     fetchConstructionData(inputs?.siteName || 'default', inputs, results).then(res => {
       if (res?.data) setData(res.data);
     }).catch(() => {}).finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchData(); }, [inputs, results]);
+  useEffect(() => {
+    if (results) fetchData();
+    else setLoading(false);
+  }, [inputs, results]);
 
   const handleSaveData = async (formData) => {
     const payload = {
-      projectName: data?.projectName || 'BigWatt AI Campus — Site A',
+      projectName: data?.projectName || 'BigWatt AI Campus \u2014 Site A',
       asOfDate: new Date().toISOString().split('T')[0],
       originalBudget: formData.originalBudget ?? data?.evm?.BAC,
       actualCost: formData.actualCost ?? data?.evm?.ACWP,
@@ -304,7 +314,6 @@ export default function ConstructionDashboard() {
       customerNeedDate: formData.customerNeedDate ?? data?.schedule?.customerNeedDate,
       plannedMargin: formData.plannedMargin ?? data?.plannedMargin,
     };
-    // Include vendors if present in formData
     if (formData.vendors) payload.vendors = formData.vendors;
     try {
       const res = await saveConstructionData(inputs?.siteName || 'default', payload);
@@ -314,39 +323,31 @@ export default function ConstructionDashboard() {
     }
   };
 
-  // Derived KPIs
-  const kpis = useMemo(() => {
-    if (!data) return {};
-    const evm = data.evm || {};
-    const safety = data.safety || {};
-    const quality = data.quality || {};
-    const schedule = data.schedule || {};
-    const contingency = data.contingency || {};
-    return { evm, safety, quality, schedule, contingency };
-  }, [data]);
-
-  const subTabs = [
-    { id: 'csuite', label: 'C-Suite Dashboard', icon: '🏛️' },
-    { id: 'leadership', label: 'Leadership Summary', icon: '📊' },
-    { id: 'hse', label: 'HSE', icon: '🛡️' },
-    { id: 'quality', label: 'Quality', icon: '✅' },
-    { id: 'financials', label: 'Financials', icon: '💰' },
-    { id: 'schedule', label: 'Schedule', icon: '📅' },
-    { id: 'costcat', label: 'Cost Categories', icon: '📁' },
-    { id: 'trackers', label: 'Other Trackers', icon: '📋' },
-    { id: 'risks', label: 'Risk Register', icon: '⚠️' },
-    { id: 'pcos', label: 'PCO Tracker', icon: '📝' },
-    { id: 'baseline', label: 'Baseline & Projections', icon: '📈' },
-    { id: 'vendor', label: 'Vendor Ledger', icon: '📋' },
-    { id: 'charts', label: 'Advanced Charts', icon: '📉' },
-    { id: '3dview', label: '3D Site View', icon: '🏗️' },
-  ];
+  // ─── Empty State (no Site Intake results) ───────────────────────────────
+  if (!results) {
+    return (
+      <div className="px-10 py-8 max-w-[1180px] mx-auto">
+        <Card>
+          <CardContent className="text-center py-16">
+            <p className="text-lg font-semibold text-foreground mb-2">No construction data generated yet</p>
+            <p className="text-sm text-muted-foreground mb-6">
+              Run Site Intake to generate construction project controls, EVM metrics, and the full C-Suite dashboard for your site.
+            </p>
+            <div className="flex justify-center gap-3">
+              <Button onClick={() => setActiveTab?.('intake')}>Generate via Site Intake</Button>
+              <Button variant="outline" onClick={() => setActiveTab?.('siteplanner')}>Plan via Site Planner</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
         <div className="flex items-center gap-3 text-muted-foreground">
-          <div className="w-5 h-5 border-2 border-primary border-t-transparent  animate-spin"></div>
+          <div className="w-5 h-5 border-2 border-primary border-t-transparent animate-spin"></div>
           <span className="text-sm">Loading construction dashboard...</span>
         </div>
       </div>
@@ -362,6 +363,7 @@ export default function ConstructionDashboard() {
     );
   }
 
+  // ─── Derived Data ────────────────────────────────────────────────────────
   const evm = data.evm || {};
   const safety = data.safety || {};
   const quality = data.quality || {};
@@ -371,262 +373,307 @@ export default function ConstructionDashboard() {
   const health = data.healthSummary || {};
   const flags = data.flags || [];
 
+  // ─── Render ──────────────────────────────────────────────────────────────
   return (
-    <div className="p-4 md:p-6 space-y-4">
+    <div className="p-4 md:p-6 space-y-5">
       {/* ── Header ── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-white">Construction Project Controls</h1>
+          <h1 className="text-lg font-bold text-foreground">Construction Project Controls</h1>
           <p className="text-xs text-muted-foreground mt-0.5">{data.projectName} | As of {data.asOfDate}</p>
-          <p className="text-xs text-muted-foreground/70 mt-0.5">Click <span className="text-primary font-mono bg-primary/20 border border-primary/40 rounded px-1 text-xs">ƒx</span> on any metric to see its formula</p>
+          <p className="text-xs text-muted-foreground/70 mt-0.5">
+            Click <span className="text-primary font-mono bg-primary/20 border border-primary/40 rounded px-1 text-xs">fx</span> on any metric to see its formula
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowEntry(true)} className="text-xs bg-primary hover:bg-primary text-white px-3 py-1.5  transition-colors flex items-center gap-1">
-            <span>✏️</span> Update Metrics
-          </button>
-          <button onClick={fetchData} className="text-xs bg-muted hover:bg-muted-foreground/10 text-foreground/80 px-3 py-1.5  transition-colors">
+          <Button size="sm" onClick={() => setShowEntry(true)}>
+            <PencilSimple weight="duotone" size={14} className="mr-1" />
+            Update Metrics
+          </Button>
+          <Button variant="outline" size="sm" onClick={fetchData}>
+            <ArrowsClockwise weight="duotone" size={14} className="mr-1" />
             Refresh
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* ── Overall Health Banner ── */}
-      <div className="flex items-center gap-3 bg-card/50 border border-border/50  px-4 py-2.5">
-        <span className="text-xs text-muted-foreground">Project Health:</span>
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5"><span className="w-2 h-2  bg-green-500"></span><span className="text-xs text-primary">{health.green}</span></span>
-          <span className="flex items-center gap-1.5"><span className="w-2 h-2  bg-amber-500"></span><span className="text-xs text-destructive">{health.amber}</span></span>
-          <span className="flex items-center gap-1.5"><span className="w-2 h-2  bg-red-500"></span><span className="text-xs text-destructive">{health.red}</span></span>
-          <span className="text-xs text-muted-foreground/70">|</span>
-          <span className="text-xs text-muted-foreground">Overall Score:</span>
-          <span className={`text-sm font-bold ${health.overallScore >= 80 ? 'text-primary' : health.overallScore >= 50 ? 'text-destructive' : 'text-destructive'}`}>
-            {health.overallScore}%
-          </span>
-        </div>
-        {flags.length > 0 && (
-          <span className="text-xs text-destructive ml-auto flex items-center gap-1">
-            <span>🔴</span> {flags.length} flag{flags.length > 1 ? 's' : ''} active
-          </span>
-        )}
-      </div>
+      <Card className="py-0" size="sm">
+        <CardContent className="flex items-center gap-3 py-2.5">
+          <span className="text-xs text-muted-foreground">Project Health:</span>
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-green-500" />
+              <span className="text-xs text-primary">{health.green}</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              <span className="text-xs text-amber-400">{health.amber}</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-red-500" />
+              <span className="text-xs text-destructive">{health.red}</span>
+            </span>
+            <span className="text-xs text-muted-foreground/70">|</span>
+            <span className="text-xs text-muted-foreground">Overall Score:</span>
+            <span className={`text-sm font-bold ${health.overallScore >= 80 ? 'text-primary' : 'text-destructive'}`}>
+              {health.overallScore}%
+            </span>
+          </div>
+          {flags.length > 0 && (
+            <span className="text-xs text-destructive ml-auto flex items-center gap-1">
+              <WarningCircle weight="duotone" size={12} />
+              {flags.length} flag{flags.length > 1 ? 's' : ''} active
+            </span>
+          )}
+        </CardContent>
+      </Card>
 
       {/* ── Flags / Alerts ── */}
       {flags.length > 0 && (
-        <div className="bg-red-900/10 border border-red-800/20  p-3">
-          <div className="text-xs font-semibold text-destructive mb-2">⚠ Active Alerts</div>
-          <div className="space-y-1">
-            {flags.map((f, i) => <div key={i} className="text-xs text-destructive flex items-center gap-2"><span>•</span>{f}</div>)}
-          </div>
-        </div>
+        <Card className="border-destructive/30 bg-destructive/5 py-0" size="sm">
+          <CardContent className="py-3">
+            <div className="text-xs font-semibold text-destructive mb-2 flex items-center gap-1.5">
+              <WarningCircle weight="duotone" size={12} />
+              Active Alerts
+            </div>
+            <div className="space-y-1">
+              {flags.map((f, i) => (
+                <div key={i} className="text-xs text-destructive flex items-center gap-2">
+                  <span className="w-1 h-1 rounded-full bg-destructive" />
+                  {f}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* ── C-Suite KPI Row ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KpiCard title="CPI (Cost Perf Index)" value={evm?.CPI?.toFixed(3) || '—'} status={evm?.statusCPI || 'gray'}
-          subtitle={`EAC: $${(evm?.EAC / 1e6).toFixed(1)}M`} onClick={() => setSubTab('financials')}
-          metricKey="cpi" data={data} />
-        <KpiCard title="SPI (Schedule Perf Index)" value={evm?.SPI?.toFixed(3) || '—'} status={evm?.statusSPI || 'gray'}
-          subtitle={`VAC: $${(evm?.VAC / 1e6).toFixed(1)}M`} onClick={() => setSubTab('schedule')}
-          metricKey="spi" data={data} />
-        <KpiCard title="Contingency Burn" value={`${cont?.utilizationPct?.toFixed(0) || 0}%`} status={cont?.status || 'gray'}
-          subtitle={`Used: $${(cont?.used / 1e6).toFixed(1)}M / $${(cont?.budget / 1e6).toFixed(1)}M`} onClick={() => setSubTab('financials')}
-          metricKey="contingencyUtilization" data={data} />
-        <KpiCard title="TRIR (Safety)" value={safety?.trir?.toFixed(2) || '—'} status={safety?.statusTRIR || 'gray'}
-          subtitle={`LTIR: ${safety?.ltir?.toFixed(2) || '—'}`} onClick={() => setSubTab('hse')}
-          metricKey="trir" data={data} />
-      </div>
+      {/* ── Tabbed Interface ── */}
+      <Tabs defaultValue="csuite" className="w-full">
+        <TabsList variant="line" className="w-full flex-wrap gap-0">
+          <TabsTrigger value="csuite">
+            <Gauge weight="duotone" size={14} />
+            C-Suite Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="leadership">
+            <ChartBar weight="duotone" size={14} />
+            Leadership Reporting
+          </TabsTrigger>
+          <TabsTrigger value="hse">
+            <ShieldCheck weight="duotone" size={14} />
+            HSE
+          </TabsTrigger>
+          <TabsTrigger value="quality">
+            <SealCheck weight="duotone" size={14} />
+            Quality
+          </TabsTrigger>
+          <TabsTrigger value="financials">
+            <CurrencyDollar weight="duotone" size={14} />
+            Financials
+          </TabsTrigger>
+          <TabsTrigger value="schedule">
+            <CalendarCheck weight="duotone" size={14} />
+            Schedule
+          </TabsTrigger>
+          <TabsTrigger value="costcat">
+            <Folder weight="duotone" size={14} />
+            Cost Categories
+          </TabsTrigger>
+          <TabsTrigger value="trackers">
+            <Clipboard weight="duotone" size={14} />
+            Other Trackers
+          </TabsTrigger>
+          <TabsTrigger value="risks">
+            <Warning weight="duotone" size={14} />
+            Risk Register
+          </TabsTrigger>
+          <TabsTrigger value="pcos">
+            <NotePencil weight="duotone" size={14} />
+            PCO Tracker
+          </TabsTrigger>
+          <TabsTrigger value="baseline">
+            <TrendUp weight="duotone" size={14} />
+            Baseline &amp; Projections
+          </TabsTrigger>
+          <TabsTrigger value="vendor">
+            <Clipboard weight="duotone" size={14} />
+            Vendor Ledger
+          </TabsTrigger>
+          <TabsTrigger value="charts">
+            <ChartLine weight="duotone" size={14} />
+            Advanced Charts
+          </TabsTrigger>
+          <TabsTrigger value="3dview">
+            <Cube weight="duotone" size={14} />
+            3D Site View
+          </TabsTrigger>
+        </TabsList>
 
-      {/* ── Trend Charts Row ── */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-card/40 border border-border/40  p-4">
-          <h3 className="text-xs font-semibold text-muted-foreground mb-3">CPI / SPI Trend (6 months)</h3>
-          <TrendChart data={data.trendData || []} lines={[
-            { key: 'cpi', label: 'CPI' }, { key: 'spi', label: 'SPI' },
-          ]} />
-        </div>
-        <div className="bg-card/40 border border-border/40  p-4">
-          <h3 className="text-xs font-semibold text-muted-foreground mb-3">TRIR & Contingency Trend</h3>
-          <TrendChart data={data.trendData || []} lines={[
-            { key: 'trir', label: 'TRIR' }, { key: 'contingencyPct', label: 'Contingency %' },
-          ]} />
-        </div>
-      </div>
-
-      {/* ── Sub-tab Navigation ── */}
-      <div className="flex flex-wrap gap-1 border-b border-border pb-2">
-        {subTabs.map(st => (
-          <button key={st.id} onClick={() => setSubTab(st.id)}
-            className={`text-xs px-3 py-1.5 transition-all ${subTab === st.id ? 'bg-muted/60 text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground/80'}`}>
-            <span className="mr-1">{st.icon}</span>{st.label}
-          </button>
-        ))}
-      </div>
-
-      {/* ── Tab Content ── */}
-      <div className="min-h-[300px]">
-        {/* Leadership Summary */}
-        {subTab === 'csuite' && (
-          <div className="space-y-4">
-            {/* C-Suite Dashboard - High Level Rollup */}
-            <div className=" border border-primary/30 bg-primary/10 p-5">
-              <h3 className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
-                <span>🏛️</span> C-Suite Dashboard — Total Development Cost (TDC)
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+        {/* ════════════════ C-Suite Dashboard ════════════════ */}
+        <TabsContent value="csuite" className="mt-4 space-y-4">
+          {/* C-Suite Dashboard - High Level Rollup */}
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <Gauge weight="duotone" size={16} className="text-primary -mt-0.5" />
+                C-Suite Dashboard \u2014 Total Development Cost (TDC)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <KpiCard title="Baseline Budget" value={`$${(evm?.BAC / 1e6).toFixed(1)}M`} status="green" subtitle="Approved TDC" metricKey="eac" data={data} />
                 <KpiCard title="Forecast EAC" value={`$${(evm?.EAC / 1e6).toFixed(1)}M`} status={evm?.EAC > evm?.BAC ? 'red' : 'green'} subtitle={evm?.EAC > evm?.BAC ? `$${((evm?.EAC - evm?.BAC) / 1e6).toFixed(1)}M over budget` : 'Within budget'} metricKey="eac" data={data} />
                 <KpiCard title="Revenue" value={`$${(data.revenue / 1e6).toFixed(1)}M`} status="green" subtitle={`Margin: ${(data.forecastMargin * 100).toFixed(1)}% actual vs ${(data.plannedMargin * 100).toFixed(1)}% planned`} metricKey="forecastMargin" data={data} />
-                <KpiCard title="Net Cash Position" value={`$${(data.netCashPosition / 1e6).toFixed(1)}M`} status={data.netCashPosition < 0 ? 'red' : 'green'} subtitle={data.netCashPosition < 0 ? 'Negative — review AR aging' : 'Positive'} metricKey="netCashPosition" data={data} />
+                <KpiCard title="Net Cash Position" value={`$${(data.netCashPosition / 1e6).toFixed(1)}M`} status={data.netCashPosition < 0 ? 'red' : 'green'} subtitle={data.netCashPosition < 0 ? 'Negative \u2014 review AR aging' : 'Positive'} metricKey="netCashPosition" data={data} />
               </div>
-            </div>
 
-            {/* Milestone Volatility + Contingency Burn */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className=" border border-amber-700/30 bg-amber-950/20 p-4">
-                <h4 className="text-xs font-semibold text-amber-300 mb-3">Milestone Volatility — Variance Days</h4>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-3xl font-bold text-white">{Math.abs(schedule?.scheduleSlipDays || 0)}</span>
-                  <span className="text-sm text-destructive">days behind schedule</span>
-                </div>
-                <div className="bg-muted/40  h-2">
-                  <div className="h-2  bg-amber-500" style={{ width: `${Math.min(100, Math.abs(schedule?.scheduleSlipDays || 0))}%` }}></div>
-                </div>
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>On track</span>
-                  <span>Critical ({Math.abs(schedule?.scheduleSlipDays || 0)}d slip)</span>
-                </div>
-              </div>
-              <div className=" border border-blue-700/30 bg-blue-950/20 p-4">
-                <h4 className="text-xs font-semibold text-blue-300 mb-3">Contingency Burn Rate vs Physical Progress</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <div className="text-xs text-muted-foreground">Contingency Used</div>
-                    <div className="text-2xl font-bold text-white">{data.contingencyBurnPct || 0}%</div>
-                    <div className="text-xs text-muted-foreground/70">of ${(cont?.budget / 1e6).toFixed(1)}M budget</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground">Physical Progress</div>
-                    <div className="text-2xl font-bold text-white">{schedule?.percentCompletePhysical || 0}%</div>
-                    <div className="text-xs text-muted-foreground/70">complete</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Unapproved Claims + Safety */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className=" border border-red-700/30 bg-red-950/10 p-4">
-                <h4 className="text-xs font-semibold text-destructive mb-3">Unapproved Claims & Change Order Exposure</h4>
-                <div className="text-2xl font-bold text-destructive">${((chg?.pendingValue || 0) / 1e6).toFixed(1)}M</div>
-                <div className="text-xs text-muted-foreground mt-1">{chg?.pendingCount || 0} pending PCOs · Avg {(chg?.avgAgingDays || 0)}d aging</div>
-              </div>
-              <div className=" border border-green-700/30 bg-green-950/10 p-4">
-                <h4 className="text-xs font-semibold text-primary mb-3">Safety & Health Compliance — TRIR</h4>
-                <div className="text-2xl font-bold text-primary">{safety?.trir || 0}</div>
-                <div className="text-xs text-muted-foreground mt-1">TRIR · {safety?.safetyDaysSinceLast || 0} days since last incident · {safety?.recordableIncidents || 0} recordable</div>
-              </div>
-            </div>
-
-            {/* Top 5 Risk Register */}
-            <div className=" border border-border/40 bg-card/40 p-4">
-              <h4 className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                <span>⚠️</span> Top 5 Risk Register (RED/YELLOW)
-              </h4>
-              <RiskRegister risks={data.topRisks} />
-            </div>
-
-            {/* Advanced Visuals — PowerBI-beating charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <BudgetWaterfall data={data} />
-              <MilestoneVarianceChart data={data} />
-            </div>
-          </div>
-        )}
-
-        {subTab === 'leadership' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-card/40 border border-border/40  p-4">
-                <h3 className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                  <span>📊</span> Key Performance Indicators
-                </h3>
-                <div className="space-y-2 text-xs">
-                  {[
-                    { label: 'Revenue', value: `$${(data.revenue / 1e6).toFixed(1)}M`, status: 'green' },
-                    { label: 'Planned Margin', value: `${(data.plannedMargin * 100).toFixed(1)}%`, status: 'green' },
-                    { label: 'Forecast Margin', value: `${(data.forecastMargin * 100).toFixed(1)}%`, status: data.forecastMargin >= data.plannedMargin ? 'green' : 'red' },
-                    { label: 'CPI', value: evm?.CPI?.toFixed(3), status: evm?.statusCPI },
-                    { label: 'SPI', value: evm?.SPI?.toFixed(3), status: evm?.statusSPI },
-                    { label: '% Complete', value: `${evm?.percentComplete}%`, status: 'green' },
-                    { label: 'Net Cash Position', value: `$${(data.netCashPosition / 1e6).toFixed(1)}M`, status: data.netCashPosition >= 0 ? 'green' : 'red' },
-                    { label: 'Cashflow Position', value: `$${(data.cashPosition / 1e6).toFixed(1)}M`, status: 'green' },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center justify-between bg-muted/30  px-3 py-2">
-                      <span className="text-muted-foreground">{item.label}</span>
-                      <span className="flex items-center gap-2">
-                        <span className="font-semibold text-foreground">{item.value}</span>
-                        <TrafficDot status={item.status} />
-                      </span>
+              {/* Milestone Volatility + Contingency Burn */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-amber-400">Milestone Volatility</CardTitle>
+                    <CardDescription>Variance Days</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-3xl font-bold text-foreground">{Math.abs(schedule?.scheduleSlipDays || 0)}</span>
+                      <span className="text-sm text-destructive">days behind schedule</span>
                     </div>
-                  ))}
-                </div>
+                    <div className="bg-muted/40 h-2">
+                      <div className="h-2 bg-amber-500" style={{ width: `${Math.min(100, Math.abs(schedule?.scheduleSlipDays || 0))}%` }}></div>
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                      <span>On track</span>
+                      <span>Critical ({Math.abs(schedule?.scheduleSlipDays || 0)}d slip)</span>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-blue-400">Contingency Burn Rate vs Physical Progress</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <div className="text-xs text-muted-foreground">Contingency Used</div>
+                        <div className="text-2xl font-bold text-foreground">{data.contingencyBurnPct || 0}%</div>
+                        <div className="text-xs text-muted-foreground/70">of ${(cont?.budget / 1e6).toFixed(1)}M budget</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground">Physical Progress</div>
+                        <div className="text-2xl font-bold text-foreground">{schedule?.percentCompletePhysical || 0}%</div>
+                        <div className="text-xs text-muted-foreground/70">complete</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-              <div>
-                <div className="bg-card/40 border border-border/40  p-4 mb-4">
-                  <h3 className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                    <span>⚠️</span> Top 5 Risk Register
-                  </h3>
+
+              {/* Unapproved Claims + Safety */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-destructive">Unapproved Claims &amp; Change Order Exposure</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-destructive">${((chg?.pendingValue || 0) / 1e6).toFixed(1)}M</div>
+                    <div className="text-xs text-muted-foreground mt-1">{chg?.pendingCount || 0} pending PCOs \u00b7 Avg {(chg?.avgAgingDays || 0)}d aging</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-primary">Safety &amp; Health Compliance \u2014 TRIR</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-primary">{safety?.trir || 0}</div>
+                    <div className="text-xs text-muted-foreground mt-1">TRIR \u00b7 {safety?.safetyDaysSinceLast || 0} days since last incident \u00b7 {safety?.recordableIncidents || 0} recordable</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Top 5 Risk Register */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    <Warning weight="duotone" size={16} className="text-destructive -mt-0.5" />
+                    Top 5 Risk Register (RED/YELLOW)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                   <RiskRegister risks={data.topRisks} />
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-card/40 border border-border/40  p-4">
-                <h3 className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                  <span>📈</span> EAC / BAC Trend
-                </h3>
-                {renderEVMBars(evm)}
-              </div>
-              <div className="bg-card/40 border border-border/40  p-4">
-                <h3 className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                  <span>🚦</span> Traffic Light Dashboard
-                </h3>
-                <div className="grid grid-cols-2 gap-1.5 text-xs">
-                  {[
-                    { label: 'Cost Performance', status: evm?.statusCPI },
-                    { label: 'Schedule Performance', status: evm?.statusSPI },
-                    { label: 'VAC', status: evm?.statusVAC },
-                    { label: 'Contingency Burn', status: cont?.status },
-                    { label: 'Safety (TRIR)', status: safety?.statusTRIR },
-                    { label: 'Safety (LTIR)', status: safety?.statusLTIR },
-                    { label: 'Rework %', status: quality?.statusRework },
-                    { label: 'RFI Response', status: quality?.statusRFI },
-                    { label: 'Schedule Slip', status: schedule?.statusMS },
-                    { label: 'Inspection Pass', status: data.statusInspection },
-                    { label: 'PCO Aging', status: chg?.status },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center justify-between bg-muted/30  px-2.5 py-1.5">
-                      <span className="text-muted-foreground">{item.label}</span>
-                      <TrafficDot status={item.status} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+                </CardContent>
+              </Card>
 
-        {/* HSE */}
-        {subTab === 'hse' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <KpiCard title="TRIR" value={safety?.trir?.toFixed(2) || '—'} status={safety?.statusTRIR} subtitle="Recordable Incident Rate" metricKey="trir" data={data} />
-              <KpiCard title="LTIR" value={safety?.ltir?.toFixed(2) || '—'} status={safety?.statusLTIR} subtitle="Lost Time Incident Rate" metricKey="ltir" data={data} />
-              <KpiCard title="Days Since Last Incident" value={data.safetyDaysSinceLast || 0} status={data.safetyDaysSinceLast > 30 ? 'green' : data.safetyDaysSinceLast > 7 ? 'amber' : 'red'} />
-              <KpiCard title="Total Work Hours" value={(safety?.totalWorkHours || 0).toLocaleString()} status="green" />
-            </div>
-            <div className="bg-card/40 border border-border/40  p-4">
-              <h3 className="text-xs font-semibold text-muted-foreground mb-3">Safety Details</h3>
+              {/* Advanced Visuals */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <BudgetWaterfall data={data} />
+                <MilestoneVarianceChart data={data} />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ════════════════ Leadership Reporting ════════════════ */}
+        <TabsContent value="leadership" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <ChartBar weight="duotone" size={16} className="text-primary -mt-0.5" />
+                Leadership Reporting
+              </CardTitle>
+              <CardDescription>Portfolio project grid with traffic-light performance indicators</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Project ID</TableHead>
+                    <TableHead>Project Name</TableHead>
+                    <TableHead>As of Date</TableHead>
+                    <TableHead>Revenue</TableHead>
+                    <TableHead>Planned Margin</TableHead>
+                    <TableHead>Forecast Margin</TableHead>
+                    <TableHead>CPI</TableHead>
+                    <TableHead>SPI</TableHead>
+                    <TableHead>Schedule</TableHead>
+                    <TableHead>Safety</TableHead>
+                    <TableHead>Quality</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{data.projectId || 'BIGW-001'}</TableCell>
+                    <TableCell className="font-medium text-foreground">{data.projectName || 'BigWatt AI Campus'}</TableCell>
+                    <TableCell className="text-muted-foreground">{data.asOfDate}</TableCell>
+                    <TableCell className="text-foreground">${(data.revenue / 1e6).toFixed(1)}M</TableCell>
+                    <TableCell className="text-foreground">{(data.plannedMargin * 100).toFixed(1)}%</TableCell>
+                    <TableCell className="text-foreground">{(data.forecastMargin * 100).toFixed(1)}%</TableCell>
+                    <TableCell><TrafficBadge status={evm?.statusCPI || 'gray'} /></TableCell>
+                    <TableCell><TrafficBadge status={evm?.statusSPI || 'gray'} /></TableCell>
+                    <TableCell><TrafficBadge status={schedule?.statusMS || 'gray'} /></TableCell>
+                    <TableCell><TrafficBadge status={safety?.statusTRIR || 'gray'} /></TableCell>
+                    <TableCell><TrafficBadge status={quality?.statusRework || 'gray'} /></TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ════════════════ HSE ════════════════ */}
+        <TabsContent value="hse" className="mt-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <KpiCard title="TRIR" value={safety?.trir?.toFixed(2) || '\u2014'} status={safety?.statusTRIR} subtitle="Recordable Incident Rate" metricKey="trir" data={data} />
+            <KpiCard title="LTIR" value={safety?.ltir?.toFixed(2) || '\u2014'} status={safety?.statusLTIR} subtitle="Lost Time Incident Rate" metricKey="ltir" data={data} />
+            <KpiCard title="Days Since Last Incident" value={data.safetyDaysSinceLast || 0} status={data.safetyDaysSinceLast > 30 ? 'green' : data.safetyDaysSinceLast > 7 ? 'amber' : 'red'} />
+            <KpiCard title="Total Work Hours" value={(safety?.totalWorkHours || 0).toLocaleString()} status="green" />
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Safety Details</CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="grid grid-cols-3 md:grid-cols-6 gap-3 text-xs">
                 {[
                   { label: 'Total Hours', value: safeFormat(safety?.totalWorkHours || 0) },
@@ -636,55 +683,61 @@ export default function ConstructionDashboard() {
                   { label: 'Fatalities', value: safety?.fatalities || 0 },
                   { label: 'Days Since Last', value: data.safetyDaysSinceLast || 0 },
                 ].map((item, i) => (
-                  <div key={i} className="bg-muted/40  p-3 text-center">
+                  <div key={i} className="bg-muted/40 p-3 text-center">
                     <div className="text-muted-foreground mb-1">{item.label}</div>
                     <div className="text-lg font-bold text-foreground">{item.value}</div>
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-        )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        {/* Quality */}
-        {subTab === 'quality' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <KpiCard title="Total RFIs" value={quality?.rfiTotal || 0} status="green" />
-              <KpiCard title="Avg RFI Response" value={`${quality?.rfiAvgResponseDays?.toFixed(1) || '—'}d`} status={quality?.statusRFI || 'gray'} metricKey="rfiResponseDays" data={data} />
-              <KpiCard title="Punchlist Open" value={quality?.punchlistOpen || 0} status={quality?.punchlistOpen < 20 ? 'green' : quality?.punchlistOpen < 40 ? 'amber' : 'red'} subtitle={`of ${quality?.punchlistItems || 0} total`} />
-              <KpiCard title="Rework Cost" value={`$${((quality?.reworkCost || 0) / 1e6).toFixed(1)}M`} status={quality?.statusRework || 'gray'} subtitle={`${quality?.reworkPct || 0}% of total`} metricKey="reworkPct" data={data} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-card/40 border border-border/40  p-4">
-                <h3 className="text-xs font-semibold text-muted-foreground mb-3">Quality Metrics Details</h3>
+        {/* ════════════════ Quality ════════════════ */}
+        <TabsContent value="quality" className="mt-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <KpiCard title="Total RFIs" value={quality?.rfiTotal || 0} status="green" />
+            <KpiCard title="Avg RFI Response" value={`${quality?.rfiAvgResponseDays?.toFixed(1) || '\u2014'}d`} status={quality?.statusRFI || 'gray'} metricKey="rfiResponseDays" data={data} />
+            <KpiCard title="Punchlist Open" value={quality?.punchlistOpen || 0} status={quality?.punchlistOpen < 20 ? 'green' : quality?.punchlistOpen < 40 ? 'amber' : 'red'} subtitle={`of ${quality?.punchlistItems || 0} total`} />
+            <KpiCard title="Rework Cost" value={`$${((quality?.reworkCost || 0) / 1e6).toFixed(1)}M`} status={quality?.statusRework || 'gray'} subtitle={`${quality?.reworkPct || 0}% of total`} metricKey="reworkPct" data={data} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Quality Metrics Details</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-2 text-xs">
                   {[
                     { label: 'Total RFIs Submitted', value: quality?.rfiTotal || 0 },
-                    { label: 'Avg Response Time', value: `${quality?.rfiAvgResponseDays?.toFixed(1) || '—'} days` },
+                    { label: 'Avg Response Time', value: `${quality?.rfiAvgResponseDays?.toFixed(1) || '\u2014'} days` },
                     { label: 'Punchlist Items', value: quality?.punchlistItems || 0 },
                     { label: 'Punchlist Closed', value: quality?.punchlistClosed || 0 },
                     { label: 'Punchlist Close Rate', value: `${quality?.punchlistCloseRate?.toFixed(1) || 0}%` },
                     { label: 'Rework Cost', value: `$${((quality?.reworkCost || 0) / 1e6).toFixed(1)}M` },
                     { label: 'Rework % of Cost', value: `${quality?.reworkPct || 0}%` },
                   ].map((item, i) => (
-                    <div key={i} className="flex justify-between bg-muted/30  px-3 py-2">
+                    <div key={i} className="flex justify-between bg-muted/30 px-3 py-2">
                       <span className="text-muted-foreground">{item.label}</span>
                       <span className="font-semibold text-foreground">{item.value}</span>
                     </div>
                   ))}
                 </div>
-              </div>
-              <div className="bg-card/40 border border-border/40  p-4">
-                <h3 className="text-xs font-semibold text-muted-foreground mb-3">AHJ & Commissioning</h3>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>AHJ &amp; Commissioning</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-3">
                   <div>
                     <div className="flex justify-between text-xs text-muted-foreground mb-1">
                       <span>Inspection Pass Rate</span>
                       <span>{(data.inspectionPassRate || 0).toFixed(0)}%</span>
                     </div>
-                    <div className="h-2 bg-muted  overflow-hidden">
-                      <div className={`h-full  ${data.inspectionPassRate >= 90 ? 'bg-green-500' : data.inspectionPassRate >= 80 ? 'bg-amber-500' : 'bg-red-500'}`}
+                    <div className="h-2 bg-muted overflow-hidden">
+                      <div className={`h-full ${data.inspectionPassRate >= 90 ? 'bg-green-500' : data.inspectionPassRate >= 80 ? 'bg-amber-500' : 'bg-red-500'}`}
                         style={{ width: `${data.inspectionPassRate || 0}%` }}></div>
                     </div>
                     <div className="flex justify-between text-xs text-muted-foreground/70 mt-0.5">
@@ -697,33 +750,35 @@ export default function ConstructionDashboard() {
                       <span>Commissioning Prerequisites</span>
                       <span>{data.commissioningPrerequisites || 0}%</span>
                     </div>
-                    <div className="h-2 bg-muted  overflow-hidden">
-                      <div className="h-full bg-purple-500 " style={{ width: `${data.commissioningPrerequisites || 0}%` }}></div>
+                    <div className="h-2 bg-muted overflow-hidden">
+                      <div className="h-full bg-purple-500" style={{ width: `${data.commissioningPrerequisites || 0}%` }}></div>
                     </div>
                   </div>
-                  <div className="bg-muted/40  p-3 text-xs">
+                  <div className="bg-muted/40 p-3 text-xs">
                     <div className="text-muted-foreground">AHJ Permit Status</div>
                     <div className="text-foreground font-semibold mt-1">{data.ahjPermitStatus || 'Not Started'}</div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
-        )}
+        </TabsContent>
 
-        {/* Financials */}
-        {subTab === 'financials' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-              <KpiCard title="CPI" value={evm?.CPI?.toFixed(3) || '—'} status={evm?.statusCPI} subtitle={`EV: $${(evm?.EV / 1e6).toFixed(1)}M`} metricKey="cpi" data={data} />
-              <KpiCard title="EAC" value={`$${(evm?.EAC / 1e6).toFixed(1)}M`} status={evm?.statusVAC} subtitle={`BAC: $${(evm?.BAC / 1e6).toFixed(1)}M`} metricKey="eac" data={data} />
-              <KpiCard title="VAC" value={`$${(evm?.VAC / 1e6).toFixed(1)}M`} status={evm?.statusVAC} subtitle={`${evm?.VACPct?.toFixed(1) || 0}%`} metricKey="vac" data={data} />
-              <KpiCard title="Contingency" value={`${cont?.utilizationPct?.toFixed(0) || 0}%`} status={cont?.status} subtitle={`Used: $${(cont?.used / 1e6).toFixed(1)}M`} metricKey="contingencyUtilization" data={data} />
-              <KpiCard title="Cash Position" value={`$${(data.cashPosition / 1e6).toFixed(1)}M`} status={data.cashPosition > 0 ? 'green' : 'red'} metricKey="netCashPosition" data={data} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-card/40 border border-border/40  p-4">
-                <h3 className="text-xs font-semibold text-muted-foreground mb-3">EVM Summary</h3>
+        {/* ════════════════ Financials ════════════════ */}
+        <TabsContent value="financials" className="mt-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <KpiCard title="CPI" value={evm?.CPI?.toFixed(3) || '\u2014'} status={evm?.statusCPI} subtitle={`EV: $${(evm?.EV / 1e6).toFixed(1)}M`} metricKey="cpi" data={data} />
+            <KpiCard title="EAC" value={`$${(evm?.EAC / 1e6).toFixed(1)}M`} status={evm?.statusVAC} subtitle={`BAC: $${(evm?.BAC / 1e6).toFixed(1)}M`} metricKey="eac" data={data} />
+            <KpiCard title="VAC" value={`$${(evm?.VAC / 1e6).toFixed(1)}M`} status={evm?.statusVAC} subtitle={`${evm?.VACPct?.toFixed(1) || 0}%`} metricKey="vac" data={data} />
+            <KpiCard title="Contingency" value={`${cont?.utilizationPct?.toFixed(0) || 0}%`} status={cont?.status} subtitle={`Used: $${(cont?.used / 1e6).toFixed(1)}M`} metricKey="contingencyUtilization" data={data} />
+            <KpiCard title="Cash Position" value={`$${(data.cashPosition / 1e6).toFixed(1)}M`} status={data.cashPosition > 0 ? 'green' : 'red'} metricKey="netCashPosition" data={data} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>EVM Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-2 text-xs">
                   {[
                     { label: 'Budget at Completion (BAC)', value: `$${(evm?.BAC / 1e6).toFixed(1)}M` },
@@ -732,42 +787,50 @@ export default function ConstructionDashboard() {
                     { label: 'Planned Value (PV)', value: `$${(evm?.PV / 1e6).toFixed(1)}M` },
                     { label: 'Cost Variance (CV)', value: `$${(evm?.CV / 1e6).toFixed(1)}M` },
                     { label: 'Schedule Variance (SV)', value: `$${(evm?.SV / 1e6).toFixed(1)}M` },
-                    { label: 'TCPI', value: evm?.TCPI?.toFixed(3) || '—' },
+                    { label: 'TCPI', value: evm?.TCPI?.toFixed(3) || '\u2014' },
                     { label: '% Complete', value: `${evm?.percentComplete}%` },
                     { label: 'Planned % Complete', value: `${evm?.plannedPctComplete}%` },
                     { label: 'Billing to Date', value: `$${(data.billingToDate / 1e6).toFixed(1)}M` },
                   ].map((item, i) => (
-                    <div key={i} className="flex justify-between bg-muted/30  px-3 py-1.5">
+                    <div key={i} className="flex justify-between bg-muted/30 px-3 py-1.5">
                       <span className="text-muted-foreground">{item.label}</span>
                       <span className="font-semibold text-foreground">{item.value}</span>
                     </div>
                   ))}
                 </div>
-              </div>
-              <div>
-                <div className="bg-card/40 border border-border/40  p-4 mb-4">
-                  <h3 className="text-xs font-semibold text-muted-foreground mb-3">Change Order (PCO) Summary</h3>
+              </CardContent>
+            </Card>
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Change Order (PCO) Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-muted/40  p-3">
+                    <div className="bg-muted/40 p-3">
                       <div className="text-muted-foreground">Total PCOs</div>
                       <div className="text-lg font-bold text-foreground">{chg?.totalPCO || 0}</div>
                     </div>
-                    <div className="bg-muted/40  p-3">
+                    <div className="bg-muted/40 p-3">
                       <div className="text-muted-foreground">Total Value</div>
                       <div className="text-lg font-bold text-destructive">${((chg?.totalPCOValue || 0) / 1e6).toFixed(1)}M</div>
                     </div>
-                    <div className="bg-muted/40  p-3">
+                    <div className="bg-muted/40 p-3">
                       <div className="text-muted-foreground">Pending</div>
                       <div className="text-lg font-bold text-destructive">{chg?.pendingCount || 0}</div>
                     </div>
-                    <div className="bg-muted/40  p-3">
+                    <div className="bg-muted/40 p-3">
                       <div className="text-muted-foreground">Avg Aging</div>
                       <div className="text-lg font-bold text-foreground">{chg?.avgAgingDays || 0}d</div>
                     </div>
                   </div>
-                </div>
-                <div className="bg-card/40 border border-border/40  p-4">
-                  <h3 className="text-xs font-semibold text-muted-foreground mb-3">Financial Trackers</h3>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Financial Trackers</CardTitle>
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-2 text-xs">
                     {[
                       { label: 'Retainage', value: `$${(data.retainage / 1e6).toFixed(1)}M` },
@@ -777,125 +840,138 @@ export default function ConstructionDashboard() {
                       { label: 'GC Buyout Complete', value: `${data.gcBuyoutComplete || 0}%` },
                       { label: 'Lien Waivers Received', value: data.lienWaiversReceived || 0 },
                     ].map((item, i) => (
-                      <div key={i} className="flex justify-between bg-muted/30  px-3 py-1.5">
+                      <div key={i} className="flex justify-between bg-muted/30 px-3 py-1.5">
                         <span className="text-muted-foreground">{item.label}</span>
                         <span className="font-semibold text-foreground">{item.value}</span>
                       </div>
                     ))}
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        )}
+        </TabsContent>
 
-        {/* Schedule */}
-        {subTab === 'schedule' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <KpiCard title="SPI" value={evm?.SPI?.toFixed(3) || '—'} status={evm?.statusSPI} subtitle="Schedule Performance" metricKey="spi" data={data} />
-              <KpiCard title="Schedule Slip" value={`${schedule?.scheduleSlipDays || 0}d`} status={schedule?.statusMS || 'gray'} metricKey="scheduleSlipDays" data={data} />
-              <KpiCard title="Critical Path" value={`${schedule?.criticalPathLength || 0}d`} status={schedule?.criticalPathLength > 60 ? 'red' : schedule?.criticalPathLength > 30 ? 'amber' : 'green'} />
-              <KpiCard title="Float Consumed" value={`${schedule?.floatConsumed || 0}d`} status={schedule?.floatConsumed > 30 ? 'red' : schedule?.floatConsumed > 15 ? 'amber' : 'green'} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-card/40 border border-border/40  p-4">
-                <h3 className="text-xs font-semibold text-muted-foreground mb-3">Schedule Details</h3>
+        {/* ════════════════ Schedule ════════════════ */}
+        <TabsContent value="schedule" className="mt-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <KpiCard title="SPI" value={evm?.SPI?.toFixed(3) || '\u2014'} status={evm?.statusSPI} subtitle="Schedule Performance" metricKey="spi" data={data} />
+            <KpiCard title="Schedule Slip" value={`${schedule?.scheduleSlipDays || 0}d`} status={schedule?.statusMS || 'gray'} metricKey="scheduleSlipDays" data={data} />
+            <KpiCard title="Critical Path" value={`${schedule?.criticalPathLength || 0}d`} status={schedule?.criticalPathLength > 60 ? 'red' : schedule?.criticalPathLength > 30 ? 'amber' : 'green'} />
+            <KpiCard title="Float Consumed" value={`${schedule?.floatConsumed || 0}d`} status={schedule?.floatConsumed > 30 ? 'red' : schedule?.floatConsumed > 15 ? 'amber' : 'green'} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Schedule Details</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-2 text-xs">
                   {[
-                    { label: 'Planned Finish', value: schedule?.plannedFinish || '—' },
-                    { label: 'Forecast Finish', value: schedule?.forecastFinish || '—' },
+                    { label: 'Planned Finish', value: schedule?.plannedFinish || '\u2014' },
+                    { label: 'Forecast Finish', value: schedule?.forecastFinish || '\u2014' },
                     { label: 'Schedule Slip', value: `${schedule?.scheduleSlipDays || 0} days` },
                     { label: 'Slip %', value: `${schedule?.scheduleSlipPct || 0}%` },
                     { label: 'Milestone Variance', value: `${schedule?.milestoneVarianceDays || 0} days` },
                     { label: 'Critical Path Length', value: `${schedule?.criticalPathLength || 0} days` },
                     { label: 'Float Consumed', value: `${schedule?.floatConsumed || 0} days` },
                   ].map((item, i) => (
-                    <div key={i} className="flex justify-between bg-muted/30  px-3 py-1.5">
+                    <div key={i} className="flex justify-between bg-muted/30 px-3 py-1.5">
                       <span className="text-muted-foreground">{item.label}</span>
                       <span className="font-semibold text-foreground">{item.value}</span>
                     </div>
                   ))}
                 </div>
-              </div>
-              <div className="bg-card/40 border border-border/40  p-4">
-                <h3 className="text-xs font-semibold text-muted-foreground mb-3">CPI / SPI Trend</h3>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>CPI / SPI Trend</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <TrendChart data={data.trendData || []} lines={[
                   { key: 'cpi', label: 'CPI' }, { key: 'spi', label: 'SPI' },
                 ]} />
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
-        )}
+        </TabsContent>
 
-        {/* Cost Categories */}
-        {subTab === 'costcat' && (
-          <div className="space-y-4">
-            <div className="bg-card/40 border border-border/40  p-4">
-              <h3 className="text-xs font-semibold text-muted-foreground mb-3">Cost Category Breakdown (Budget vs Actual)</h3>
+        {/* ════════════════ Cost Categories ════════════════ */}
+        <TabsContent value="costcat" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Cost Category Breakdown (Budget vs Actual)</CardTitle>
+            </CardHeader>
+            <CardContent>
               <CostCategoryBreakdown categories={data.costCategories} />
-            </div>
-            <div className="bg-card/40 border border-border/40  p-4">
-              <h3 className="text-xs font-semibold text-muted-foreground mb-3">Detailed Cost Categories</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="text-muted-foreground border-b border-border">
-                      <th className="text-left py-2 px-2">Category</th>
-                      <th className="text-right py-2 px-2">Budget</th>
-                      <th className="text-right py-2 px-2">Actual</th>
-                      <th className="text-right py-2 px-2">Remaining</th>
-                      <th className="text-right py-2 px-2">% Complete</th>
-                      <th className="text-right py-2 px-2">Variance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(data.costCategories || []).map((cat, i) => {
-                      const remaining = cat.budget - cat.actual;
-                      const variance = cat.budget > 0 ? ((cat.budget - cat.actual) / cat.budget * 100).toFixed(1) : 0;
-                      return (
-                        <tr key={i} className="border-b border-border/50 hover:bg-muted/20">
-                          <td className="py-2 px-2 text-foreground/80">{cat.name}</td>
-                          <td className="py-2 px-2 text-right text-muted-foreground">${(cat.budget / 1e6).toFixed(1)}M</td>
-                          <td className="py-2 px-2 text-right text-muted-foreground">${(cat.actual / 1e6).toFixed(1)}M</td>
-                          <td className="py-2 px-2 text-right text-muted-foreground">${(remaining / 1e6).toFixed(1)}M</td>
-                          <td className="py-2 px-2 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <div className="w-12 h-1.5 bg-muted  overflow-hidden">
-                                <div className="h-full bg-primary " style={{ width: `${cat.pctComplete}%` }}></div>
-                              </div>
-                              <span className="text-muted-foreground">{cat.pctComplete}%</span>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Detailed Cost Categories</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="text-right">Budget</TableHead>
+                    <TableHead className="text-right">Actual</TableHead>
+                    <TableHead className="text-right">Remaining</TableHead>
+                    <TableHead className="text-right">% Complete</TableHead>
+                    <TableHead className="text-right">Variance</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(data.costCategories || []).map((cat, i) => {
+                    const remaining = cat.budget - cat.actual;
+                    const variance = cat.budget > 0 ? ((cat.budget - cat.actual) / cat.budget * 100).toFixed(1) : 0;
+                    return (
+                      <TableRow key={i}>
+                        <TableCell className="text-foreground/80">{cat.name}</TableCell>
+                        <TableCell className="text-right text-muted-foreground">${(cat.budget / 1e6).toFixed(1)}M</TableCell>
+                        <TableCell className="text-right text-muted-foreground">${(cat.actual / 1e6).toFixed(1)}M</TableCell>
+                        <TableCell className="text-right text-muted-foreground">${(remaining / 1e6).toFixed(1)}M</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <div className="w-12 h-1.5 bg-muted overflow-hidden">
+                              <div className="h-full bg-primary" style={{ width: `${cat.pctComplete}%` }}></div>
                             </div>
-                          </td>
-                          <td className={`py-2 px-2 text-right font-semibold ${variance >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                            {variance >= 0 ? '+' : ''}{variance}%
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
+                            <span className="text-muted-foreground">{cat.pctComplete}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className={`text-right font-semibold ${variance >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                          {variance >= 0 ? '+' : ''}{variance}%
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        {/* Risk Register */}
-        {subTab === 'trackers' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <KpiCard title="GC Buyout Status" value={`${data.gcBuyoutComplete || 0}%`} status={data.gcBuyoutComplete >= 90 ? 'green' : data.gcBuyoutComplete >= 70 ? 'amber' : 'red'} subtitle="Percent complete" />
-              <KpiCard title="Stored Materials (Offsite)" value={`$${((data.storedMaterialsValue || 0) / 1e6).toFixed(1)}M`} status="amber" subtitle="Value stored offsite" />
-              <KpiCard title="Lien Waiver Compliance" value={data.lienWaiverCompliance || 'N'} status={data.lienWaiverCompliance === 'Y' ? 'green' : 'red'} subtitle={`${data.lienWaiversReceived || 0} received`} />
-              <KpiCard title="Headcount" value={data.headcount || 0} status={data.actualVsPlannedHeadcountPct >= 90 ? 'green' : 'amber'} subtitle={data.actualVsPlannedHeadcountPct ? `${data.actualVsPlannedHeadcountPct}% of planned` : ''} />
-            </div>
-            <div className="bg-card/40 border border-border/40  p-4">
-              <h3 className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                <span>📋</span> Other Construction Trackers
-              </h3>
+        {/* ════════════════ Other Trackers ════════════════ */}
+        <TabsContent value="trackers" className="mt-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <KpiCard title="GC Buyout Status" value={`${data.gcBuyoutComplete || 0}%`} status={data.gcBuyoutComplete >= 90 ? 'green' : data.gcBuyoutComplete >= 70 ? 'amber' : 'red'} subtitle="Percent complete" />
+            <KpiCard title="Stored Materials (Offsite)" value={`$${((data.storedMaterialsValue || 0) / 1e6).toFixed(1)}M`} status="amber" subtitle="Value stored offsite" />
+            <KpiCard title="Lien Waiver Compliance" value={data.lienWaiverCompliance || 'N'} status={data.lienWaiverCompliance === 'Y' ? 'green' : 'red'} subtitle={`${data.lienWaiversReceived || 0} received`} />
+            <KpiCard title="Headcount" value={data.headcount || 0} status={data.actualVsPlannedHeadcountPct >= 90 ? 'green' : 'amber'} subtitle={data.actualVsPlannedHeadcountPct ? `${data.actualVsPlannedHeadcountPct}% of planned` : ''} />
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <Clipboard weight="duotone" size={16} className="text-muted-foreground -mt-0.5" />
+                Other Construction Trackers
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                 {[
-                  { label: 'AHJ Permit Status', value: data.ahjPermitStatus || '—' },
+                  { label: 'AHJ Permit Status', value: data.ahjPermitStatus || '\u2014' },
                   { label: 'AHJ Inspection Pass Rate', value: `${data.inspectionPassRate || 0}%` },
                   { label: 'Commissioning Prerequisites', value: `${data.cxPrerequisitesPct || 0}%` },
                   { label: 'Weather Days Lost (Total)', value: `${data.weatherDaysLost || 0}d` },
@@ -908,159 +984,176 @@ export default function ConstructionDashboard() {
                   { label: 'Weather Days Lost', value: `${data.weatherDaysLost || 0} days` },
                   { label: 'Pending PCO Aging (Avg)', value: `${chg?.avgAgingDays || 0}d` },
                 ].map((item, i) => (
-                  <div key={i} className="bg-muted/30  px-3 py-2">
+                  <div key={i} className="bg-muted/30 px-3 py-2">
                     <div className="text-muted-foreground mb-0.5">{item.label}</div>
                     <div className="font-semibold text-foreground">{item.value}</div>
                   </div>
                 ))}
               </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <KpiCard title="Owner Contingency" value={`$${((data.ownerContingencyBudget || 0) / 1e6).toFixed(1)}M`} status={(data.ownerContingencyUsed || 0) > (data.ownerContingencyBudget || 0) * 0.8 ? 'red' : 'green'} subtitle={`$${((data.ownerContingencyUsed || 0) / 1e6).toFixed(1)}M used`} />
-              <KpiCard title="GC Contingency" value={`$${((data.gcContingencyBudget || 0) / 1e6).toFixed(1)}M`} status={(data.gcContingencyUsed || 0) > (data.gcContingencyBudget || 0) * 0.8 ? 'red' : 'amber'} subtitle={`$${((data.gcContingencyUsed || 0) / 1e6).toFixed(1)}M used`} />
-            </div>
+            </CardContent>
+          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <KpiCard title="Owner Contingency" value={`$${((data.ownerContingencyBudget || 0) / 1e6).toFixed(1)}M`} status={(data.ownerContingencyUsed || 0) > (data.ownerContingencyBudget || 0) * 0.8 ? 'red' : 'green'} subtitle={`$${((data.ownerContingencyUsed || 0) / 1e6).toFixed(1)}M used`} />
+            <KpiCard title="GC Contingency" value={`$${((data.gcContingencyBudget || 0) / 1e6).toFixed(1)}M`} status={(data.gcContingencyUsed || 0) > (data.gcContingencyBudget || 0) * 0.8 ? 'red' : 'amber'} subtitle={`$${((data.gcContingencyUsed || 0) / 1e6).toFixed(1)}M used`} />
           </div>
-        )}
+        </TabsContent>
 
-        {subTab === 'risks' && (
-          <div className="space-y-4">
-            <div className="bg-card/40 border border-border/40  p-4">
-              <h3 className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                <span>⚠️</span> Top 5 Risk Register
-              </h3>
+        {/* ════════════════ Risk Register ════════════════ */}
+        <TabsContent value="risks" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <Warning weight="duotone" size={16} className="text-destructive -mt-0.5" />
+                Top 5 Risk Register
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <RiskRegister risks={data.topRisks} />
-            </div>
-          </div>
-        )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        {/* 3D Site View — wrapped in useMemo with stable key to prevent remount on data refetch */}
-        {subTab === '3dview' && (
+        {/* ════════════════ PCO Tracker ════════════════ */}
+        <TabsContent value="pcos" className="mt-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <KpiCard title="Total PCOs" value={chg?.totalPCO || 0} status="green" subtitle={`${chg?.approvedCount || 0} approved`} />
+            <KpiCard title="Total PCO Value" value={`$${((chg?.totalPCOValue || 0) / 1e6).toFixed(1)}M`} status={chg?.pendingCount > 3 ? 'amber' : 'green'} />
+            <KpiCard title="Pending PCOs" value={chg?.pendingCount || 0} status={chg?.pendingCount > 5 ? 'red' : chg?.pendingCount > 2 ? 'amber' : 'green'} subtitle={`$${((chg?.pendingValue || 0) / 1e6).toFixed(1)}M pending`} />
+            <KpiCard title="Avg Aging" value={`${chg?.avgAgingDays || 0}d`} status={chg?.status || 'gray'} subtitle={`Max: ${chg?.maxAgingDays || 0}d`} />
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>PCO Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>PCO #</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="text-right">Value</TableHead>
+                    <TableHead className="text-right">Status</TableHead>
+                    <TableHead className="text-right">Aging</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(data.changeOrders?.pcoList || []).map((pco, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-mono text-foreground/80">{pco.id}</TableCell>
+                      <TableCell className="text-muted-foreground">{pco.description}</TableCell>
+                      <TableCell className="text-right text-foreground/80">${(pco.value / 1e6).toFixed(2)}M</TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant={pco.status === 'Approved' ? 'default' : 'destructive'} className="px-2 py-0.5">
+                          {pco.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground">{pco.agingDays}d</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ════════════════ Baseline & Projections ════════════════ */}
+        <TabsContent value="baseline" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Baseline &amp; Projections</CardTitle>
+              <CardDescription>Edit baseline inputs and current actuals below. Projections update instantly \u2014 save to persist.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <BaselineProjections
+                data={data}
+                onSave={(payload) => { handleSaveData(payload); }}
+                initialBaseline={{
+                  originalBudget: evm?.BAC,
+                  contingencyBudget: cont?.budget,
+                  baselineStartDate: '2024-06-01',
+                  baselineFinishDate: data?.schedule?.plannedFinish || '2026-09-15',
+                  customerNeedDate: data?.schedule?.customerNeedDate || '2026-08-15',
+                  plannedHeadcount: data?.headcount,
+                  plannedMargin: data?.plannedMargin,
+                  actualCost: evm?.ACWP,
+                  percentComplete: evm?.percentComplete,
+                  plannedPctComplete: evm?.plannedPctComplete,
+                  cashReceived: data?.cashReceivedToDate,
+                  billedToDate: data?.billingToDate,
+                  contingencyUsed: cont?.used,
+                  totalWorkHours: safety?.totalWorkHours,
+                  recordableIncidents: safety?.recordableIncidents,
+                  lostTimeIncidents: safety?.lostTimeIncidents,
+                  rfiTotal: quality?.rfiTotal,
+                  rfiAvgResponseDays: quality?.rfiAvgResponseDays,
+                  punchlistItems: quality?.punchlistItems,
+                  reworkCost: quality?.reworkCost,
+                  cashPosition: data?.cashPosition,
+                  safetyDaysSinceLast: data?.safetyDaysSinceLast,
+                }}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ════════════════ Vendor Ledger ════════════════ */}
+        <TabsContent value="vendor" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Vendor / Commitment Ledger</CardTitle>
+              <CardDescription>Editable cost ledger with per-vendor commitment tracking and reconciliation against project EAC.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <VendorLedger
+                data={data}
+                onSave={(payload) => {
+                  handleSaveData({ vendors: payload.vendors, ...(data ? {
+                    originalBudget: data.evm?.BAC,
+                    actualCost: data.evm?.ACWP,
+                    percentComplete: data.evm?.percentComplete,
+                    plannedPctComplete: data.evm?.plannedPctComplete,
+                    totalWorkHours: data.safety?.totalWorkHours,
+                    recordableIncidents: data.safety?.recordableIncidents,
+                    lostTimeIncidents: data.safety?.lostTimeIncidents,
+                  } : {}) });
+                }}
+                savedVendors={data?.vendors || null}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ════════════════ Advanced Charts ════════════════ */}
+        <TabsContent value="charts" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Advanced Visualizations</CardTitle>
+              <CardDescription>PowerBI-beating charts: waterfall bridge, milestone variance, CPI/SPI trend, and cost category breakdown.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <BudgetWaterfall data={data} />
+                <MilestoneVarianceChart data={data} />
+                <CPISPITrend data={data} />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Cost Category Breakdown</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CostCategoryBreakdown categories={data.costCategories} />
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ════════════════ 3D Site View ════════════════ */}
+        <TabsContent value="3dview" className="mt-4 space-y-4">
           <SiteView3DWrapper key="3dview-stable" data={data} />
-        )}
-        {subTab === 'pcos' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <KpiCard title="Total PCOs" value={chg?.totalPCO || 0} status="green" subtitle={`${chg?.approvedCount || 0} approved`} />
-              <KpiCard title="Total PCO Value" value={`$${((chg?.totalPCOValue || 0) / 1e6).toFixed(1)}M`} status={chg?.pendingCount > 3 ? 'amber' : 'green'} />
-              <KpiCard title="Pending PCOs" value={chg?.pendingCount || 0} status={chg?.pendingCount > 5 ? 'red' : chg?.pendingCount > 2 ? 'amber' : 'green'} subtitle={`$${((chg?.pendingValue || 0) / 1e6).toFixed(1)}M pending`} />
-              <KpiCard title="Avg Aging" value={`${chg?.avgAgingDays || 0}d`} status={chg?.status || 'gray'} subtitle={`Max: ${chg?.maxAgingDays || 0}d`} />
-            </div>
-            <div className="bg-card/40 border border-border/40  p-4">
-              <h3 className="text-xs font-semibold text-muted-foreground mb-3">PCO Details</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="text-muted-foreground border-b border-border">
-                      <th className="text-left py-2 px-2">PCO #</th>
-                      <th className="text-left py-2 px-2">Description</th>
-                      <th className="text-right py-2 px-2">Value</th>
-                      <th className="text-right py-2 px-2">Status</th>
-                      <th className="text-right py-2 px-2">Aging</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(data.changeOrders?.pcoList || []).map((pco, i) => (
-                      <tr key={i} className="border-b border-border/50 hover:bg-muted/20">
-                        <td className="py-2 px-2 text-foreground/80 font-mono">{pco.id}</td>
-                        <td className="py-2 px-2 text-muted-foreground">{pco.description}</td>
-                        <td className="py-2 px-2 text-right text-foreground/80">${(pco.value / 1e6).toFixed(2)}M</td>
-                        <td className="py-2 px-2 text-right">
-                          <span className={`px-1.5 py-0.5 rounded ${pco.status === 'Approved' ? 'bg-primary/10 text-primary' : 'bg-amber-900/30 text-destructive'}`}>{pco.status}</span>
-                        </td>
-                        <td className="py-2 px-2 text-right text-muted-foreground">{pco.agingDays}d</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
+        </TabsContent>
+      </Tabs>
 
-        {/* Baseline & Projections */}
-        {subTab === 'baseline' && (
-          <div className="space-y-4">
-            <div className=" border border-primary/30 bg-primary/10 p-4">
-              <h3 className="text-sm font-semibold text-primary mb-1">Project Baseline & Projections</h3>
-              <p className="text-xs text-muted-foreground mb-3">Edit baseline inputs and current actuals below. Projections update instantly — save to persist.</p>
-            </div>
-            <BaselineProjections
-              data={data}
-              onSave={(payload) => {
-                handleSaveData(payload);
-              }}
-              initialBaseline={{
-                originalBudget: evm?.BAC,
-                contingencyBudget: cont?.budget,
-                baselineStartDate: '2024-06-01',
-                baselineFinishDate: data?.schedule?.plannedFinish || '2026-09-15',
-                customerNeedDate: data?.schedule?.customerNeedDate || '2026-08-15',
-                plannedHeadcount: data?.headcount,
-                plannedMargin: data?.plannedMargin,
-                actualCost: evm?.ACWP,
-                percentComplete: evm?.percentComplete,
-                plannedPctComplete: evm?.plannedPctComplete,
-                cashReceived: data?.cashReceivedToDate,
-                billedToDate: data?.billingToDate,
-                contingencyUsed: cont?.used,
-                totalWorkHours: safety?.totalWorkHours,
-                recordableIncidents: safety?.recordableIncidents,
-                lostTimeIncidents: safety?.lostTimeIncidents,
-                rfiTotal: quality?.rfiTotal,
-                rfiAvgResponseDays: quality?.rfiAvgResponseDays,
-                punchlistItems: quality?.punchlistItems,
-                reworkCost: quality?.reworkCost,
-                cashPosition: data?.cashPosition,
-                safetyDaysSinceLast: data?.safetyDaysSinceLast,
-              }}
-            />
-          </div>
-        )}
-
-        {/* Vendor Ledger */}
-        {subTab === 'vendor' && (
-          <div className="space-y-4">
-            <div className=" border border-border/40 bg-card/40 p-4">
-              <h3 className="text-sm font-semibold text-foreground/80 mb-1">Vendor / Commitment Ledger</h3>
-              <p className="text-xs text-muted-foreground mb-3">Editable cost ledger with per-vendor commitment tracking and reconciliation against project EAC.</p>
-            </div>
-            <VendorLedger
-              data={data}
-              onSave={(payload) => {
-                handleSaveData({ vendors: payload.vendors, ...(data ? {
-                  originalBudget: data.evm?.BAC,
-                  actualCost: data.evm?.ACWP,
-                  percentComplete: data.evm?.percentComplete,
-                  plannedPctComplete: data.evm?.plannedPctComplete,
-                  totalWorkHours: data.safety?.totalWorkHours,
-                  recordableIncidents: data.safety?.recordableIncidents,
-                  lostTimeIncidents: data.safety?.lostTimeIncidents,
-                } : {}) });
-              }}
-              savedVendors={data?.vendors || null}
-            />
-          </div>
-        )}
-
-        {/* Advanced Charts */}
-        {subTab === 'charts' && (
-          <div className="space-y-4">
-            <div className=" border border-border/40 bg-card/40 p-4">
-              <h3 className="text-sm font-semibold text-foreground/80 mb-1">Advanced Visualizations</h3>
-              <p className="text-xs text-muted-foreground mb-3">PowerBI-beating charts: waterfall bridge, milestone variance, CPI/SPI trend, and cost category breakdown.</p>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <BudgetWaterfall data={data} />
-              <MilestoneVarianceChart data={data} />
-              <CPISPITrend data={data} />
-              <div className=" border border-border/40 bg-card/40 p-4">
-                <h3 className="text-xs font-semibold text-muted-foreground mb-3">Cost Category Breakdown</h3>
-                <CostCategoryBreakdown categories={data.costCategories} />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
       <DataEntryModal
         open={showEntry}
         onClose={() => setShowEntry(false)}
@@ -1088,49 +1181,26 @@ export default function ConstructionDashboard() {
   );
 }
 
-// ─── Helper Components ────────────────────────────────────────────────────
-function renderEVMBars(evm) {
-  if (!evm) return <div className="text-xs text-muted-foreground/70">No EVM data</div>;
-  const data = [
-    { name: 'BAC', value: evm.BAC / 1e6 },
-    { name: 'EAC', value: evm.EAC / 1e6 },
-    { name: 'PV', value: evm.PV / 1e6 },
-    { name: 'EV', value: evm.EV / 1e6 },
-    { name: 'ACWP', value: evm.ACWP / 1e6 },
-  ];
-  return (
-    <ResponsiveContainer width="100%" height={200}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-        <XAxis dataKey="name" tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} />
-        <YAxis tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} />
-        <Tooltip contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--color-foreground)', fontSize: '12px' }} labelStyle={{ color: 'var(--color-foreground)' }} itemStyle={{ color: 'var(--color-foreground)' }} formatter={(val) => '$' + val.toFixed(1) + 'M'} />
-        <Bar dataKey="value" radius={[3, 3, 0, 0]}>
-          {data.map((entry, index) => (
-            <Cell key={index} fill={entry.name === 'EAC' ? 'var(--color-chart-3)' : entry.name === 'ACWP' ? 'var(--color-chart-4)' : 'var(--color-chart-1)'} />
-          ))}
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
-  );
-}
-
 function safeFormat(n) {
   if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
   if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
   return String(n);
 }
 
-// ─── Stable 3D View Wrapper — prevents Canvas remount on parent re-render ──
+// ─── Stable 3D View Wrapper ───────────────────────────────────────────────
 const SiteView3DWrapper = React.memo(function SiteView3DWrapper({ data }) {
   return (
-    <div className=" border border-border/40 bg-card/40 p-5">
-      <h3 className="text-sm font-semibold text-foreground/80 mb-4">3D Site View — Construction Progress Model</h3>
-      <p className="text-xs text-muted-foreground mb-4">
-        Interactive 3D model of the site. Structures are color-coded: green = complete, amber = in progress, gray = not started.
-        Use the slider to scrub through the project timeline. Hover or click structures for phase details.
-      </p>
-      <SiteView3D data={data} />
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>3D Site View \u2014 Construction Progress Model</CardTitle>
+        <CardDescription>
+          Interactive 3D model of the site. Structures are color-coded: green = complete, amber = in progress, gray = not started.
+          Use the slider to scrub through the project timeline. Hover or click structures for phase details.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <SiteView3D data={data} />
+      </CardContent>
+    </Card>
   );
 });
