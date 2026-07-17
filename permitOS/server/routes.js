@@ -642,6 +642,11 @@ export function createApiRouter(db) {
     if (saved.schedule) merged.schedule = saved.schedule;
     if (saved.contingency) merged.contingency = saved.contingency;
     if (saved.changeOrders) merged.changeOrders = saved.changeOrders;
+    // Planning artifacts always come from fresh generation, never from persisted data
+    merged.topRisks = generated.topRisks;
+    merged.costCategories = generated.costCategories;
+    merged.pcoList = generated.pcoList;
+    merged.milestoneDetails = generated.milestoneDetails;
     // Recalculate full project metrics from merged raw values
     const result = calcFullProjectMetrics(merged);
     // Preserve metadata keys that calcFullProjectMetrics doesn't pass through
@@ -707,7 +712,10 @@ export function createApiRouter(db) {
       if (errors.length > 0) return res.status(400).json({ error: 'Validation failed', details: errors });
       // Persist the raw user data (metrics, plus any vendors/baseline sub-keys)
       saveConstruction(siteId, req.user.tenantId, updateData);
-      const data = calcFullProjectMetrics(updateData);
+      // Merge with fresh generation to include planning artifacts in response
+      const saved = loadSavedConstruction(siteId, req.user.tenantId);
+      const generated = generateConstructionData({}, {});
+      const data = mergeSavedData(generated, saved);
       res.json({ data, saved: true });
     } catch (err) { next(err); }
   });

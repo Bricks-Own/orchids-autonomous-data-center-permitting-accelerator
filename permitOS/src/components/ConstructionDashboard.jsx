@@ -283,6 +283,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showEntry, setShowEntry] = useState(false);
+  const [activeSubTab, setActiveSubTab] = useState('csuite');
 
   const fetchData = () => {
     if (!results) return;
@@ -464,12 +465,12 @@ export default function ConstructionDashboard({ setActiveTab }) {
         <Card className="border-destructive/30 bg-destructive/5 py-0 cursor-pointer hover:bg-destructive/[0.08] transition-colors" size="sm" onClick={() => {
           // Map flag content to the most relevant tab
           const allFlags = flags.join(' ').toLowerCase();
-          if (allFlags.includes('safety') || allFlags.includes('incident') || allFlags.includes('trir') || allFlags.includes('hse')) setActiveTab?.('hse');
-          else if (allFlags.includes('rfi') || allFlags.includes('quality') || allFlags.includes('rework')) setActiveTab?.('quality');
-          else if (allFlags.includes('schedule') || allFlags.includes('slip') || allFlags.includes('milestone')) setActiveTab?.('schedule');
-          else if (allFlags.includes('pco') || allFlags.includes('change order') || allFlags.includes('contingency')) setActiveTab?.('financials');
-          else if (allFlags.includes('risk')) setActiveTab?.('risks');
-          else setActiveTab?.('csuite');
+          if (allFlags.includes('safety') || allFlags.includes('incident') || allFlags.includes('trir') || allFlags.includes('hse')) setActiveSubTab('hse');
+          else if (allFlags.includes('rfi') || allFlags.includes('quality') || allFlags.includes('rework')) setActiveSubTab('quality');
+          else if (allFlags.includes('schedule') || allFlags.includes('slip') || allFlags.includes('milestone')) setActiveSubTab('schedule');
+          else if (allFlags.includes('pco') || allFlags.includes('change order') || allFlags.includes('contingency')) setActiveSubTab('financials');
+          else if (allFlags.includes('risk')) setActiveSubTab('risks');
+          else setActiveSubTab('csuite');
         }}>
           <CardContent className="py-3">
             <div className="text-xs font-semibold text-destructive mb-2 flex items-center gap-1.5">
@@ -489,7 +490,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
       )}
 
       {/* ── Tabbed Interface ── */}
-      <Tabs defaultValue="csuite" className="w-full">
+      <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="w-full">
         <TabsList variant="line" className="w-full flex-wrap gap-0">
           <TabsTrigger value="csuite">
             <Gauge weight="duotone" size={14} />
@@ -640,7 +641,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <RiskRegister risks={data.topRisks} onNavigate={(tab) => setActiveTab?.(tab)} />
+                  <RiskRegister risks={data.topRisks} onNavigate={(tab) => { if (tab === 'intake') setActiveTab?.(tab); else setActiveSubTab(tab); }} />
                 </CardContent>
               </Card>
 
@@ -1091,7 +1092,7 @@ export default function ConstructionDashboard({ setActiveTab }) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <RiskRegister risks={data.topRisks} onNavigate={(tab) => setActiveTab?.(tab)} />
+              <RiskRegister risks={data.topRisks} onNavigate={(tab) => { if (tab === 'intake') setActiveTab?.(tab); else setActiveSubTab(tab); }} />
             </CardContent>
           </Card>
         </TabsContent>

@@ -119,7 +119,7 @@ export function calcContingency(contingencyBudget, contingencyUsed, totalProject
 // ─── Change Order (PCO) Tracking ──────────────────────────────────────────
 export function calcChangeOrders(pcoList) {
   if (!pcoList || pcoList.length === 0) {
-    return { totalPCO: 0, totalPCOValue: 0, avgAgingDays: 0, pendingCount: 0, approvedCount: 0, status: 'gray' };
+    return { totalPCO: 0, totalPCOValue: 0, avgAgingDays: 0, pendingCount: 0, approvedCount: 0, status: 'gray', pcoList: [] };
   }
   const totalPCO = pcoList.length;
   const totalPCOValue = pcoList.reduce((s, p) => s + (p.value || 0), 0);
@@ -134,6 +134,7 @@ export function calcChangeOrders(pcoList) {
     pendingValue: pending.reduce((s, p) => s + (p.value || 0), 0),
     status: getTrafficLight('pcoAgingDays', avgAge),
     flag: avgAge > THRESHOLDS.pcoAgingDays.amber ? 'High PCO aging — expedite review process' : null,
+    pcoList,
   };
 }
 
@@ -783,9 +784,16 @@ export function generateSampleData(asOfDate) {
 export function generateZeroState(inputs, results) {
   inputs = inputs || {};
   results = results || {};
-  const stateName = inputs.siteName || 'BigWatt AI Campus — Site A';
+  const siteName = inputs.siteName || 'BigWatt AI Campus — Site A';
   const state = inputs.state || 'Tennessee';
   const totalMW = results.totalMW || (inputs.turbines || 8) * (inputs.mwPerTurbine || 25);
+  const turbineCount = inputs.turbines || 8;
+  const gensetCount = inputs.gensetCount || 12;
+  const coolingMGD = inputs.coolingMGD || 2.8;
+  const brickSavings = inputs.brickSavings || 20;
+  const isNonAttain = inputs.nonAttainment || false;
+  const requiresPSD = results.pathway?.requiresPSD || false;
+  const breachCount = results.breaches?.length || 0;
 
   const STATE_COST_MULTIPLIERS = {
     'California': 1.35, 'New York': 1.30, 'Massachusetts': 1.25,
@@ -803,13 +811,145 @@ export function generateZeroState(inputs, results) {
   const laborIndex = LABOR_RATE_INDEX[state] || 1.00;
   const baseCostPerMW = 1100000;
   const adjustedCostPerMW = Math.round(baseCostPerMW * costMultiplier * laborIndex);
+
+  // Complexity factor (same as generateConstructionData)
+  const sizeComplexity = Math.min(1.4, Math.max(0.8, totalMW / 200));
+  const turbineComplexity = 1 + (turbineCount - 4) * 0.02;
+  const coolingComplexity = coolingMGD > 3 ? 1.08 : coolingMGD > 1 ? 1.04 : 1.00;
+  const gensetComplexity = 1 + gensetCount * 0.005;
+  const permitComplexity = requiresPSD ? 1.15 : isNonAttain ? 1.05 : 1.00;
+  const complexityFactor = parseFloat((sizeComplexity * turbineComplexity * coolingComplexity * gensetComplexity * permitComplexity).toFixed(3));
+
   const bac = Math.round(totalMW * adjustedCostPerMW * 1.0);
   const revenue = Math.round(bac * 1.12);
 
-  // Day-1 zero metrics
+  // ── Risk generators (same as generateConstructionData) ──
+  const riskGenerators = [
+    {
+      desc: `Electrical switchgear delivery delay — ${Math.round(6 + totalMW / 100)}-week lead time risk`,
+      impact: 'Critical', prob: 0.7 - (brickSavings > 15 ? 0.1 : 0),
+      mitigation: 'Expedited order placed; backup supplier identified',
+    },
+    {
+      desc: requiresPSD ? 'PSD permit timeline uncertainty — EPA review backlog may delay construction start by 8-14 weeks' : 'State permit timeline — agency review queue',
+      impact: requiresPSD ? 'Critical' : 'Major',
+      prob: requiresPSD ? 0.75 : 0.45,
+      mitigation: requiresPSD ? 'Early BACT scoping; concurrent AERMOD modeling' : 'Weekly agency follow-up; expedite fee submitted',
+    },
+    {
+      desc: isNonAttain ? `Nonattainment area compliance — LAER/offsets requirement may increase project cost by $${Math.round(bac * 0.03 / 1000000)}M` : 'Local zoning approval — community review board schedule',
+      impact: isNonAttain ? 'Major' : 'Moderate',
+      prob: isNonAttain ? 0.65 : 0.35,
+      mitigation: isNonAttain ? 'Emission offset credits scoped; LAER analysis underway' : 'Community outreach plan; variance application ready',
+    },
+    {
+      desc: `Cooling ${coolingMGD > 3 ? 'tower water supply' : 'system equipment'} — ${coolingMGD > 3 ? 'water rights permitting' : 'lead time for specialized equipment'}`,
+      impact: coolingMGD > 3 ? 'Major' : 'Moderate',
+      prob: coolingMGD > 3 ? 0.55 : 0.40,
+      mitigation: coolingMGD > 3 ? 'Water rights attorney engaged; alternative supply identified' : 'Early procurement authorization; rental units sourced',
+    },
+    {
+      desc: `GC labor ${totalMW > 300 ? 'shortage — union allocation constrained' : 'availability — specialty subcontractor market tight'}`,
+      impact: totalMW > 300 ? 'Major' : 'Moderate',
+      prob: 0.45 + (totalMW > 300 ? 0.1 : 0),
+      mitigation: totalMW > 300 ? 'Prefabrication strategy adopted; non-union subs scoped' : 'Early GC buyout; multi-bid strategy',
+    },
+    {
+      desc: gensetCount > 15 ? 'Large genset fleet — EPA IIII/JJJJ compliance documentation complexity' : 'Generator fuel system — tank testing and SPCC compliance',
+      impact: gensetCount > 15 ? 'Moderate' : 'Minor',
+      prob: 0.35,
+      mitigation: gensetCount > 15 ? 'Compliance tracking system deployed; EPA forms pre-populated' : 'SPCC plan drafted; tank tests scheduled',
+    },
+  ];
+
+  const topRisks = riskGenerators
+    .filter(r => r.prob > 0.2)
+    .slice(0, 5)
+    .map((r, i) => ({
+      rank: i + 1,
+      description: r.desc,
+      impact: r.impact,
+      probability: parseFloat(r.prob.toFixed(2)),
+      mitigation: r.mitigation,
+    }));
+
+  // ── Contingency (budget computed, used = 0 at Day 1) ──
+  const contingencyPct = parseFloat((8 + (requiresPSD ? 3 : 0) + (isNonAttain ? 2 : 0) + Math.min(5, totalMW / 100)).toFixed(1));
+  const contingencyBudget = Math.round(bac * (contingencyPct / 100));
+  const ownerContingencyBudget = Math.round(contingencyBudget * 0.6);
+  const gcContingencyBudget = Math.round(contingencyBudget * 0.4);
+
+  // ── Cost Categories (budgets exist, actual = 0 at Day 1) ──
+  const COST_CATEGORY_PCT = [
+    { name: 'Land Acquisition', pct: 0.06 },
+    { name: 'Site Development', pct: 0.03 },
+    { name: 'Power & Utilities', pct: 0.20 },
+    { name: 'Material Procurement (LLE)', pct: 0.08 },
+    { name: 'Electrical Infrastructure', pct: 0.13 },
+    { name: 'Cooling & Mechanical', pct: 0.11 },
+    { name: 'Fire Protection & Safety', pct: 0.02 },
+    { name: 'GC Contract', pct: 0.31 },
+    { name: 'Fitout & Finishes', pct: 0.04 },
+    { name: 'Commissioning & Testing', pct: 0.02 },
+  ];
+
+  const costCategories = COST_CATEGORY_PCT.map(cat => ({
+    name: cat.name,
+    budget: Math.round(bac * cat.pct),
+    actual: 0,
+    pctComplete: 0,
+  }));
+
+  // ── PCOs (plan-level, no aging at Day 1) ──
+  const pcoCount = Math.max(3, Math.round(3 + totalMW / 50 + complexityFactor * 2));
+  const pcoDescriptions = [
+    'Additional cooling tower pads', 'Generator enclosure upgrade',
+    'Fiber optic route change', 'Transformer foundation redesign',
+    'Additional site lighting', 'Security system scope increase',
+    'Data floor loading upgrade', 'UPS system capacity increase',
+    'Switchgear breaker upgrade', 'Fire alarm panel relocation',
+    'HVAC ductwork re-route', 'Structural steel reinforcement',
+    'Cable tray routing change', 'EMS/BMS integration scope',
+    'Exterior hardscape addition', 'Roof penetrations for CRACs',
+  ];
+
+  const pcoList = Array.from({ length: pcoCount }, (_, i) => ({
+    id: `PCO-${String(i + 1).padStart(3, '0')}`,
+    description: pcoDescriptions[i % pcoDescriptions.length],
+    value: Math.round((50000 + ((i % 13) + 1) * 50000) * complexityFactor),
+    status: 'Pending',
+    agingDays: 0,
+  }));
+
+  // ── Milestones (plan-level, 0% complete at Day 1) ──
+  const milestones = [
+    'Site Preparation & Demolition',
+    'Foundations & Slab on Grade',
+    'Structural Steel Erection',
+    'Building Enclosure (Roof/Wall)',
+    'MEP Rough-In',
+    'Electrical & Switchgear Installation',
+    'Cooling System Installation',
+    'Fire Protection & Life Safety',
+    'Interior Finishes & Fitout',
+    'Commissioning & Testing'
+  ];
+
+  const milestoneDetails = milestones.map((name, i) => ({
+    name,
+    phase: i + 1,
+    pctComplete: 0,
+    status: 'not_started',
+    plannedCompletion: '',
+    varianceDays: 0,
+    budget: Math.round(bac * (1 / milestones.length)),
+    actualCost: 0,
+  }));
+
+  // Day-1 zero metrics: planning artifacts populated, actuals are zero
   const zeroData = {
-    projectId: `BIGWATT-${stateName.replace(/[^A-Za-z0-9]/g, '-').substring(0, 20).toUpperCase()}`,
-    projectName: stateName,
+    projectId: `BIGWATT-${siteName.replace(/[^A-Za-z0-9]/g, '-').substring(0, 20).toUpperCase()}`,
+    projectName: siteName,
     asOfDate: new Date().toISOString().split('T')[0],
     revenue,
     plannedMargin: 0.12,
@@ -835,19 +975,19 @@ export function generateZeroState(inputs, results) {
     plannedFinish: '—',
     forecastFinish: '—',
     customerNeedDate: '—',
-    milestoneNames: 'Site Preparation, Foundations, Structure, MEP, Commissioning',
-    milestoneDetails: [],
+    milestoneNames: milestones.join(', '),
+    milestoneDetails,
     milestoneVarianceDays: 0,
     criticalPathLength: 0,
     floatConsumed: 0,
     percentCompletePhysical: 0,
     criticalPathImpact: 'N',
     spi: 0,
-    contingencyBudget: 0,
+    contingencyBudget,
     contingencyUsed: 0,
-    ownerContingencyBudget: 0,
+    ownerContingencyBudget,
     ownerContingencyUsed: 0,
-    gcContingencyBudget: 0,
+    gcContingencyBudget,
     gcContingencyUsed: 0,
     cashPosition: 0,
     billingToDate: 0,
@@ -867,9 +1007,9 @@ export function generateZeroState(inputs, results) {
     commissioningPrerequisites: 0,
     cxPrerequisitesPct: 0,
     inspectionPassRate: 0,
-    pcoList: [],
-    costCategories: [],
-    topRisks: [],
+    pcoList,
+    costCategories,
+    topRisks,
     trendData: [],
     totalConstructionCost: bac,
   };
