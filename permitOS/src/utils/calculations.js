@@ -105,6 +105,24 @@ export function calcPTE(inputs) {
   // via reduced cooling load and optimized cycles of concentration
   const optimizedWater = annualWaterMG * savingsFactor;
 
+  // ─── Water permit determination — real threshold-based, no AI ──────────
+  const dischargePathway = inputs.dischargePathway || '';
+  const aggregateDieselGal = (inputs.gensetCount || 0) * (inputs.gensetHP || 0) * 1.2;
+  const spccRequired = aggregateDieselGal > 1320;
+  const requiresNPDES = (() => {
+    if (!dischargePathway) return false;
+    if (dischargePathway === 'POTW-Sanitary Sewer Connection') return false;
+    if (annualWaterMG === 0 && blowdownMG === 0) return false;
+    if (dischargePathway === 'Surface Water Discharge' && (blowdownMG / 365) > 0) return true;
+    return false;
+  })();
+  const dischargeMGD = blowdownMG / 365;
+  const permitTier = requiresNPDES
+    ? (dischargeMGD >= 1.0 ? 'Major (Individual Permit + EPA Review)' : 'Minor (General Permit)')
+    : null;
+  const pretreatmentRequired = dischargePathway === 'POTW-Sanitary Sewer Connection';
+  const requiresAnyWaterPermit = requiresNPDES || pretreatmentRequired || spccRequired;
+
   const pteResults = {
     totalMW, annualMWh, annualMMBtu,
     deriveDataCenterMW: (pueVal) => Math.round(totalMW / ((pueVal || 1.35) + 0.15)),
@@ -121,7 +139,7 @@ export function calcPTE(inputs) {
       water: annualWaterMG - optimizedWater,
     },
     pathway,
-    water: { annualWaterMG, blowdownMG, makeupMG, optimizedWater },
+    water: { annualWaterMG, blowdownMG, makeupMG, optimizedWater, determination: { requiresNPDES, permitTier, pretreatmentRequired, spccRequired, requiresAnyWaterPermit, dischargeMGD } },
     genset: { gensetNox, gensetCO, gensetPM, gensetSo2, gensetVoc, gensetCo2e, gensetHap },
   };
 
@@ -1347,4 +1365,14 @@ export function calcTimelineAcceleration() {
   const saved = totalBaseline - totalBrick;
   const pctSaved = Math.round((saved / totalBaseline) * 100);
   return { breakdown, totalBaseline, totalBrick, saved, pctSaved };
+}
+
+/**
+ * Estimate aggregate diesel storage from genset count and HP.
+ * Single source of truth — used by calculations.js (SPCC determination)
+ * and WaterPermitAI.jsx (display).
+ * Formula: count * hp * 1.2 gal/HP (typical 24h day tank at full load)
+ */
+export function estimateDieselStorage(gensetCount, gensetHP) {
+  return (gensetCount || 0) * (gensetHP || 0) * 1.2;
 }

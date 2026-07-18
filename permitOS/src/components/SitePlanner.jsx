@@ -331,7 +331,7 @@ function ScenarioTest({ inputs, onApply }) {
 
 // ─── Main SitePlanner Component ────────────────────────────────────────────
 export default function SitePlanner({ setActiveTab }) {
-  const { inputs, setInputs, setResults } = usePermitData();
+  const { inputs, setInputs, setResults, results } = usePermitData();
   const navigate = useNavigate();
   const navigateToIntake = (summary) => {
     setResults(null);
@@ -376,7 +376,7 @@ export default function SitePlanner({ setActiveTab }) {
 
   const permitTypeLabels = [
     { key: 'air', label: 'Air', active: inputs.hasOnSiteGeneration !== false },
-    { key: 'water', label: 'Water', active: inputs.hasWaterUse !== false },
+    { key: 'water', label: 'Water', active: results?.water?.determination ? results.water.determination.requiresAnyWaterPermit : inputs.hasWaterUse !== false },
     { key: 'building', label: 'Building', active: inputs.hasNewConstruction !== false },
     { key: 'power', label: 'Power', active: inputs.hasGridInterconnection !== false },
   ];

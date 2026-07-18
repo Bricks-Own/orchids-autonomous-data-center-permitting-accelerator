@@ -180,7 +180,7 @@ export default function MilestoneTimeline({ setActiveTab }) {
   const CATEGORIES = [
     'All',
     ...(inputs?.hasOnSiteGeneration !== false ? ['Air'] : []),
-    ...(inputs?.hasWaterUse !== false ? ['Water'] : []),
+    ...((results?.water?.determination ? results.water.determination.requiresAnyWaterPermit : inputs?.hasWaterUse !== false) ? ['Water'] : []),
     'Other',
     'Brick PermitOS',
   ];

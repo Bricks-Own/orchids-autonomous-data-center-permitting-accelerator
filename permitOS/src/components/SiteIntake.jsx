@@ -97,7 +97,7 @@ export default function SiteIntake({ setActiveTab }) {
 
   const derivedPermitTypes = [
     inputs.hasOnSiteGeneration !== false && 'air',
-    inputs.hasWaterUse !== false && 'water',
+    (results?.water?.determination ? results.water.determination.requiresAnyWaterPermit : inputs.hasWaterUse !== false) && 'water',
     inputs.hasNewConstruction !== false && 'building',
     inputs.hasGridInterconnection !== false && 'power',
   ].filter(Boolean);
@@ -730,8 +730,16 @@ export default function SiteIntake({ setActiveTab }) {
                     <span className="text-xs text-muted-foreground">Discharge:</span>
                     <Badge variant="secondary">{inputs.dischargePathway || 'Not specified'}</Badge>
                     <span className="text-xs text-muted-foreground">NPDES:</span>
-                    <Badge variant="secondary" className={inputs.dischargePathway === 'Surface Water Discharge' ? 'text-[#e0a95c]' : 'text-primary'}>
-                      {inputs.dischargePathway === 'Surface Water Discharge' ? 'Individual Permit Likely' : 'General Permit / POTW'}
+                    <Badge variant="secondary" className={results.water.determination.requiresNPDES ? 'text-[#e0a95c]' : 'text-primary'}>
+                      {results.water.determination.pretreatmentRequired
+                        ? 'Pretreatment Permit (POTW)'
+                        : results.water.determination.requiresNPDES
+                          ? `VPDES ${results.water.determination.permitTier}`
+                          : 'No NPDES Permit Required'}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">SPCC:</span>
+                    <Badge variant="secondary" className={results.water.determination.spccRequired ? 'text-[#e0a95c]' : 'text-muted-foreground'}>
+                      {results.water.determination.spccRequired ? 'SPCC Plan Required' : 'SPCC Not Triggered'}
                     </Badge>
                   </div>
                 </div>

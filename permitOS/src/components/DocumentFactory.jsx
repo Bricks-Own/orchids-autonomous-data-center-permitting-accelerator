@@ -374,7 +374,7 @@ export default function DocumentFactory({ selectedDocKey, onClearSelection }) {
 
   // Derive which permit categories apply based on site intake answers
   const showAir = inputs?.hasOnSiteGeneration !== false;
-  const showWater = inputs?.hasWaterUse !== false;
+  const showWater = results?.water?.determination ? results.water.determination.requiresAnyWaterPermit : inputs?.hasWaterUse !== false;
   const showBuilding = inputs?.hasNewConstruction !== false;
   const showPower = inputs?.hasGridInterconnection !== false;
 

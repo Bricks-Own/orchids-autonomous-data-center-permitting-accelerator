@@ -36,7 +36,7 @@ export default function Permits({ setActiveTab }) {
 
   const permitTypes = [
     inputs?.hasOnSiteGeneration !== false && 'air',
-    inputs?.hasWaterUse !== false && 'water',
+    (results?.water?.determination ? results.water.determination.requiresAnyWaterPermit : inputs?.hasWaterUse !== false) && 'water',
     inputs?.hasNewConstruction !== false && 'building',
     inputs?.hasGridInterconnection !== false && 'power',
   ].filter(Boolean);

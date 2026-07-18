@@ -9,14 +9,7 @@ import MetricCard from './permit-detail/MetricCard';
 import PathwayDeterminationCard from './permit-detail/PathwayDeterminationCard';
 import PermitModuleAccordion from './permit-detail/PermitModuleAccordion';
 
-// ─── Helper: estimate aggregate diesel storage from genset count/size ──────
-function estimateDieselStorage(gensetCount, gensetHP) {
-  // Typical data center genset day tank: ~1.2 gal per HP (24h runtime at full load)
-  // 0.05 gal/hp-hr consumption × 24 hr = 1.2 gal/HP
-  const count = gensetCount || 0;
-  const hp = gensetHP || 0;
-  return count * hp * 1.2;
-}
+import { estimateDieselStorage } from '../utils/calculations';
 
 export default function WaterPermitAI({ results, inputs }) {
   const c = PERMIT_COLORS.water;
@@ -37,9 +30,10 @@ export default function WaterPermitAI({ results, inputs }) {
   const siteAcres = inputs.siteAcres || 0;
   const hasNewConstruction = inputs.hasNewConstruction !== false;
   const cgpRequired = hasNewConstruction && siteAcres >= 1;
+  const spccRequired = water.determination?.spccRequired ?? false;
+  const potwPathway = water.determination?.pretreatmentRequired ?? false;
+  // Display-only: aggregate diesel volume for the SPCC card trigger text
   const aggregateDieselGal = estimateDieselStorage(inputs.gensetCount, inputs.gensetHP);
-  const spccRequired = aggregateDieselGal > 1320;
-  const potwPathway = inputs.dischargePathway === 'POTW-Sanitary Sewer Connection';
 
   const waterMetrics = [
     { label: 'Cooling Water Use', value: `${water.annualWaterMG.toFixed(1)} MG/yr`, sub: `${inputs.coolingMGD} MGD`, accent: c.accent },

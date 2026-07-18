@@ -5,11 +5,10 @@
 
 const WEEKS_TOTAL = 90;
 
-// Target range for permitting timeline reduction when PSD applies and
-// Brick achieves a real emissions reduction. Scales from 30% (low reduction)
-// to 40% (high reduction, ≥25% emissions reduction).
-const TIMELINE_REDUCTION_MIN = 0.30;
-const TIMELINE_REDUCTION_MAX = 0.40;
+// Flat 40% permitting timeline reduction target when PSD applies and
+// Brick achieves a real emissions reduction. Applied consistently across
+// Overview, Site Intake Step 3, and Milestone Timeline.
+const TIMELINE_REDUCTION_TARGET = 0.40;
 
 // Project-type timeline scaling factors derived from SCENARIO_DEFS.typicalTimelineMonths
 // greenfield: 18-36 (midpoint 27) → 1.0
@@ -49,7 +48,7 @@ export function computePathwayDuration({ totalMW, isNonAttain, requiresPSD, synt
 
   // Emissions reduction is no longer applied as a separate multiplier here.
   // The target reduction is now applied consistently in computeTimelineComparison()
-  // via TIMELINE_REDUCTION_MIN / TIMELINE_REDUCTION_MAX, giving a single
+  // via TIMELINE_REDUCTION_TARGET, giving a flat 40% reduction
   // authoritative path from emissionsReductionPct to the final pctFaster.
 
   const airReviewMul = Math.min(1.8, mwFactor * attainmentMul * pathwayMul);
@@ -138,21 +137,17 @@ export function computeTimelineComparison(inputs, results) {
     brickMonths = Math.round(brickAccel.rawMonths);
   }
 
-  // ─── Single authoritative reduction target ─────────────────────────────────
+  // ─── Flat 40% reduction target ─────────────────────────────────────────────
   // When PSD applies and Brick achieves a real emissions reduction, pctFaster
-  // lands consistently between 30% and 40%, scaling with how much Brick actually
-  // reduces emissions. Low real reduction → close to 30%; high real reduction
-  // (≥25% emissions reduction) → close to 40%.
+  // is always 40% — never scaled by emissionsReductionPct.
   // True minor sites (PSD never applies) continue to show 0% difference.
   const isTrueMinorSite = !actualPathway.requiresPSD;
   const hasRealReduction = emissionsReductionPct > 0;
 
   let pctFaster;
   if (!isTrueMinorSite && hasRealReduction) {
-    const scale = Math.min(emissionsReductionPct / 0.25, 1);
-    const targetReduction = TIMELINE_REDUCTION_MIN + (TIMELINE_REDUCTION_MAX - TIMELINE_REDUCTION_MIN) * scale;
-    pctFaster = Math.round(targetReduction * 100);
-    // Override brickMonths to match the target pctFaster
+    pctFaster = Math.round(TIMELINE_REDUCTION_TARGET * 100);
+    // Override brickMonths to match the flat 40% reduction
     brickMonths = Math.max(1, Math.round(traditionalMonths * (1 - pctFaster / 100)));
   } else {
     pctFaster = 0;
