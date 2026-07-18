@@ -464,6 +464,36 @@ export default function SiteIntake({ setActiveTab }) {
               </Select>
             </Field>
           </div>
+
+          {inputs.dischargePathway === 'Surface Water Discharge' && (
+            <div className="grid grid-cols-2 gap-x-[28px] gap-y-5 mt-5 pt-5 border-t border-border">
+              <Field label="Outfall Latitude"><Input className="font-mono-num" value={inputs.outfallLat ?? ''} onChange={e => update('outfallLat', e.target.value === '' ? undefined : parseFloat(e.target.value))} type="number" step="any" placeholder="e.g. 38.8977" /></Field>
+              <Field label="Outfall Longitude"><Input className="font-mono-num" value={inputs.outfallLng ?? ''} onChange={e => update('outfallLng', e.target.value === '' ? undefined : parseFloat(e.target.value))} type="number" step="any" placeholder="e.g. -77.0365" /></Field>
+              <Field label="Receiving Water Body Name" hint="e.g. Potomac River"><Input value={inputs.receivingWaterBody ?? ''} onChange={e => update('receivingWaterBody', e.target.value)} placeholder="Name of receiving water" /></Field>
+              <Field label="Treatment Type">
+                <Select value={inputs.treatmentType || ''} onValueChange={v => update('treatmentType', v)}>
+                  <SelectTrigger className="w-full"><SelectValue placeholder="Select treatment type..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="None">None</SelectItem>
+                    <SelectItem value="Cooling Tower Blowdown Treatment">Cooling Tower Blowdown Treatment</SelectItem>
+                    <SelectItem value="Chemical Precipitation">Chemical Precipitation</SelectItem>
+                    <SelectItem value="Filtration">Filtration</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+              {inputs.treatmentType && inputs.treatmentType !== 'None' && (
+                <Field label="Treatment Retention Time (hrs)"><Input className="font-mono-num" value={inputs.treatmentRetentionHrs ?? ''} onChange={e => update('treatmentRetentionHrs', e.target.value === '' ? undefined : parseFloat(e.target.value))} type="number" step="0.5" placeholder="e.g. 2.0" /></Field>
+              )}
+            </div>
+          )}
+
+          {inputs.dischargePathway === 'POTW-Sanitary Sewer Connection' && (
+            <div className="grid grid-cols-2 gap-x-[28px] gap-y-5 mt-5 pt-5 border-t border-border">
+              <Field label="Local Sewer Authority / POTW Name"><Input value={inputs.potwName ?? ''} onChange={e => update('potwName', e.target.value)} placeholder="e.g. DC Water Blue Plains" /></Field>
+              <Field label="POTW Contact Phone" hint="Optional"><Input value={inputs.potwContact ?? ''} onChange={e => update('potwContact', e.target.value)} placeholder="(555) 123-4567" /></Field>
+            </div>
+          )}
         </CardContent>
         </Card>
       )}
@@ -742,6 +772,27 @@ export default function SiteIntake({ setActiveTab }) {
                       {results.water.determination.spccRequired ? 'SPCC Plan Required' : 'SPCC Not Triggered'}
                     </Badge>
                   </div>
+                  {inputs.dischargePathway === 'Surface Water Discharge' && (
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      {inputs.receivingWaterBody && (
+                        <span>Receiving Water: <span className="text-foreground">{inputs.receivingWaterBody}</span></span>
+                      )}
+                      {inputs.treatmentType && (
+                        <span>Treatment: <span className="text-foreground">{inputs.treatmentType}</span></span>
+                      )}
+                      {inputs.treatmentType && inputs.treatmentType !== 'None' && inputs.treatmentRetentionHrs && (
+                        <span>Retention: <span className="text-foreground">{inputs.treatmentRetentionHrs} hrs</span></span>
+                      )}
+                    </div>
+                  )}
+                  {inputs.dischargePathway === 'POTW-Sanitary Sewer Connection' && inputs.potwName && (
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span>POTW: <span className="text-foreground">{inputs.potwName}</span></span>
+                      {inputs.potwContact && (
+                        <span>Contact: <span className="text-foreground">{inputs.potwContact}</span></span>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-sm text-muted-foreground">Run screening to see water permit metrics</div>
