@@ -573,10 +573,10 @@ export default function SitePlanner({ setActiveTab }) {
           {/* Permit Requirements */}
           <Card>
             <CardHeader>
-              <CardTitle>Permit Requirements</CardTitle>
+              <CardTitle>Tell Us About Your Site</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">Which permit domains apply to this site?</p>
+              <p className="text-sm text-muted-foreground mb-4">Answer a few questions and we'll flag which permit domains apply.</p>
               <div className="grid grid-cols-2 gap-3">
                 {PROJECT_QUESTIONS.map(q => {
                   const val = inputs[q.key] !== false;
